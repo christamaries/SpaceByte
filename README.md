@@ -5,34 +5,5 @@ Project Board: https://trello.com/b/8X54wyuJ/spacebyte?utm_source=eval-email&utm
 
 
 
-Backend Structure
-backend/
-│
-├── src/
-│   ├── controllers/
-│   │   ├── inventoryController.js
-│   │   ├── consumptionController.js
-│   │   └── nutritionController.js
-│   │
-│   ├── routes/
-│   │   ├── inventoryRoutes.js
-│   │   ├── consumptionRoutes.js
-│   │   └── nutritionRoutes.js
-│   │
-│   ├── services/
-│   │   ├── inventoryService.js
-│   │   ├── nutritionService.js
-│   │   └── recommendationService.js
-│   │
-│   ├── models/
-│   │   ├── FoodItem.js
-│   │   ├── ConsumptionLog.js
-│   │   └── UserProfile.js
-│   │
-│   ├── config/
-│   │   └── firebase.js
-│   │
-│   └── app.js
-│
-├── package.json
-└── .env
+# Backend Structure
+
