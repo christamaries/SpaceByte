@@ -7,3 +7,34 @@ Project Board: https://trello.com/b/8X54wyuJ/spacebyte?utm_source=eval-email&utm
 
 # Backend Structure
 
+SpaceByte/
+│
+├── backend/
+│   │
+│   ├── node_modules/
+│   │
+│   ├── src/
+│   │   ├── app.js
+│   │   │
+│   │   ├── config/
+│   │   │   └── firebase.js
+│   │   │
+│   │   ├── controllers/
+│   │   │   ├── consumptionController.js
+│   │   │   ├── inventoryController.js
+│   │   │   └── userController.js
+│   │   │
+│   │   ├── middleware/
+│   │   │   └── authMiddleware.js
+│   │   │
+│   │   └── routes/
+│   │       ├── consumptionRoutes.js
+│   │       ├── inventoryRoutes.js
+│   │       └── userRoutes.js
+│   │
+│   ├── .gitignore
+│   ├── package.json
+│   ├── package-lock.json
+│   └── serviceAccountKey.json
+
+
