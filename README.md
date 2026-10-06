@@ -15,8 +15,9 @@ SpaceByte/
 │   │   ├── app.js
 │   │   │
 │   │   ├── config/
-│   │   │   └── firebase.js
+│   │   │   ├── firebase.js
 │   │   │   └── seedFirestore.js
+│   │   │
 │   │   ├── controllers/
 │   │   │   ├── consumptionController.js
 │   │   │   ├── inventoryController.js
