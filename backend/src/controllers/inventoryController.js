@@ -1,42 +1,96 @@
 // inventoryController.js
 
-// Import the Firestore database connection
-// from the Firebase configuration file
-const { db } = require("../config/firebase");
+// Import inventory service functions.
+const {
+  getInventory,
+  getFoodStatus,
+  getExpiringFood
+} = require("../services/inventoryService");
 
-// Create a function to retrieve all food items
-// from the inventory collection
+
+// ==========================================
+// GET ALL FOOD
+// ==========================================
+
+// GET /inventory
 exports.getAllFood = async (req, res) => {
 
   try {
 
-    // Get all documents from the "inventory" collection
-    const snapshot = await db.collection("inventory").get();
+    // Get all inventory items.
+    const foods = await getInventory();
 
-    // Convert each Firestore document into a JavaScript object
-    const foods = snapshot.docs.map(doc => ({
+    // Add a calculated status to every item.
+    const inventory = foods.map(food => ({
 
-      // Store the Firestore document ID as the food ID
-      id: doc.id,
+      ...food,
 
-      // Include all of the food information
-      // stored inside the Firestore document
-      ...doc.data()
+      // Examples:
+      // OK
+      // LOW
+      // EXPIRING
+      // EXPIRED
+      status: getFoodStatus(food)
+
     }));
 
-    // Send the food inventory back to the frontend
-    // with a successful HTTP 200 response
-    res.status(200).json(foods);
+    // Return the inventory.
+    res.status(200).json(inventory);
 
   } catch (error) {
 
-    // Display the error in the server console
-    console.error("Error getting inventory:", error);
+    console.error(
+      "Error getting inventory:",
+      error
+    );
 
-    // Send a 500 server error response
-    // if the inventory cannot be retrieved
     res.status(500).json({
-      error: error.message
+      error: "Unable to retrieve inventory"
     });
+
   }
+
+};
+
+
+// ==========================================
+// GET EXPIRING FOOD
+// ==========================================
+
+// GET /inventory/expiring
+exports.getExpiringFood = async (req, res) => {
+
+  try {
+
+    // Get the number of days from the query string.
+    //
+    // Example:
+    // /inventory/expiring?days=7
+    const days =
+      Number(req.query.days) || 7;
+
+    // Find food expiring within that period.
+    const foods =
+      await getExpiringFood(days);
+
+    // Return the results.
+    res.status(200).json({
+      days,
+      count: foods.length,
+      items: foods
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Error getting expiring food:",
+      error
+    );
+
+    res.status(500).json({
+      error: "Unable to retrieve expiration information"
+    });
+
+  }
+
 };

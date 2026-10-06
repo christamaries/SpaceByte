@@ -1,23 +1,40 @@
 // inventoryRoutes.js
 
-// Import Express
-// Express is used to create and manage API routes
+// Import Express.
 const express = require("express");
 
-// Create an Express router
+// Create router.
 const router = express.Router();
 
-// Import the inventory controller
-// The controller contains the code that handles inventory requests
+// Import inventory controller.
 const inventoryController =
   require("../controllers/inventoryController");
 
-// Create a GET route
-// GET /inventory
-//
-// This route calls getAllFood()
-// to retrieve all food items from Firestore
-router.get("/", inventoryController.getAllFood);
 
-// Export the router
+// ==========================================
+// GET ALL INVENTORY
+// ==========================================
+
+// GET /inventory
+router.get(
+  "/",
+  inventoryController.getAllFood
+);
+
+
+// ==========================================
+// GET EXPIRING FOOD
+// ==========================================
+
+// GET /inventory/expiring
+//
+// Example:
+// /inventory/expiring?days=7
+router.get(
+  "/expiring",
+  inventoryController.getExpiringFood
+);
+
+
+// Export router.
 module.exports = router;
