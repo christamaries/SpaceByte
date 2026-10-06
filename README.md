@@ -16,10 +16,14 @@ SpaceByte/
 │   │   │
 │   │   ├── config/
 │   │   │   └── firebase.js
-│   │   │
+│   │   │   └── seedFirestore.js
 │   │   ├── controllers/
 │   │   │   ├── consumptionController.js
 │   │   │   ├── inventoryController.js
+│   │   │   ├── mealPlanController.js
+│   │   │   ├── nutritionController.js
+│   │   │   ├── recommendationController.js
+│   │   │   ├──resupplyController.js
 │   │   │   └── userController.js
 │   │   │
 │   │   ├── middleware/
@@ -28,6 +32,10 @@ SpaceByte/
 │   │   └── routes/
 │   │       ├── consumptionRoutes.js
 │   │       ├── inventoryRoutes.js
+│   │       ├── mealPlanRoutes.js
+│   │       ├── nutritionRoutes.js
+│   │       ├── recommendationRoutes.js
+│   │       ├── resupplyRoutes.js
 │   │       └── userRoutes.js
 │   │
 │   ├── .gitignore
