@@ -25,7 +25,7 @@ const admin = require("firebase-admin");
 // Import the Firebase service account credentials.
 //
 
-const serviceAccount = require("./serviceAccountKey.json");
+const serviceAccount = require("../../serviceAccountKey.json");
 
 
 // ---------------------------------------------------------
