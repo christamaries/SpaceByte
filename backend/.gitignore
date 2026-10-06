@@ -1,5 +1,3 @@
 node_modules/
 serviceAccountKey.json
-seedFirestore.js
-firebase.js
 .env
