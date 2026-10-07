@@ -23,11 +23,25 @@ async function getTodayNutrition(userId) {
   let carbs = 0;
   let fat = 0;
 
+  // ADDED THIS Find the start of today (midnight).
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
 
   // Process each consumption record.
   for (const doc of snapshot.docs) {
 
     const log = doc.data();
+
+    // ADDED THISSkip records from before today.
+    const logDate =
+      log.timestamp && log.timestamp.toDate
+        ? log.timestamp.toDate()
+        : null;
+
+    if (!logDate || logDate < startOfToday) {
+      continue;
+    }
 
     // Get the food item associated
     // with this consumption record.
