@@ -1,35 +1,34 @@
 //consumptionRoute.js
 
-// Import Express
-// Express is used to create and manage API routes
+// Import Express.
 const express = require("express");
 
-// Create a new Express router
+// Create an Express router.
 const router = express.Router();
 
-// Import the consumption controller
-// The controller contains the code that handles
-// food consumption requests
+// Import the consumption controller.
 const consumptionController =
   require("../controllers/consumptionController");
 
-// Import authentication middleware
-// This verifies that the user is logged into Firebase
+// Import authentication middleware.
 const verifyToken =
   require("../middleware/authMiddleware");
 
-// Create a POST route
-// POST /consumption
-//
-// The verifyToken middleware runs first.
-// If authentication is successful,
-// logConsumption() handles the request.
+
+/*
+ * Record food consumption.
+ *
+ * POST /consumption
+ *
+ * Only authenticated users can record
+ * food consumption.
+ */
 router.post(
   "/",
   verifyToken,
   consumptionController.logConsumption
 );
 
-// Export the router
-// so it can be connected to the main Express application
+
+// Export the router.
 module.exports = router;

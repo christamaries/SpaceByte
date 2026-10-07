@@ -1,41 +1,60 @@
 // userRoutes.js
 
-// Import Express
-// Express is used to create and manage API routes
+// Import Express.
 const express = require("express");
 
-// Create an Express router
+// Create an Express router.
 const router = express.Router();
 
-// Import the user controller
-const userController =
-  require("../controllers/userController");
+// Import the user controller.
+const userController = require("../controllers/userController");
 
-// Import authentication middleware
-const verifyToken =
-  require("../middleware/authMiddleware");
+// Import authentication middleware.
+const verifyToken = require("../middleware/authMiddleware");
 
-// Get the logged-in user's profile
-// GET /users/profile
-//
-// The user must be authenticated
-// before accessing their profile.
-router.get(
-  "/profile",
-  verifyToken,
-  userController.getProfile
-);
 
-// Create or update the logged-in user's profile
-// POST /users/profile
-//
-// The user must be authenticated
-// before creating or updating their profile.
+/*
+ * Create a user profile.
+ *
+ * POST /users/profile
+ *
+ * The user must already be authenticated.
+ */
 router.post(
   "/profile",
   verifyToken,
   userController.createProfile
 );
 
-// Export the router
+
+/*
+ * Get the user's profile.
+ *
+ * GET /users/profile
+ *
+ * This route is protected.
+ */
+router.get(
+  "/profile",
+  verifyToken,
+  userController.getProfile
+);
+
+
+/*
+ * Logout the user.
+ *
+ * POST /users/logout
+ *
+ * This route is protected because we need
+ * to know which user is logging out.
+ */
+router.post(
+  "/logout",
+  verifyToken,
+  userController.logoutUser
+);
+
+
+// Export the router.
 module.exports = router;

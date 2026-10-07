@@ -1,131 +1,90 @@
 // consumptionController.js
 
-// Import the Firestore database connection
-// from the Firebase configuration file
+// Import Firestore and Firebase Admin.
 const { db, admin } = require("../config/firebase");
 
-// Create a function to log a user's food consumption
+
+/*
+ * Record food consumption.
+ */
 exports.logConsumption = async (req, res) => {
 
   try {
 
-    // Get the food ID and amount consumed
-    // from the request body
-    const { foodId, amount } = req.body;
-
-    // Get the authenticated user's ID
-    // from the Firebase authentication token
+    /*
+     * Get the authenticated user's UID.
+     *
+     * This comes from authMiddleware.js.
+     *
+     * This is safer than trusting a userId
+     * sent by the frontend.
+     */
     const userId = req.user.uid;
 
-    // Make sure the food ID was provided
-    if (!foodId) {
+    // Get information from the request body.
+    const { foodId, amount } = req.body;
 
-      // Return a 400 Bad Request response
+    // Make sure the required information was provided.
+    if (!foodId || !amount) {
       return res.status(400).json({
-        error: "foodId is required"
+        message: "foodId and amount are required."
       });
     }
 
-    // Make sure the amount is a number
-    if (typeof amount !== "number" || isNaN(amount)) {
-
-      // Return an error if amount is not a valid number
-      return res.status(400).json({
-        error: "Invalid amount"
-      });
-    }
-
-    // Make sure the amount is greater than zero
-    if (amount <= 0) {
-
-      // Return an error if the amount is zero or negative
-      return res.status(400).json({
-        error: "Amount must be greater than zero"
-      });
-    }
-
-    // Create a reference to the food item
-    // inside the inventory collection
+    /*
+     * Get the food document from Firestore.
+     */
     const foodRef = db.collection("inventory").doc(foodId);
 
-    // Retrieve the food document from Firestore
-    const foodDoc = await foodRef.get();
+    const foodDocument = await foodRef.get();
 
-    // Check whether the food item exists
-    if (!foodDoc.exists) {
-
-      // Return a 404 error if the food does not exist
+    // Make sure the food exists.
+    if (!foodDocument.exists) {
       return res.status(404).json({
-        error: "Food item not found"
+        message: "Food item not found."
       });
     }
 
-    // Get the food information from Firestore
-    const foodData = foodDoc.data();
+    // Get the current food information.
+    const food = foodDocument.data();
 
-    // Get the current inventory quantity
-    const currentQuantity = foodData.quantity;
-
-    // Make sure the current quantity is a number
-    if (typeof currentQuantity !== "number") {
-
-      return res.status(500).json({
-        error: "Inventory quantity is invalid"
-      });
-    }
-
-    // Make sure the user is not consuming
-    // more food than is available
-    if (amount > currentQuantity) {
-
-      // Return a 400 error if there is not enough food
+    // Make sure there is enough food available.
+    if (food.quantity < amount) {
       return res.status(400).json({
-        error: "Not enough food available in inventory"
+        message: "Not enough food in inventory."
       });
     }
 
-    // Calculate the new inventory quantity
-    const newQuantity = currentQuantity - amount;
-
-    // Update the food quantity in Firestore
+    /*
+     * Decrease the inventory quantity.
+     */
     await foodRef.update({
-      quantity: newQuantity
+      quantity: food.quantity - amount
     });
 
-    // Add a new consumption record to Firestore
+    /*
+     * Save the consumption record.
+     *
+     * The userId comes from Firebase Authentication.
+     */
     await db.collection("consumptionLogs").add({
-
-      // Store the ID of the food that was consumed
-      foodId: foodId,
-
-      // Store the amount of food consumed
-      amount: amount,
-
-      // Store the authenticated user's ID
       userId: userId,
-
-      // Store the date and time of consumption
-      timestamp: new Date()
+      foodId: foodId,
+      amount: amount,
+      consumedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    // Send a successful response back to the frontend
+    // Send a successful response.
     res.status(200).json({
-
-      // Confirmation message
-      message: "Meal logged successfully",
-
-      // Return the updated inventory quantity
-      remainingQuantity: newQuantity
+      message: "Food consumption recorded successfully."
     });
 
   } catch (error) {
 
-    // Display the error in the server console
-    console.error("Error logging consumption:", error);
+    console.error("Consumption error:", error);
 
-    // Send a 500 server error response
     res.status(500).json({
-      error: error.message
+      message: "Unable to record food consumption."
     });
   }
 };

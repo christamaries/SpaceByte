@@ -1,16 +1,9 @@
 // app.js
 
-// Load environment variables from the .env file.
-require("dotenv").config();
-
 // Import Express.
 const express = require("express");
 
-// Import CORS.
-// This allows the frontend to communicate with the backend.
-const cors = require("cors");
-
-// Import existing routes.
+// Import your routes.
 const inventoryRoutes =
   require("./routes/inventoryRoutes");
 
@@ -20,109 +13,66 @@ const consumptionRoutes =
 const userRoutes =
   require("./routes/userRoutes");
 
-// Import NEW routes.
-const nutritionRoutes =
-  require("./routes/nutritionRoutes");
-
-const mealPlanRoutes =
-  require("./routes/mealPlanRoutes");
-
-const resupplyRoutes =
-  require("./routes/resupplyRoutes");
-
-const recommendationRoutes =
-  require("./routes/recommendationRoutes");
 
 // Create the Express application.
 const app = express();
 
-// Enable CORS.
-app.use(cors());
 
-// Allow the server to receive JSON request bodies.
+// Allow Express to read JSON request bodies.
 app.use(express.json());
 
 
-// ==========================================
-//              API ROUTES
-// ==========================================
+// ---------------------------------------
+//            USER ROUTES
+// ---------------------------------------
 
-// Inventory
-// GET /inventory
-app.use("/inventory", inventoryRoutes);
-
-// Food consumption
-// POST /consumption
-app.use("/consumption", consumptionRoutes);
-
-// User profiles
-// GET /users/profile
-// POST /users/profile
+// User profile and authentication-related routes.
 app.use("/users", userRoutes);
 
-// Nutrition
-// GET /nutrition/today
-app.use("/nutrition", nutritionRoutes);
 
-// Meal planning
-// GET /meal-plan
-// POST /meal-plan
-// PUT /meal-plan/:id
-// DELETE /meal-plan/:id
-app.use("/meal-plan", mealPlanRoutes);
+// ---------------------------------------
+//          INVENTORY ROUTES
+// ---------------------------------------
 
-// Resupply forecasting
-// GET /resupply/forecast
-app.use("/resupply", resupplyRoutes);
-
-// Food recommendations
-// GET /recommendations
-app.use("/recommendations", recommendationRoutes);
+// Inventory routes.
+app.use("/inventory", inventoryRoutes);
 
 
-// ==========================================
-//              HEALTH CHECK
-// ==========================================
+// ---------------------------------------
+//        CONSUMPTION ROUTES
+// ---------------------------------------
 
-// This route allows us to quickly check
-// whether the backend is running.
+// Food consumption routes.
+app.use("/consumption", consumptionRoutes);
+
+
+// ---------------------------------------
+//            TEST ROUTE
+// ---------------------------------------
+
+// This route checks whether the backend
+// is running correctly.
 app.get("/", (req, res) => {
 
-  res.status(200).json({
-    message: "SpaceByte Food Management API is running",
-    status: "online"
+  res.json({
+    message: "Food Inventory API is running"
   });
 
 });
 
 
-// ==========================================
-//              ERROR HANDLER
-// ==========================================
+// ---------------------------------------
+//            START SERVER
+// ---------------------------------------
 
-// This catches errors that were not handled
-// by one of the controllers.
-app.use((err, req, res, next) => {
-
-  console.error("Server error:", err);
-
-  res.status(500).json({
-    error: "Internal server error"
-  });
-
-});
-
-
-// ==========================================
-//              START SERVER
-// ==========================================
-
+// Use the PORT environment variable if one exists.
+// Otherwise use port 5001.
 const PORT = process.env.PORT || 5001;
 
+
+// Start the Express server.
 app.listen(PORT, () => {
 
-  console.log(
-    `SpaceByte backend running on port ${PORT}`
-  );
+  console.log(`Server running on port ${PORT}`);
 
 });
