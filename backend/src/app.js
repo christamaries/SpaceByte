@@ -33,6 +33,10 @@ const resupplyRoutes =
 const recommendationRoutes =
   require("./routes/recommendationRoutes");
 
+//to go with all the dashboard just created
+  const dashboardRoutes =
+  require("./routes/dashboardRoutes");
+
 // Create the Express application.
 const app = express();
 
@@ -78,6 +82,11 @@ app.use("/resupply", resupplyRoutes);
 // Food recommendations
 // GET /recommendations
 app.use("/recommendations", recommendationRoutes);
+
+
+// Dashboard
+// GET /dashboard
+app.use("/dashboard", dashboardRoutes);
 
 
 // ==========================================
