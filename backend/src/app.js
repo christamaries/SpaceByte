@@ -13,6 +13,9 @@ const consumptionRoutes =
 const userRoutes =
   require("./routes/userRoutes");
 
+const nutritionRoutes = 
+  require("./routes/nutritionRoutes");
+
 
 // Create the Express application.
 const app = express();
@@ -45,6 +48,12 @@ app.use("/inventory", inventoryRoutes);
 // Food consumption routes.
 app.use("/consumption", consumptionRoutes);
 
+// ---------------------------------------
+//            NUTRITION ROUTE
+// ---------------------------------------
+
+// Nutrition routes.
+app.use("/nutrition", nutritionRoutes);
 
 // ---------------------------------------
 //            TEST ROUTE

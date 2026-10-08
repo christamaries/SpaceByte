@@ -23,13 +23,12 @@ const admin = require("firebase-admin");
 // ---------------------------------------------------------
 
 // Import the Firebase service account credentials.
-//
 
 const serviceAccount = require("../../serviceAccountKey.json");
 
 
 // ---------------------------------------------------------
-// INITIALIZE FIREBASE
+//              INITIALIZE FIREBASE
 // ---------------------------------------------------------
 
 // Initialize Firebase Admin using the service account.
@@ -43,7 +42,7 @@ const db = admin.firestore();
 
 
 // ---------------------------------------------------------
-// MAIN SEED FUNCTION
+//                MAIN SEED FUNCTION
 // ---------------------------------------------------------
 
 // This function creates sample data in Firestore.
@@ -54,7 +53,7 @@ async function seedDatabase() {
 
 
     // =====================================================
-    // USERS COLLECTION
+    //              USERS COLLECTION
     // =====================================================
 
     // Create a sample user document.
@@ -104,7 +103,7 @@ async function seedDatabase() {
 
 
     // =====================================================
-    // INVENTORY COLLECTION
+    //            INVENTORY COLLECTION
     // =====================================================
 
     // Sample food inventory.
@@ -121,7 +120,7 @@ async function seedDatabase() {
     const inventoryItems = [
 
       // ---------------------------------------------------
-      // APPLE
+      //              APPLE
       // ---------------------------------------------------
 
       {
@@ -160,7 +159,7 @@ async function seedDatabase() {
 
 
       // ---------------------------------------------------
-      // BANANA
+      //                BANANA
       // ---------------------------------------------------
 
       {
@@ -195,7 +194,7 @@ async function seedDatabase() {
 
 
       // ---------------------------------------------------
-      // RICE
+      //                  RICE
       // ---------------------------------------------------
 
       {
@@ -230,7 +229,7 @@ async function seedDatabase() {
 
 
       // ---------------------------------------------------
-      // CHICKEN BREAST
+      //                CHICKEN BREAST
       // ---------------------------------------------------
 
       {
@@ -265,11 +264,11 @@ async function seedDatabase() {
 
 
       // ===================================================
-      // NASA-INSPIRED FOOD EXAMPLES
+      //          NASA-INSPIRED FOOD EXAMPLES
       // ===================================================
 
       // ---------------------------------------------------
-      // SPACE GRANOLA
+      //                SPACE GRANOLA
       // ---------------------------------------------------
 
       {
@@ -304,7 +303,7 @@ async function seedDatabase() {
 
 
       // ---------------------------------------------------
-      // FREEZE-DRIED STRAWBERRIES
+      //          FREEZE-DRIED STRAWBERRIES
       // ---------------------------------------------------
 
       {
@@ -339,7 +338,7 @@ async function seedDatabase() {
 
 
       // ---------------------------------------------------
-      // PROTEIN PACK
+      //                  PROTEIN PACK
       // ---------------------------------------------------
 
       {
@@ -375,7 +374,7 @@ async function seedDatabase() {
 
 
     // -----------------------------------------------------
-    // ADD INVENTORY ITEMS TO FIRESTORE
+    //        ADD INVENTORY ITEMS TO FIRESTORE
     // -----------------------------------------------------
 
     // Loop through every food item in the inventory array.
@@ -421,7 +420,7 @@ async function seedDatabase() {
 
 
     // =====================================================
-    // CONSUMPTION LOGS COLLECTION
+    //            CONSUMPTION LOGS COLLECTION
     // =====================================================
 
     // Consumption logs record when a user consumes food.
@@ -435,7 +434,7 @@ async function seedDatabase() {
 
 
     // -----------------------------------------------------
-    // FIRST CONSUMPTION LOG
+    //              FIRST CONSUMPTION LOG
     // -----------------------------------------------------
 
     await db.collection("consumptionLogs").doc("log1").set({
@@ -456,7 +455,7 @@ async function seedDatabase() {
 
 
     // -----------------------------------------------------
-    // SECOND CONSUMPTION LOG
+    //              SECOND CONSUMPTION LOG
     // -----------------------------------------------------
 
     await db.collection("consumptionLogs").doc("log2").set({
@@ -480,7 +479,7 @@ async function seedDatabase() {
 
 
     // =====================================================
-    // SEED COMPLETE
+    //                  SEED COMPLETE
     // =====================================================
 
     console.log("Firestore seeded successfully!");
@@ -493,7 +492,7 @@ async function seedDatabase() {
   } catch (error) {
 
     // -----------------------------------------------------
-    // ERROR HANDLING
+    //                ERROR HANDLING
     // -----------------------------------------------------
 
     // Display the error in the terminal if something
@@ -511,7 +510,7 @@ async function seedDatabase() {
 
 
 // ---------------------------------------------------------
-// RUN THE SEED FUNCTION
+//                RUN THE SEED FUNCTION
 // ---------------------------------------------------------
 
 // Execute the database seeding function.
