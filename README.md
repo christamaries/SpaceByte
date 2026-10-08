@@ -20,25 +20,34 @@ SpaceByte/
 │   │   │
 │   │   ├── controllers/
 │   │   │   ├── consumptionController.js
+│   │   │   ├── dashboardController.js
 │   │   │   ├── inventoryController.js
 │   │   │   ├── mealPlanController.js
 │   │   │   ├── nutritionController.js
 │   │   │   ├── recommendationController.js
-│   │   │   ├──resupplyController.js
+│   │   │   ├── resupplyController.js
 │   │   │   └── userController.js
 │   │   │
 │   │   ├── middleware/
 │   │   │   └── authMiddleware.js
 │   │   │
-│   │   └── routes/
-│   │       ├── consumptionRoutes.js
-│   │       ├── inventoryRoutes.js
-│   │       ├── mealPlanRoutes.js
-│   │       ├── nutritionRoutes.js
-│   │       ├── recommendationRoutes.js
-│   │       ├── resupplyRoutes.js
-│   │       └── userRoutes.js
-│   │
+│   │   ├── routes/
+│   │   │   ├── consumptionRoutes.js
+│   │   │   ├── dashboardRoutes.js
+│   │   │   ├── inventoryRoutes.js
+│   │   │   ├── mealPlanRoutes.js
+│   │   │   ├── nutritionRoutes.js
+│   │   │   ├── recommendationRoutes.js
+│   │   │   ├── resupplyRoutes.js
+│   │   │   └── userRoutes.js
+│   │   │
+│   │   ├── services/
+│   │   │   ├── inventoryService.js
+│   │   │   ├── dashboardService.js
+│   │   │   ├── nutritionService.js
+│   │   │   ├── recommendationservice.js
+│   │   │   └── resupplyservice.js
+│   │ 
 │   ├── .gitignore
 │   ├── package.json
 │   ├── package-lock.json
