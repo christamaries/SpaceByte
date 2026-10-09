@@ -1,5 +1,7 @@
 // dashboardService.js
 // just created
+
+
 // Import existing services.
 const {
   getInventory,
@@ -12,14 +14,13 @@ const {
 
 
 // Daily calorie target.
-//
 // Matches the target used in
 // nutritionController.js for now.
 const CALORIE_TARGET = 2800;
 
 
 // ==========================================
-// BUILD DASHBOARD
+//            BUILD DASHBOARD
 // ==========================================
 
 async function getDashboard(userId) {

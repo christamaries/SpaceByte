@@ -5,7 +5,7 @@ const { db } = require("../config/firebase");
 
 
 // ==========================================
-// GET TODAY'S NUTRITION
+//        GET TODAY'S NUTRITION
 // ==========================================
 
 async function getTodayNutrition(userId) {

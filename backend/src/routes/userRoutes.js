@@ -13,13 +13,8 @@ const userController = require("../controllers/userController");
 const verifyToken = require("../middleware/authMiddleware");
 
 
-/*
- * Create a user profile.
- *
- * POST /users/profile
- *
- * The user must already be authenticated.
- */
+// Create a user profile.
+// The user must already be authenticated.
 router.post(
   "/profile",
   verifyToken,
@@ -27,13 +22,8 @@ router.post(
 );
 
 
-/*
- * Get the user's profile.
- *
- * GET /users/profile
- *
- * This route is protected.
- */
+// Get the user's profile.
+// This route is protected.
 router.get(
   "/profile",
   verifyToken,
@@ -41,14 +31,9 @@ router.get(
 );
 
 
-/*
- * Logout the user.
- *
- * POST /users/logout
- *
- * This route is protected because we need
- * to know which user is logging out.
- */
+
+// Logout the user.
+// This route is protected because we need to know which user is logging out.
 router.post(
   "/logout",
   verifyToken,

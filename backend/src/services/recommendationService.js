@@ -5,7 +5,7 @@ const { db } = require("../config/firebase");
 
 
 // ==========================================
-// GET FOOD RECOMMENDATIONS
+//        GET FOOD RECOMMENDATIONS
 // ==========================================
 
 async function getRecommendations(userId) {

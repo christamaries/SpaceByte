@@ -4,12 +4,8 @@
 const { admin, db } = require("../config/firebase");
 
 
-/*
- * Create a user profile in Firestore.
- *
- * Firebase Authentication handles the actual
- * authentication account.
- */
+// Create a user profile in Firestore.
+// Firebase Authentication handles the actual authentication account.
 exports.createProfile = async (req, res) => {
 
   try {
@@ -20,16 +16,13 @@ exports.createProfile = async (req, res) => {
     // Get information from the request body.
     const { displayName } = req.body;
 
-    /*
-     * Get the user's Firebase Authentication record.
-     */
+  
+    // Get the user's Firebase Authentication record.
     const userRecord = await admin.auth().getUser(uid);
 
-    /*
-     * Create a user document in Firestore.
-     *
-     * The Firebase UID is used as the document ID.
-     */
+    
+    // Create a user document in Firestore.
+    // The Firebase UID is used as the document ID.
     await db.collection("users").doc(uid).set({
       uid: uid,
       email: userRecord.email,
@@ -55,9 +48,7 @@ exports.createProfile = async (req, res) => {
 };
 
 
-/*
- * Get the currently logged-in user's profile.
- */
+// Get the currently logged-in user's profile.
 exports.getProfile = async (req, res) => {
 
   try {
@@ -94,14 +85,9 @@ exports.getProfile = async (req, res) => {
 };
 
 
-/*
- * Logout the authenticated user.
- *
- * Firebase logout normally happens on the frontend.
- *
- * This backend function revokes the user's
- * Firebase refresh tokens.
- */
+// Logout the authenticated user.
+// Firebase logout normally happens on the frontend.
+// This backend function revokes the user's Firebase refresh tokens.
 exports.logoutUser = async (req, res) => {
 
   try {
@@ -109,12 +95,10 @@ exports.logoutUser = async (req, res) => {
     // Get the logged-in user's UID.
     const uid = req.user.uid;
 
-    /*
-     * Revoke the user's refresh tokens.
-     *
-     * This makes previously issued refresh tokens
-     * invalid.
-     */
+    
+    // Revoke the user's refresh tokens.
+    // This makes previously issued refresh tokens
+    //invalid.
     await admin.auth().revokeRefreshTokens(uid);
 
     // Send a successful response.

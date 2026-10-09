@@ -15,13 +15,9 @@ const verifyToken =
   require("../middleware/authMiddleware");
 
 
-/*
- * Get all inventory items.
- *
- * GET /inventory
- *
- * The user must be logged in.
- */
+
+// Get all inventory items.
+// The user must be logged in.
 router.get(
   "/",
   verifyToken,

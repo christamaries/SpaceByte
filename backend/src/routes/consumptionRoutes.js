@@ -15,14 +15,8 @@ const verifyToken =
   require("../middleware/authMiddleware");
 
 
-/*
- * Record food consumption.
- *
- * POST /consumption
- *
- * Only authenticated users can record
- * food consumption.
- */
+//Record food consumption.
+// Only authenticated users can record food consumption.
 router.post(
   "/",
   verifyToken,

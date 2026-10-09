@@ -9,7 +9,7 @@
 
 
 // ---------------------------------------------------------
-// FIREBASE ADMIN SDK
+//              FIREBASE ADMIN SDK
 // ---------------------------------------------------------
 
 // Import the Firebase Admin SDK.
@@ -19,7 +19,7 @@ const admin = require("firebase-admin");
 
 
 // ---------------------------------------------------------
-// SERVICE ACCOUNT
+//                SERVICE ACCOUNT
 // ---------------------------------------------------------
 
 // Import the Firebase service account credentials.
@@ -491,9 +491,9 @@ async function seedDatabase() {
 
   } catch (error) {
 
-    // -----------------------------------------------------
+    // =====================================================
     //                ERROR HANDLING
-    // -----------------------------------------------------
+    // =====================================================
 
     // Display the error in the terminal if something
     // goes wrong while seeding Firestore.

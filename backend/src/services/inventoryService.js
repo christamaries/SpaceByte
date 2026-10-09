@@ -5,7 +5,7 @@ const { db } = require("../config/firebase");
 
 
 // ==========================================
-// GET ALL INVENTORY
+//           GET ALL INVENTORY
 // ==========================================
 
 async function getInventory() {
@@ -29,7 +29,7 @@ async function getInventory() {
 
 
 // ==========================================
-// GET ONE FOOD ITEM
+//           GET ONE FOOD ITEM
 // ==========================================
 
 async function getFoodById(foodId) {
@@ -55,7 +55,7 @@ async function getFoodById(foodId) {
 
 
 // ==========================================
-// DETERMINE FOOD STATUS
+//        DETERMINE FOOD STATUS
 // ==========================================
 
 function getFoodStatus(food) {
@@ -110,7 +110,7 @@ function getFoodStatus(food) {
 
 
 // ==========================================
-// GET EXPIRING FOOD
+//          GET EXPIRING FOOD
 // ==========================================
 
 async function getExpiringFood(days = 7) {

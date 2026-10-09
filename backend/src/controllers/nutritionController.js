@@ -11,7 +11,6 @@ const {
 // ==========================================
 
 // GET /nutrition/today
-//
 // The authenticated user's ID is used
 // to find their consumption records.
 exports.getTodayNutrition = async (req, res) => {
@@ -26,8 +25,6 @@ exports.getTodayNutrition = async (req, res) => {
       await getTodayNutrition(userId);
 
     // Optional daily target.
-    //
-    // Your Sprint 1 presentation shows
     // a 2,800 calorie target.
     const calorieTarget = 2800;
 
