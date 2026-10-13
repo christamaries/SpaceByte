@@ -21,14 +21,17 @@ exports.createProfile = async (req, res) => {
     const userRecord = await admin.auth().getUser(uid);
 
     
-    // Create a user document in Firestore.
-    // The Firebase UID is used as the document ID.
-    await db.collection("users").doc(uid).set({
-      uid: uid,
-      email: userRecord.email,
-      displayName: displayName || userRecord.displayName || "",
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
+    // Create or update the user's profile without deleting
+    // existing profile fields that are not included here.
+    await db.collection("users").doc(uid).set(
+      {
+        uid: uid,
+        email: userRecord.email,
+        displayName: displayName || userRecord.displayName || "",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
 
     // Send a successful response.
     res.status(201).json({

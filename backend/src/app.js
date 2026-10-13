@@ -1,32 +1,60 @@
 // app.js
 
-// Import Express.
+// Import Express to create the backend server.
 const express = require("express");
 
-// Import your routes.
+// Import CORS to allow the frontend to communicate
+// with the backend from a different localhost port.
+const cors = require("cors");
+
+// Import the inventory routes.
 const inventoryRoutes =
   require("./routes/inventoryRoutes");
 
+// Import the food consumption routes.
 const consumptionRoutes =
   require("./routes/consumptionRoutes");
 
+// Import the user routes for profiles and authentication.
 const userRoutes =
   require("./routes/userRoutes");
 
+// Import the nutrition routes.
 const nutritionRoutes = 
   require("./routes/nutritionRoutes");
 
-
-//to go with all the dashboard just created
-  const dashboardRoutes =
+// Import the dashboard routes.
+const dashboardRoutes =
   require("./routes/dashboardRoutes");
+
+// Import resupply routes.
+const resupplyRoutes = 
+  require("./routes/resupplyRoutes");
+
+// Import food recommendation routes.
+const recommendationRoutes =
+  require("./routes/recommendationRoutes");
 
 // Create the Express application.
 const app = express();
 
 
-// Allow Express to read JSON request bodies.
+// ================================================
+//                MIDDLEWARE
+// ================================================
+
+// Allow requests from the React + Vite frontend.
+// Vite normally runs on port 5173 during development.
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
+
+// Allow Express to receive and parse JSON request bodies.
+// This is needed when the frontend sends JSON data.
 app.use(express.json());
+
 
 
 // =======================================
@@ -59,33 +87,37 @@ app.use("/consumption", consumptionRoutes);
 // Nutrition routes.
 app.use("/nutrition", nutritionRoutes);
 
-//=======================================
-//            TEST ROUTE
-// =======================================
+// ================================================
+//                RESUPPLY ROUTES
+// ================================================
 
-// This route checks whether the backend
-// is running correctly.
-
-// Resupply forecasting
-// GET /resupply/forecast
+// Routes for forecasting food resupply.
 app.use("/resupply", resupplyRoutes);
 
-// Food recommendations
-// GET /recommendations
+
+// ================================================
+//             RECOMMENDATION ROUTES
+// ================================================
+
+// Routes for food recommendations.
 app.use("/recommendations", recommendationRoutes);
 
 
-// Dashboard
-// GET /dashboard
+// ================================================
+//                DASHBOARD ROUTES
+// ================================================
+
+// Routes for the SpaceByte dashboard.
 app.use("/dashboard", dashboardRoutes);
+
 
 
 // ==========================================
 //              HEALTH CHECK
 // ==========================================
 
-// This route allows us to quickly check
-// whether the backend is running.
+// Visit http://localhost:5001/ to verify that
+// the backend server is responding.
 app.get("/", (req, res) => {
 
   res.json({
@@ -103,9 +135,9 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5001;
 
 
-// Start the Express server.
+// Start the backend server and display its port.
 app.listen(PORT, () => {
 
-  console.log(`Server running on port ${PORT}`);
+  console.log(`SpaceByte server running on port ${PORT}`);
 
 });

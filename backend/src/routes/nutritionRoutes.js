@@ -1,37 +1,21 @@
 // nutritionRoutes.js
 
-// Import Express.
+// Import Express to create routes.
 const express = require("express");
 
-
-// Create an Express router.
-const nrouter = express.Router();
-
-// Import the nutrition controller.
-const nutritionController = require("../controllers/nutritionController");
-
-// Import authentication middleware.
-const verifyToken = require("../middleware/authMiddleware");
-
-// Get nutrition information for a specific food item.
-// Example: GET /nutrition/food1
-router.get("/:foodId", verifyToken, nutritionController.getNutrition);
-
-// Export the router.
-// Create router.
+// Create one Express router for nutrition endpoints.
 const router = express.Router();
 
-// Import authentication middleware.
-const verifyToken =
-  require("../middleware/authMiddleware");
-
-// Import nutrition controller.
+// Import the nutrition controller only once.
 const nutritionController =
   require("../controllers/nutritionController");
 
+// Import middleware to verify the user's authentication token.
+const verifyToken =
+  require("../middleware/authMiddleware");
 
 // ==========================================
-//           GET TODAY'S NUTRITION
+//        GET TODAY'S NUTRITION
 // ==========================================
 
 // GET /nutrition/today
@@ -42,6 +26,18 @@ router.get(
   nutritionController.getTodayNutrition
 );
 
+// ==========================================
+// GET NUTRITION FOR A SPECIFIC FOOD ITEM
+// ==========================================
 
-// Export router.
+// GET /nutrition/:foodId
+// Example: GET /nutrition/food1
+// Requires a logged-in user.
+router.get(
+  "/:foodId",
+  verifyToken,
+  nutritionController.getNutrition
+);
+
+// Export the router so app.js can use it.
 module.exports = router;
