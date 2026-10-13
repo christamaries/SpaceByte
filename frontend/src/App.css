@@ -1,446 +1,312 @@
+/*
+ * SpaceByte - Authentication Styles
+ *
+ * This file styles the login, signup, password-reset,
+ * and signed-in dashboard screens.
+ */
 
-/* SpaceByte global styles */
-
-:root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  color: #f5f3ff;
-  background: #090b1a;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-}
-
+/* Apply consistent sizing to all elements. */
 * {
   box-sizing: border-box;
 }
 
+/* Set the default page font and remove browser spacing. */
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Make form controls use the same font as the page. */
 button,
 input {
   font: inherit;
 }
 
-button {
-  cursor: pointer;
-}
+/* ---------------------------------------------------------
+                    MAIN PAGE BACKGROUND
+   --------------------------------------------------------- */
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
-.app-shell {
+/* Center the authentication card over a dark space-inspired background. */
+.spacebyte-page {
   min-height: 100vh;
-  padding: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 32px 16px;
+
+  /* Layered purple gradients create a space-themed appearance. */
   background:
-    radial-gradient(ellipse at 15% 15%, #28204f 0, transparent 42%),
-    radial-gradient(ellipse at 90% 90%, #172b46 0, transparent 35%),
-    #090b1a;
-}
+    radial-gradient(circle at top left, #39256b 0%, transparent 40%),
+    linear-gradient(135deg, #100c24, #21143c 55%, #120d29);
 
-.auth-layout {
-  width: 100%;
-  max-width: 1080px;
-  min-height: 650px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  overflow: hidden;
-  border: 1px solid #30334b;
-  border-radius: 24px;
-  background: #111326;
-  box-shadow: 0 28px 80px #00000045;
-}
-
-.welcome-panel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 40px;
-  overflow: hidden;
-  background: linear-gradient(145deg, #211b48, #151b38 70%, #11263a);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
   color: #ffffff;
-  text-decoration: none;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.7px;
 }
 
-.brand-icon {
-  display: grid;
-  place-items: center;
-  width: 35px;
-  height: 35px;
-  border-radius: 11px;
-  background: #9a7bff;
-  color: #17102c;
-  font-size: 23px;
+/* ---------------------------------------------------------
+                  AUTHENTICATION CARD
+   --------------------------------------------------------- */
+
+/* Main container for login, signup, and password recovery. */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px;
+
+  /* Subtle purple outline and rounded corners. */
+  border: 1px solid rgba(195, 167, 255, 0.25);
+  border-radius: 22px;
+
+  /* Dark background keeps form content readable. */
+  background: rgba(26, 19, 48, 0.96);
+
+  /* Add depth around the card. */
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
 }
 
-.welcome-content {
-  position: relative;
-  z-index: 1;
-  max-width: 410px;
-  padding: 20px 0;
-}
+/* ---------------------------------------------------------
+                      SPACEBYTE BRAND
+   --------------------------------------------------------- */
 
-.planet-art {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 190px;
-  height: 155px;
-  margin: 0 0 25px 8px;
-}
-
-.planet {
-  z-index: 1;
-  color: #b7a4ff;
-  font-size: 100px;
-  text-shadow: 0 0 45px #8d6bff80;
-}
-
-.orbit {
-  position: absolute;
-  width: 175px;
-  height: 65px;
-  border: 1px solid #a99aff90;
-  border-radius: 50%;
-  transform: rotate(-25deg);
-}
-
-.orbit-two {
-  width: 145px;
-  height: 115px;
-  border-color: #69d9ed55;
-  transform: rotate(50deg);
-}
-
-.star {
-  position: absolute;
-  color: #c8baff;
-}
-
-.star-one {
-  top: 12px;
-  right: 15px;
-  font-size: 25px;
-}
-
-.star-two {
-  bottom: 15px;
-  left: 5px;
-  font-size: 22px;
-}
-
-.eyebrow {
-  margin: 0 0 12px;
-  color: #a99aff;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-.welcome-content h1 {
-  max-width: 390px;
-  margin: 0;
-  font-size: clamp(36px, 4vw, 48px);
-  line-height: 1.12;
-  letter-spacing: -1.8px;
-}
-
-.welcome-description,
-.subtitle {
-  color: #a9aec6;
-  font-size: 14px;
-  line-height: 1.8;
-}
-
-.welcome-description {
-  max-width: 370px;
-  margin-top: 18px;
-}
-
-.panel-footer {
-  color: #858ba8;
-  font-size: 10px;
-  letter-spacing: 1.4px;
-}
-
-.form-panel {
+/* Align the star icon and product name. */
+.brand {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 45px;
-  background: #111326;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.form-container {
-  width: 100%;
-  max-width: 365px;
-}
-
-.form-container h2 {
+/* Style the SpaceByte heading. */
+.brand h1 {
   margin: 0;
-  font-size: 29px;
-  letter-spacing: -0.9px;
+  color: #e3d6ff;
+  font-size: 30px;
+  letter-spacing: 0.5px;
 }
 
-.form-container .subtitle {
-  margin: 10px 0 24px;
+/* Style the decorative star beside the brand name. */
+.brand-icon {
+  color: #bda0ff;
+  font-size: 32px;
 }
 
-.form-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-  padding: 5px;
-  margin-bottom: 26px;
-  border-radius: 11px;
-  background: #090b1a;
-}
+/* ---------------------------------------------------------
+                HEADINGS AND DESCRIPTION TEXT
+   --------------------------------------------------------- */
 
-.tab {
-  padding: 11px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #9da3bd;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.tab.active {
-  background: #292345;
-  color: #c6b9ff;
-}
-
-.form-container form {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-container label {
-  margin: 0 0 8px;
-  color: #e7e7f3;
-  font-size: 13px;
-  font-weight: 650;
-}
-
-.form-container input {
-  width: 100%;
-  margin-bottom: 20px;
-  padding: 14px;
-  border: 1px solid #34364e;
-  border-radius: 9px;
-  outline: none;
-  background: #0c0e20;
-  color: #ffffff;
+/* Supporting text beneath the brand heading. */
+.subtitle {
+  margin: 10px 0 28px;
+  color: #c0b8d5;
   font-size: 14px;
-}
-
-.form-container input::placeholder {
-  color: #6e748f;
-}
-
-.form-container input:focus {
-  border-color: #9a7bff;
-  box-shadow: 0 0 0 3px #9a7bff20;
-}
-
-.primary-button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 5px;
-  border: 0;
-  border-radius: 9px;
-  background: linear-gradient(100deg, #a38aff, #7d72ee);
-  color: #100e25;
-  font-weight: 800;
-  transition: filter 0.2s ease;
-}
-
-.primary-button:hover {
-  filter: brightness(1.1);
-}
-
-.feedback {
-  margin: -5px 0 14px;
-  font-size: 13px;
   line-height: 1.6;
-}
-
-.error {
-  color: #ff9eae;
-}
-
-.success {
-  color: #8de4bc;
-}
-
-.switch-text {
-  margin: 24px 0;
-  color: #a9aec6;
-  font-size: 13px;
   text-align: center;
 }
 
-.text-button {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #b6a5ff;
-  font-weight: 750;
+/* Main heading for each authentication screen. */
+.auth-card h2 {
+  margin: 0 0 8px;
+  font-size: 25px;
+  text-align: center;
 }
 
+/* Instructions beneath the screen heading. */
+.section-description {
+  margin: 0 0 24px;
+  color: #c0b8d5;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------
+                  FORMS AND INPUT FIELDS
+   --------------------------------------------------------- */
+
+/* Stack each label and input vertically. */
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Style labels such as Email Address and Password. */
+.auth-card label {
+  margin: 14px 0 8px;
+  color: #eee8ff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Style the text boxes used for form information. */
+.auth-card input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #55456f;
+  border-radius: 9px;
+  outline: none;
+
+  /* Dark input background with light text. */
+  background: #171128;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+/* Make placeholder instructions less prominent. */
+.auth-card input::placeholder {
+  color: #9287a8;
+}
+
+/* Highlight the input when the user clicks or tabs into it. */
+.auth-card input:focus {
+  border-color: #b79aff;
+  box-shadow: 0 0 0 3px rgba(183, 154, 255, 0.15);
+}
+
+/* ---------------------------------------------------------
+                  FORGOT-PASSWORD LINK
+   --------------------------------------------------------- */
+
+/* Place the password recovery link on the right. */
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 12px 0 18px;
+}
+
+/* Shared appearance for text links and navigation buttons. */
+.text-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #c6adff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Change link appearance when the user hovers over it. */
 .text-button:hover {
+  color: #ffffff;
   text-decoration: underline;
 }
 
-.security-note {
-  padding-top: 17px;
-  border-top: 1px solid #292b42;
-  color: #8187a2;
-  font-size: 11px;
-  text-align: center;
-}
+/* ---------------------------------------------------------
+                  PRIMARY ACTION BUTTON
+   --------------------------------------------------------- */
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Main buttons: Sign In, Create Account, and Send Reset Link. */
+.primary-button {
   width: 100%;
-  max-width: 1050px;
-}
-
-.secondary-button {
-  padding: 10px 17px;
-  border: 1px solid #44445f;
+  margin-top: 22px;
+  padding: 14px;
+  border: none;
   border-radius: 9px;
-  background: #17192f;
+
+  /* Purple gradient matches the SpaceByte design. */
+  background: linear-gradient(90deg, #8052d6, #a477f4);
   color: #ffffff;
+
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
-.dashboard {
-  width: 100%;
-  max-width: 650px;
-  margin: 60px auto;
-  padding: 35px;
-  border: 1px solid #30334b;
-  border-radius: 20px;
-  background: #111326;
+/* Slight movement on hover gives visual feedback. */
+.primary-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.93;
+}
+
+/* Make a disabled button visibly unavailable during requests. */
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+/* ---------------------------------------------------------
+              LOGIN AND SIGNUP NAVIGATION
+   --------------------------------------------------------- */
+
+/* Center the text beneath each form. */
+.switch-page {
+  margin: 24px 0 0;
+  color: #d0c8df;
+  font-size: 14px;
+  line-height: 1.8;
   text-align: center;
 }
 
-.dashboard-icon {
-  margin-bottom: 20px;
-  font-size: 55px;
-}
+/* ---------------------------------------------------------
+                SUCCESS AND ERROR MESSAGES
+   --------------------------------------------------------- */
 
-.dashboard h1 {
-  margin: 0;
-  font-size: clamp(28px, 5vw, 40px);
-}
+/* Shared spacing and layout for feedback messages. */
+.error-message,
+.success-message {
+  margin: 16px 0 0;
+  padding: 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
 
-.dashboard .subtitle {
-  margin: 12px 0 25px;
-}
-
-.user-card {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 18px;
-  border: 1px solid #34364e;
-  border-radius: 12px;
-  background: #0c0e20;
-  text-align: left;
+  /* Prevent long error messages from overflowing the card. */
   overflow-wrap: anywhere;
 }
 
-.status-dot {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #65dfab;
+/* Red/pink styling for errors. */
+.error-message {
+  border: 1px solid #a34b66;
+  background: #391b30;
+  color: #ffb9c9;
 }
 
-.user-card strong {
-  font-size: 14px;
+/* Green styling for successful operations. */
+.success-message {
+  border: 1px solid #428d71;
+  background: #16372f;
+  color: #a8f0d0;
 }
 
-.user-card p {
-  margin: 6px 0 0;
-  color: #a9aec6;
-  font-size: 13px;
+/* ---------------------------------------------------------
+                          FOOTER
+   --------------------------------------------------------- */
+
+/* Small brand message at the bottom of each screen. */
+.auth-footer {
+  margin-top: 30px;
+  color: #9287a8;
+  font-size: 12px;
+  text-align: center;
 }
 
-.dashboard-note {
-  color: #a9aec6;
-  font-size: 13px;
-  line-height: 1.7;
+/* ---------------------------------------------------------
+                  SIGNED-IN DASHBOARD
+   --------------------------------------------------------- */
+
+/* Center the welcome message and user information. */
+.dashboard-card {
+  text-align: center;
 }
 
-@media (max-width: 760px) {
-  .app-shell {
-    padding: 12px;
-    align-items: flex-start;
+/* Allow long email addresses to wrap instead of overflowing. */
+.profile-email {
+  color: #c6adff;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------
+                  MOBILE RESPONSIVE DESIGN
+   --------------------------------------------------------- */
+
+/* Reduce padding on narrow screens such as phones. */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 26px 20px;
   }
 
-  .auth-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .welcome-panel {
-    min-height: 350px;
-    padding: 26px;
-  }
-
-  .planet-art {
-    width: 130px;
-    height: 95px;
-    margin: 10px 0 20px;
-  }
-
-  .planet {
-    font-size: 65px;
-  }
-
-  .orbit {
-    width: 125px;
-    height: 45px;
-  }
-
-  .orbit-two {
-    width: 100px;
-    height: 80px;
-  }
-
-  .welcome-content h1 {
-    font-size: 34px;
-  }
-
-  .panel-footer {
-    margin-top: 20px;
-  }
-
-  .form-panel {
-    padding: 30px 22px;
+  /* Slightly reduce the brand heading size on small screens. */
+  .brand h1 {
+    font-size: 26px;
   }
 }

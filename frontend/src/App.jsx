@@ -1,293 +1,563 @@
 
+// SpaceByte - Authentication Frontend
+// This file manages the website's:
+// 1. Login screen
+// 2. Sign-up screen
+// 3. Forgot-password screen
+// 4. Signed-in user dashboard
+ 
+// React controls the screens and form inputs.
+// Firebase Authentication manages user accounts.
+
+
+// Import React hooks.
+// useState stores information that can change.
+// useEffect runs code when the component loads or changes lifecycle.
 import { useEffect, useState } from "react";
+
+// Import Firebase Authentication functions.
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   onAuthStateChanged,
   signOut,
+  updateProfile
 } from "firebase/auth";
 
+// Import the Firebase Authentication instance
+// initialized in src/firebase.js.
 import { auth } from "./firebase";
+
+// Import the styles for the authentication screens.
 import "./App.css";
 
 function App() {
-  // Store whether the visitor is logging in or signing up.
-  const [isSignup, setIsSignup] = useState(false);
+  // ===========================================
+  //              REACT STATE
+  // ===========================================
 
-  // Store the form input values.
+  // Track which screen the user currently sees.
+  // "login", "signup", or "forgot".
+  const [page, setPage] = useState("login");
+
+  // Store the values entered into the form fields.
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Store the authenticated Firebase user.
+  // Store the currently authenticated Firebase user.
+  // null means no user is signed in.
   const [user, setUser] = useState(null);
 
-  // Store messages displayed to the visitor.
-  const [error, setError] = useState("");
+  // Display success messages and errors on the page.
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  // Prevent duplicate form submissions while a request is running.
   const [loading, setLoading] = useState(false);
 
-  // Listen for Firebase login/logout changes.
+  // ===============================================
+  //        MONITOR FIREBASE LOGIN STATUS
+  // ===============================================
+
   useEffect(() => {
+    // Firebase calls this function when the login status changes.
+    // For example, after login, signup, or logout.
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
 
-    // Stop listening when the component is removed.
+    // Stop listening when this component is removed.
     return () => unsubscribe();
   }, []);
 
-  // Create an account or sign in.
-  async function handleSubmit(event) {
+  // ===================================================
+  //        SWITCH BETWEEN AUTHENTICATION SCREENS
+  // ===================================================
+
+  function changePage(nextPage) {
+    // Change the screen displayed by React.
+    setPage(nextPage);
+
+    // Clear messages from the previous screen.
+    setMessage("");
+    setError("");
+
+    // Clear password fields when changing screens.
+    setPassword("");
+    setConfirmPassword("");
+  }
+
+  // ===================================================
+  //              CREATE A NEW USER ACCOUNT
+  // ===================================================
+
+  async function handleSignUp(event) {
+    // Prevent the browser from reloading the page on submission.
     event.preventDefault();
 
-    setError("");
+    // Clear messages from previous attempts.
     setMessage("");
-    setLoading(true);
+    setError("");
+
+    // Require a full name.
+    if (!fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    // Firebase Email/Password Authentication requires
+    // a password of at least six characters by default.
+    if (password.length < 6) {
+      setError("Your password must be at least 6 characters.");
+      return;
+    }
+
+    // Make sure both password fields match.
+    if (password !== confirmPassword) {
+      setError("Your passwords do not match.");
+      return;
+    }
 
     try {
-      if (isSignup) {
-        await createUserWithEmailAndPassword(
-          auth,
-          email.trim(),
-          password
-        );
+      // Show a loading state while Firebase creates the account.
+      setLoading(true);
 
-        setMessage("Your SpaceByte account was created!");
-      } else {
-        await signInWithEmailAndPassword(
-          auth,
-          email.trim(),
-          password
-        );
-      }
+      // Create a Firebase Authentication account using email/password.
+      const credential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      // Save the full name in the Firebase Authentication profile.
+      // This does not automatically create a Firestore users document.
+      await updateProfile(credential.user, {
+        displayName: fullName.trim()
+      });
+
+      // Show confirmation after both operations succeed.
+      setMessage("Your account was created successfully!");
+
+      // Clear password fields after account creation.
+      setPassword("");
+      setConfirmPassword("");
     } catch (err) {
-      switch (err.code) {
-        case "auth/email-already-in-use":
-          setError("This email already has an account. Please log in.");
-          break;
-        case "auth/invalid-email":
-          setError("Please enter a valid email address.");
-          break;
-        case "auth/weak-password":
-          setError("Please choose a stronger password.");
-          break;
-        case "auth/invalid-credential":
-          setError("Incorrect email or password.");
-          break;
-        case "auth/too-many-requests":
-          setError("Too many attempts. Please try again later.");
-          break;
-        default:
-          setError(err.message || "Something went wrong.");
-      }
+      // Convert the Firebase error into a readable message.
+      setError(getFriendlyError(err));
+    } finally {
+      // Always stop showing the loading state.
+      setLoading(false);
+    }
+  }
+
+  // ===================================================
+  //            LOG IN AN EXISTING USER
+  // ===================================================
+
+  async function handleLogin(event) {
+    // Keep the form from refreshing the entire website.
+    event.preventDefault();
+
+    setMessage("");
+    setError("");
+
+    try {
+      setLoading(true);
+
+      // Ask Firebase to authenticate the supplied credentials.
+      await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      // onAuthStateChanged detects the successful login
+      // and updates the user state automatically.
+    } catch (err) {
+      // Display a helpful message if login fails.
+      setError(getFriendlyError(err));
     } finally {
       setLoading(false);
     }
   }
 
-  // Log the user out.
-  async function handleLogout() {
-    setError("");
+  // ===================================================
+  //            SEND A PASSWORD RESET EMAIL
+  // ===================================================
+
+  async function handleForgotPassword(event) {
+    // Prevent the default browser form submission.
+    event.preventDefault();
+
     setMessage("");
+    setError("");
+
+    // The email address is needed to request a reset link.
+    if (!email.trim()) {
+      setError("Enter your email address first.");
+      return;
+    }
 
     try {
-      await signOut(auth);
-      setEmail("");
-      setPassword("");
-    } catch {
-      setError("Unable to log out. Please try again.");
+      setLoading(true);
+
+      // Firebase sends a password reset email.
+      // The user follows the link to choose a new password.
+      await sendPasswordResetEmail(auth, email.trim());
+
+      // Use neutral wording so the page does not reveal
+      // whether a particular email has a registered account.
+      setMessage(
+        "If an account exists for this email, a password reset email has been requested. Check your inbox and spam folder."
+      );
+    } catch (err) {
+      setError(getFriendlyError(err));
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Show the dashboard after successful authentication.
+  // ======================================================
+  //    CONVERT FIREBASE ERRORS INTO READABLE MESSAGES
+  // ======================================================
+
+  function getFriendlyError(err) {
+    // Firebase provides an error code for most authentication errors.
+    switch (err.code) {
+      case "auth/email-already-in-use":
+        return "An account already exists with this email. Please log in.";
+
+      case "auth/invalid-email":
+        return "Please enter a valid email address.";
+
+      case "auth/weak-password":
+        return "Please choose a stronger password.";
+
+      case "auth/invalid-credential":
+      case "auth/wrong-password":
+      case "auth/user-not-found":
+        return "The email or password is incorrect.";
+
+      case "auth/too-many-requests":
+        return "Too many attempts. Please wait and try again.";
+
+      case "auth/api-key-not-valid":
+        return "Firebase rejected the API key. Check your Firebase configuration.";
+
+      case "auth/network-request-failed":
+        return "Network error. Check your internet connection.";
+
+      default:
+        // Log the full error for development troubleshooting.
+        console.error("Firebase error:", err);
+
+        // Display a fallback message.
+        return err.message || "Something went wrong. Please try again.";
+    }
+  }
+
+  // ===================================================
+  //        SHOW THE DASHBOARD AFTER LOGIN
+  //=====================================================
+
+  // If Firebase confirms a signed-in user, show the dashboard
+  // instead of the login and registration forms.
   if (user) {
     return (
-      <main className="app-shell">
-        <header className="topbar">
-          <a className="brand" href="/">
+      <main className="spacebyte-page">
+        <section className="auth-card dashboard-card">
+
+          {/* SpaceByte brand heading */}
+          <div className="brand">
             <span className="brand-icon">✦</span>
-            SpaceByte
-          </a>
-          <button className="secondary-button" onClick={handleLogout}>
-            Log Out
-          </button>
-        </header>
-
-        <section className="dashboard">
-          <div className="dashboard-icon">🚀</div>
-          <p className="eyebrow">MISSION CONTROL</p>
-          <h1>Welcome to SpaceByte!</h1>
-          <p className="subtitle">
-            You're signed in and ready to manage your food inventory.
-          </p>
-
-          <div className="user-card">
-            <span className="status-dot"></span>
-            <div>
-              <strong>Account authenticated</strong>
-              <p>{user.email}</p>
-            </div>
+            <h1>SpaceByte</h1>
           </div>
 
-          <p className="dashboard-note">
-            Your login is working. Food inventory and nutrition
-            features can be connected next.
+          {/* Show the user's saved display name, if available */}
+          <h2>Welcome, {user.displayName || "SpaceByte user"}!</h2>
+
+          <p className="subtitle">
+            You are successfully signed in.
           </p>
+
+          {/* Display the email of the authenticated account */}
+          <p className="profile-email">{user.email}</p>
+
+          {/* Sign out of Firebase Authentication */}
+          <button
+            className="primary-button"
+            onClick={() => signOut(auth)}
+          >
+            Sign Out
+          </button>
         </section>
       </main>
     );
   }
 
-  // Show the login or signup form.
+  // ---------------------------------------------------------
+  // 9. AUTHENTICATION PAGE LAYOUT
+  // ---------------------------------------------------------
+
   return (
-    <main className="app-shell">
-      <section className="auth-layout">
-        <div className="welcome-panel">
-          <a className="brand" href="/">
-            <span className="brand-icon">✦</span>
-            SpaceByte
-          </a>
+    <main className="spacebyte-page">
+      <section className="auth-card">
 
-          <div className="welcome-content">
-            <div className="planet-art" aria-hidden="true">
-              <span className="planet">◉</span>
-              <span className="orbit orbit-one"></span>
-              <span className="orbit orbit-two"></span>
-              <span className="star star-one">✦</span>
-              <span className="star star-two">✧</span>
-            </div>
-
-            <p className="eyebrow">YOUR FOOD. YOUR MISSION.</p>
-            <h1>Make every bite count.</h1>
-            <p className="welcome-description">
-              Keep track of your food inventory, monitor nutrition,
-              and make smarter choices with SpaceByte.
-            </p>
-          </div>
-
-          <p className="panel-footer">
-            SPACEBYTE · FOOD MANAGEMENT REIMAGINED
-          </p>
+        {/* Brand displayed at the top of each authentication screen */}
+        <div className="brand">
+          <span className="brand-icon">✦</span>
+          <h1>SpaceByte</h1>
         </div>
 
-        <div className="form-panel">
-          <div className="form-container">
-            <p className="eyebrow">
-              {isSignup ? "JOIN THE MISSION" : "WELCOME BACK"}
+        <p className="subtitle">
+          Smart food tracking for your everyday journey.
+        </p>
+
+        {
+        
+       // ===================================================
+       //     LOGIN SCREEN
+       // ===================================================
+       
+       }
+
+        {page === "login" && (
+          <>
+            <h2>Welcome Back!</h2>
+
+            <p className="section-description">
+              Sign in to your SpaceByte account.
             </p>
 
-            <h2>
-              {isSignup ? "Create your account" : "Log in to SpaceByte"}
-            </h2>
-
-            <p className="subtitle">
-              {isSignup
-                ? "Set up your account to get started."
-                : "Enter your details to continue your journey."}
-            </p>
-
-            <div className="form-tabs">
-              <button
-                type="button"
-                className={!isSignup ? "tab active" : "tab"}
-                onClick={() => {
-                  setIsSignup(false);
-                  setError("");
-                  setMessage("");
-                }}
-              >
-                Log In
-              </button>
-
-              <button
-                type="button"
-                className={isSignup ? "tab active" : "tab"}
-                onClick={() => {
-                  setIsSignup(true);
-                  setError("");
-                  setMessage("");
-                }}
-              >
-                Sign Up
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <label htmlFor="email">Email address</label>
+            <form onSubmit={handleLogin}>
+              {/* Email field */}
+              <label htmlFor="login-email">Email Address</label>
               <input
-                id="email"
+                id="login-email"
                 type="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
                 required
               />
 
-              <label htmlFor="password">Password</label>
+              {/* Password field */}
+              <label htmlFor="login-password">Password</label>
               <input
-                id="password"
+                id="login-password"
                 type="password"
-                placeholder="At least 6 characters"
+                autoComplete="current-password"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                autoComplete={
-                  isSignup ? "new-password" : "current-password"
-                }
-                minLength={6}
                 required
               />
 
-              {error && (
-                <p className="feedback error" role="alert">
-                  {error}
-                </p>
-              )}
+              {/* Open the password recovery screen */}
+              <div className="forgot-row">
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => changePage("forgot")}
+                >
+                  Forgot Password?
+                </button>
+              </div>
 
-              {message && (
-                <p className="feedback success" role="status">
-                  {message}
-                </p>
-              )}
+              {/* Show errors or confirmation messages */}
+              {error && <p className="error-message">{error}</p>}
+              {message && <p className="success-message">{message}</p>}
 
+              {/* Submit login credentials to Firebase */}
               <button
                 className="primary-button"
                 type="submit"
                 disabled={loading}
               >
-                {loading
-                  ? "Please wait..."
-                  : isSignup
-                  ? "Create Account"
-                  : "Log In"}
+                {loading ? "Signing In..." : "Sign In"}
               </button>
             </form>
 
-            <p className="switch-text">
-              {isSignup
-                ? "Already have an account?"
-                : "New to SpaceByte?"}{" "}
+            {/* Navigate to the registration screen */}
+            <p className="switch-page">
+              Don't have an account?{" "}
               <button
-                type="button"
                 className="text-button"
-                onClick={() => {
-                  setIsSignup(!isSignup);
-                  setError("");
-                  setMessage("");
-                }}
+                onClick={() => changePage("signup")}
               >
-                {isSignup ? "Log in" : "Create an account"}
+                Sign Up
               </button>
             </p>
+          </>
+        )}
 
-            <p className="security-note">
-              Secure sign-in powered by Firebase Authentication.
+        {
+        
+        // ===================================================
+        //                  SIGN-UP SCREEN
+        // ===================================================
+            
+            }
+
+        {page === "signup" && (
+          <>
+            <h2>Create Your Account</h2>
+
+            <p className="section-description">
+              Enter your information to get started.
             </p>
-          </div>
-        </div>
+
+            <form onSubmit={handleSignUp}>
+              {/* Full name for the user's Firebase profile */}
+              <label htmlFor="signup-name">Full Name</label>
+              <input
+                id="signup-name"
+                type="text"
+                autoComplete="name"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                required
+              />
+
+              {/* Email used to sign in and reset the password */}
+              <label htmlFor="signup-email">Email Address</label>
+              <input
+                id="signup-email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+
+              {/* New account password */}
+              <label htmlFor="signup-password">Create Password</label>
+              <input
+                id="signup-password"
+                type="password"
+                autoComplete="new-password"
+                placeholder="At least 6 characters"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={6}
+                required
+              />
+
+              {/* Require the user to enter the password again */}
+              <label htmlFor="confirm-password">
+                Confirm Password
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Enter your password again"
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+                minLength={6}
+                required
+              />
+
+              {/* Show registration errors and success messages */}
+              {error && <p className="error-message">{error}</p>}
+              {message && <p className="success-message">{message}</p>}
+
+              {/* Create the Firebase Authentication account */}
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+              </button>
+            </form>
+
+            {/* Return to the login screen */}
+            <p className="switch-page">
+              Already have an account?{" "}
+              <button
+                className="text-button"
+                onClick={() => changePage("login")}
+              >
+                Back to Login
+              </button>
+            </p>
+          </>
+        )}
+
+        {
+        
+        // ===================================================
+        //                FORGOT-PASSWORD SCREEN
+        // ===================================================
+            
+            }
+
+        {page === "forgot" && (
+          <>
+            <h2>Reset Your Password</h2>
+
+            <p className="section-description">
+              Enter the email address associated with your account.
+              Firebase can send you a password reset link.
+            </p>
+
+            <form onSubmit={handleForgotPassword}>
+              {/* Email address receiving the reset instructions */}
+              <label htmlFor="reset-email">Email Address</label>
+              <input
+                id="reset-email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+
+              {/* Display errors or password-reset confirmation */}
+              {error && <p className="error-message">{error}</p>}
+              {message && <p className="success-message">{message}</p>}
+
+              {/* Request a reset email from Firebase */}
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Reset Link"}
+              </button>
+            </form>
+
+            {/* Allow the user to return to login */}
+            <p className="switch-page">
+              Remember your password?{" "}
+              <button
+                className="text-button"
+                onClick={() => changePage("login")}
+              >
+                Back to Login
+              </button>
+            </p>
+          </>
+        )}
+
+        {/* Footer displayed on all authentication screens */}
+        <footer className="auth-footer">
+          SpaceByte · Your food journey, simplified.
+        </footer>
       </section>
     </main>
   );
 }
 
+// Make the App component available to main.jsx.
 export default App;
