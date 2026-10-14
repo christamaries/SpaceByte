@@ -54,4 +54,12 @@ SpaceByte/
 │   └── serviceAccountKey.json
 ```
 
-
+# Frontend Structure
+```text
+SpaceByte/
+│
+├── frontend/
+│   │
+│   ├── node_modules/
+│   ├── public/
+│   ├── src/
