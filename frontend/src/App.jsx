@@ -1,21 +1,25 @@
 
 // SpaceByte - Authentication Frontend
-// This file manages the website's:
-// 1. Login screen
-// 2. Sign-up screen
-// 3. Forgot-password screen
-// 4. Signed-in user dashboard
- 
-// React controls the screens and form inputs.
-// Firebase Authentication manages user accounts.
+  // This file manages:
+  // 1. Login
+  // 2. Sign-up
+  // 3. Forgot Password
+  // 4. Reset Password
+  // 5. Signed-in user dashboard
 
+  // React manages the screens and form inputs.
+  // Firebase Authentication manages user accounts and passwords.
 
-// Import React hooks.
-// useState stores information that can change.
-// useEffect runs code when the component loads or changes lifecycle.
+// ===================================================
+//                    IMPORTS
+// ===================================================
+
+// Import React hooks for managing state and effects.
 import { useEffect, useState } from "react";
 
-// Import Firebase Authentication functions.
+// Helper for communicating with the Express backend.
+import { apiRequest } from "./api";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -24,163 +28,301 @@ import {
   signOut,
   updateProfile,
   verifyPasswordResetCode,
-  confirmPasswordReset
+  confirmPasswordReset,
 } from "firebase/auth";
 
-// Import the Firebase Authentication instance
-// initialized in src/firebase.js.
+// Firebase Authentication instance from src/firebase.js.
 import { auth } from "./firebase";
 
-// Import the styles for the authentication screens.
+// Styles for SpaceByte authentication screens.
 import "./App.css";
 
 function App() {
+  
+  // ===================================================
+  //                    REACT STATE
+  // ===================================================
 
-  // ===========================================
-  //              REACT STATE
-  // ===========================================
-
-  // Track which screen the user currently sees.
-  // "login", "signup", or "forgot".
+  // Track the screen currently displayed.
+  // Possible values: login, signup, forgot, reset.
   const [page, setPage] = useState("login");
 
-  // Store the values entered into the form fields.
+  // Store registration and login form values.
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Store the currently authenticated Firebase user.
-  // null means no user is signed in.
+  // Store the signed-in Firebase user.
   const [user, setUser] = useState(null);
 
-  // Display success messages and errors on the page.
+  // Store success messages and error messages.
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // Prevent duplicate form submissions while a request is running.
+  // Prevent repeated submissions while loading.
   const [loading, setLoading] = useState(false);
 
   // ===========================================
-  //       PASSWORD RESET STATE
+  //       BACKEND CONNECTION STATE
   // ===========================================
 
-  // Store the new password entered on the reset page.
+  // Stores the profile returned by the backend.
+  const [backendProfile, setBackendProfile] = useState(null);
+
+  // Tracks whether the backend request is in progress.
+  const [backendLoading, setBackendLoading] = useState(false);
+
+  // Stores backend connection or authentication errors.
+  const [backendError, setBackendError] = useState("");
+
+  // ===================================================
+  //                PASSWORD RESET STATE
+  // ===================================================
+
+  // Store the new password and its confirmation.
   const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] =
+    useState("");
 
-  // Store the confirmation of the new password.
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
-
-  // Store the email address associated with the reset code.
+  // Store the email associated with the reset request.
   const [resetEmail, setResetEmail] = useState("");
 
-  // Store Firebase's one-time password reset code.
+  // Store the one-time Firebase password reset code.
   const [resetCode, setResetCode] = useState("");
 
-  // Track whether Firebase has verified the reset code.
+  // Only true after Firebase verifies the reset code.
   const [resetCodeValid, setResetCodeValid] = useState(false);
 
-  // ===============================================
-  //        MONITOR FIREBASE LOGIN STATUS
-  // ===============================================
+  // ===================================================
+  //          MONITOR FIREBASE LOGIN STATUS
+  // ===================================================
 
   useEffect(() => {
-    // Firebase calls this function when the login status changes.
-    // For example, after login, signup, or logout.
+    // Listen for login, logout, and authentication changes.
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
 
-    // Stop listening when this component is removed.
+    // Remove the listener when the component unmounts.
     return () => unsubscribe();
   }, []);
 
+// ===================================================
+//       CONNECT FIREBASE USER TO BACKEND
+// ===================================================
+
+// When Firebase identifies a signed-in user, request that user's profile from the backend.
+useEffect(() => {
+  // If nobody is signed in, clear backend information.
+  if (!user) {
+    setBackendProfile(null);
+    setBackendError("");
+    setBackendLoading(false);
+    return;
+  }
+
+  // Prevent an old request from updating the UI
+  // if the user signs out or changes accounts.
+  let cancelled = false;
+
+  async function loadBackendProfile() {
+    setBackendLoading(true);
+    setBackendError("");
+
+    try {
+      // Obtain a Firebase ID token for this user.
+      const token = await user.getIdToken();
+
+      // Request the protected profile endpoint.
+      const profile = await apiRequest("/users/profile", token);
+
+      // Update state only if this request is still active.
+      if (!cancelled) {
+        setBackendProfile(profile);
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setBackendError(error.message);
+        setBackendProfile(null);
+      }
+    } finally {
+      if (!cancelled) {
+        setBackendLoading(false);
+      }
+    }
+  }
+
+  loadBackendProfile();
+
+  // Clean up if the authenticated user changes.
+  return () => {
+    cancelled = true;
+  };
+}, [user]);
+
   // ===================================================
-  //        SWITCH BETWEEN AUTHENTICATION SCREENS
+  //       DETECT AND VERIFY A RESET LINK
+  // ===================================================
+
+  useEffect(() => {
+    // Read Firebase's password-reset parameters from the URL.
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    const code = params.get("oobCode");
+
+    // Do nothing when this is not a password-reset link.
+    if (mode !== "resetPassword") {
+      return;
+    }
+
+    // Open the reset screen immediately.
+    setPage("reset");
+    setMessage("");
+    setError("");
+    setResetCodeValid(false);
+
+    // A reset code is required.
+    if (!code) {
+      setError(
+        "This reset link is missing its security code. Please request a new link."
+      );
+      return;
+    }
+
+    let active = true;
+
+    // Verify the code before displaying the new-password form.
+    async function verifyResetLink() {
+      setLoading(true);
+
+      try {
+        // Firebase validates the code and returns the account email.
+        const accountEmail = await verifyPasswordResetCode(
+          auth,
+          code
+        );
+
+        // Avoid updating state if the component has unmounted.
+        if (!active) return;
+
+        setResetCode(code);
+        setResetEmail(accountEmail);
+        setEmail(accountEmail);
+        setResetCodeValid(true);
+        setError("");
+      } catch (err) {
+        if (!active) return;
+
+        console.error("Password reset verification failed:", err);
+
+        setResetCodeValid(false);
+
+        if (err.code === "auth/expired-action-code") {
+          setError(
+            "This reset link has expired. Please request a new one."
+          );
+        } else if (err.code === "auth/invalid-action-code") {
+          setError(
+            "This reset link is invalid or has already been used. Please request a new one."
+          );
+        } else {
+          setError(
+            "We couldn't verify this reset link. Please request a new one."
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    verifyResetLink();
+
+    // Prevent state updates after the component unmounts.
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // ===================================================
+  //       SWITCH BETWEEN AUTHENTICATION SCREENS
   // ===================================================
 
   function changePage(nextPage) {
-    // Change the screen displayed by React.
+    // Display the requested screen.
     setPage(nextPage);
 
     // Clear messages from the previous screen.
     setMessage("");
     setError("");
 
-    // Clear password fields when changing screens.
+    // Clear login and signup password fields.
     setPassword("");
     setConfirmPassword("");
   }
 
   // ===================================================
-  //              CREATE A NEW USER ACCOUNT
+  //             CREATE A NEW USER ACCOUNT
   // ===================================================
 
   async function handleSignUp(event) {
-    // Prevent the browser from reloading the page on submission.
     event.preventDefault();
 
-    // Clear messages from previous attempts.
     setMessage("");
     setError("");
 
-    // Require a full name.
+    // Require the user's full name.
     if (!fullName.trim()) {
       setError("Please enter your full name.");
       return;
     }
 
-    // Firebase Email/Password Authentication requires
-    // a password of at least six characters by default.
+    // Check the minimum password length.
     if (password.length < 6) {
       setError("Your password must be at least 6 characters.");
       return;
     }
 
-    // Make sure both password fields match.
+    // Make sure the passwords match.
     if (password !== confirmPassword) {
       setError("Your passwords do not match.");
       return;
     }
 
     try {
-      // Show a loading state while Firebase creates the account.
       setLoading(true);
 
-      // Create a Firebase Authentication account using email/password.
+      // Create the Firebase Authentication account.
       const credential = await createUserWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
 
-      // Save the full name in the Firebase Authentication profile.
-      // This does not automatically create a Firestore users document.
+      // Save the user's full name to their Firebase profile.
       await updateProfile(credential.user, {
-        displayName: fullName.trim()
+        displayName: fullName.trim(),
       });
 
-      // Show confirmation after both operations succeed.
       setMessage("Your account was created successfully!");
 
-      // Clear password fields after account creation.
+      // Clear password fields after registration.
       setPassword("");
       setConfirmPassword("");
     } catch (err) {
-      // Convert the Firebase error into a readable message.
       setError(getFriendlyError(err));
     } finally {
-      // Always stop showing the loading state.
       setLoading(false);
     }
   }
 
   // ===================================================
-  //            LOG IN AN EXISTING USER
+  //              LOG IN AN EXISTING USER
   // ===================================================
 
   async function handleLogin(event) {
-    // Keep the form from refreshing the entire website.
     event.preventDefault();
 
     setMessage("");
@@ -189,17 +331,15 @@ function App() {
     try {
       setLoading(true);
 
-      // Ask Firebase to authenticate the supplied credentials.
+      // Authenticate the user with Firebase.
       await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
 
-      // onAuthStateChanged detects the successful login
-      // and updates the user state automatically.
+      // The authentication listener updates the user state.
     } catch (err) {
-      // Display a helpful message if login fails.
       setError(getFriendlyError(err));
     } finally {
       setLoading(false);
@@ -207,17 +347,16 @@ function App() {
   }
 
   // ===================================================
-  //            SEND A PASSWORD RESET EMAIL
+  //             SEND A PASSWORD RESET EMAIL
   // ===================================================
 
   async function handleForgotPassword(event) {
-    // Prevent the default browser form submission.
     event.preventDefault();
 
     setMessage("");
     setError("");
 
-    // The email address is needed to request a reset link.
+    // Require an email address.
     if (!email.trim()) {
       setError("Enter your email address first.");
       return;
@@ -226,12 +365,13 @@ function App() {
     try {
       setLoading(true);
 
-      // Firebase sends a password reset email.
-      // The user follows the link to choose a new password.
-      await sendPasswordResetEmail(auth, email.trim());
+      // Firebase sends the password reset email.
+      await sendPasswordResetEmail(auth, email.trim(), {
+        url: "http://localhost:5174",
+        handleCodeInApp: false,
+      });
 
-      // Use neutral wording so the page does not reveal
-      // whether a particular email has a registered account.
+      // Use neutral wording to protect account privacy.
       setMessage(
         "If an account exists for this email, a password reset email has been requested. Check your inbox and spam folder."
       );
@@ -242,12 +382,99 @@ function App() {
     }
   }
 
-  // ======================================================
-  //    CONVERT FIREBASE ERRORS INTO READABLE MESSAGES
-  // ======================================================
+  // ===================================================
+  //          SAVE THE USER'S NEW PASSWORD
+  // ===================================================
+
+  async function handleResetPasswordSubmit(event) {
+    event.preventDefault();
+
+    setMessage("");
+    setError("");
+
+    // Require a verified Firebase reset code.
+    if (!resetCodeValid || !resetCode) {
+      setError(
+        "This reset link is not valid. Please request a new password reset email."
+      );
+      return;
+    }
+
+    // Check the minimum password length.
+    if (newPassword.length < 6) {
+      setError(
+        "Your new password must contain at least 6 characters."
+      );
+      return;
+    }
+
+    // Ensure the password confirmation matches.
+    if (newPassword !== confirmNewPassword) {
+      setError("Your new passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Update the password using Firebase's verified reset code.
+      await confirmPasswordReset(
+        auth,
+        resetCode,
+        newPassword
+      );
+
+      // Preserve the account email for the next login.
+      setEmail(resetEmail);
+
+      // Clear passwords and the one-time reset code.
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setResetCode("");
+      setResetCodeValid(false);
+
+      // Remove the reset code from the address bar.
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+      );
+
+      // Return to login after the password is successfully changed.
+      setPage("login");
+
+      setMessage(
+        "Your password has been reset successfully. Please sign in with your new password."
+      );
+    } catch (err) {
+      console.error("Password reset failed:", err);
+
+      if (err.code === "auth/expired-action-code") {
+        setError(
+          "This reset link has expired. Please request a new one."
+        );
+      } else if (err.code === "auth/invalid-action-code") {
+        setError(
+          "This reset link is invalid or has already been used. Please request a new one."
+        );
+      } else if (err.code === "auth/weak-password") {
+        setError("Please choose a stronger password.");
+      } else {
+        setError(
+          err.message ||
+            "We couldn't reset your password. Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ===================================================
+  //      CONVERT FIREBASE ERRORS INTO MESSAGES
+  // ===================================================
 
   function getFriendlyError(err) {
-    // Firebase provides an error code for most authentication errors.
     switch (err.code) {
       case "auth/email-already-in-use":
         return "An account already exists with this email. Please log in.";
@@ -267,51 +494,84 @@ function App() {
         return "Too many attempts. Please wait and try again.";
 
       case "auth/api-key-not-valid":
+      case "auth/invalid-api-key":
         return "Firebase rejected the API key. Check your Firebase configuration.";
 
       case "auth/network-request-failed":
         return "Network error. Check your internet connection.";
 
       default:
-        // Log the full error for development troubleshooting.
         console.error("Firebase error:", err);
-
-        // Display a fallback message.
         return err.message || "Something went wrong. Please try again.";
     }
   }
 
   // ===================================================
-  //        SHOW THE DASHBOARD AFTER LOGIN
-  //=====================================================
+  //             SIGNED-IN USER DASHBOARD
+  // ===================================================
 
-  // If Firebase confirms a signed-in user, show the dashboard
-  // instead of the login and registration forms.
-  if (user) {
+  // Show the dashboard to signed-in users, except when
+  // they are processing a password-reset link.
+  if (user && page !== "reset") {
     return (
       <main className="spacebyte-page">
         <section className="auth-card dashboard-card">
-
-          {/* SpaceByte brand heading */}
           <div className="brand">
             <span className="brand-icon">✦</span>
             <h1>SpaceByte</h1>
           </div>
 
-          {/* Show the user's saved display name, if available */}
-          <h2>Welcome, {user.displayName || "SpaceByte user"}!</h2>
+          <h2>
+            Welcome, {user.displayName || "SpaceByte user"}!
+          </h2>
 
           <p className="subtitle">
             You are successfully signed in.
           </p>
 
-          {/* Display the email of the authenticated account */}
+          
           <p className="profile-email">{user.email}</p>
 
-          {/* Sign out of Firebase Authentication */}
+          {
+          // =========================================
+          //        BACKEND CONNECTION STATUS
+          // ========================================= 
+          }
+          <section>
+            <h3>Account Connection</h3>
+
+            {/* Show while the backend request is loading */}
+            {backendLoading && (
+              <p>Loading your account from the backend...</p>
+            )}
+
+            {/* Show if the backend request fails */}
+            {backendError && (
+              <p role="alert">
+                Backend connection error: {backendError}
+              </p>
+            )}
+
+            {/* Show after the profile loads successfully */}
+            {backendProfile && !backendError && (
+              <p>
+                Your account is connected to the SpaceByte backend.
+              </p>
+            )}
+          </section>
+
+          {/* Sign Out button */}
           <button
             className="primary-button"
-            onClick={() => signOut(auth)}
+            onClick={async () => {
+              try {
+                await signOut(auth);
+                setMessage("");
+                setError("");
+              } catch (err) {
+                setError(getFriendlyError(err));
+              }
+            }}
           >
             Sign Out
           </button>
@@ -321,14 +581,14 @@ function App() {
   }
 
   // ===================================================
-  //         AUTHENTICATION PAGE LAYOUT
+  //             AUTHENTICATION PAGE LAYOUT
   // ===================================================
 
   return (
     <main className="spacebyte-page">
       <section className="auth-card">
 
-        {/* Brand displayed at the top of each authentication screen */}
+        {/* SpaceByte brand */}
         <div className="brand">
           <span className="brand-icon">✦</span>
           <h1>SpaceByte</h1>
@@ -338,13 +598,9 @@ function App() {
           Smart food tracking for your everyday journey.
         </p>
 
-        {
-        
-       // ===================================================
-       //                 LOGIN SCREEN
-       // ===================================================
-       
-       }
+        {/* ===========================================
+            LOGIN SCREEN
+        =========================================== */}
 
         {page === "login" && (
           <>
@@ -355,8 +611,10 @@ function App() {
             </p>
 
             <form onSubmit={handleLogin}>
-              {/* Email field */}
-              <label htmlFor="login-email">Email Address</label>
+              <label htmlFor="login-email">
+                Email Address
+              </label>
+
               <input
                 id="login-email"
                 type="email"
@@ -367,8 +625,10 @@ function App() {
                 required
               />
 
-              {/* Password field */}
-              <label htmlFor="login-password">Password</label>
+              <label htmlFor="login-password">
+                Password
+              </label>
+
               <input
                 id="login-password"
                 type="password"
@@ -379,7 +639,7 @@ function App() {
                 required
               />
 
-              {/* Open the password recovery screen */}
+              {/* Open the Forgot Password screen. */}
               <div className="forgot-row">
                 <button
                   type="button"
@@ -390,11 +650,14 @@ function App() {
                 </button>
               </div>
 
-              {/* Show errors or confirmation messages */}
-              {error && <p className="error-message">{error}</p>}
-              {message && <p className="success-message">{message}</p>}
+              {error && (
+                <p className="error-message">{error}</p>
+              )}
 
-              {/* Submit login credentials to Firebase */}
+              {message && (
+                <p className="success-message">{message}</p>
+              )}
+
               <button
                 className="primary-button"
                 type="submit"
@@ -404,10 +667,10 @@ function App() {
               </button>
             </form>
 
-            {/* Navigate to the registration screen */}
             <p className="switch-page">
               Don't have an account?{" "}
               <button
+                type="button"
                 className="text-button"
                 onClick={() => changePage("signup")}
               >
@@ -417,13 +680,9 @@ function App() {
           </>
         )}
 
-        {
-        
-        // ===================================================
-        //                  SIGN-UP SCREEN
-        // ===================================================
-            
-            }
+        {/* ===========================================
+            SIGN-UP SCREEN
+        =========================================== */}
 
         {page === "signup" && (
           <>
@@ -434,8 +693,8 @@ function App() {
             </p>
 
             <form onSubmit={handleSignUp}>
-              {/* Full name for the user's Firebase profile */}
               <label htmlFor="signup-name">Full Name</label>
+
               <input
                 id="signup-name"
                 type="text"
@@ -446,8 +705,10 @@ function App() {
                 required
               />
 
-              {/* Email used to sign in and reset the password */}
-              <label htmlFor="signup-email">Email Address</label>
+              <label htmlFor="signup-email">
+                Email Address
+              </label>
+
               <input
                 id="signup-email"
                 type="email"
@@ -458,8 +719,10 @@ function App() {
                 required
               />
 
-              {/* New account password */}
-              <label htmlFor="signup-password">Create Password</label>
+              <label htmlFor="signup-password">
+                Create Password
+              </label>
+
               <input
                 id="signup-password"
                 type="password"
@@ -471,10 +734,10 @@ function App() {
                 required
               />
 
-              {/* Require the user to enter the password again */}
               <label htmlFor="confirm-password">
                 Confirm Password
               </label>
+
               <input
                 id="confirm-password"
                 type="password"
@@ -488,11 +751,14 @@ function App() {
                 required
               />
 
-              {/* Show registration errors and success messages */}
-              {error && <p className="error-message">{error}</p>}
-              {message && <p className="success-message">{message}</p>}
+              {error && (
+                <p className="error-message">{error}</p>
+              )}
 
-              {/* Create the Firebase Authentication account */}
+              {message && (
+                <p className="success-message">{message}</p>
+              )}
+
               <button
                 className="primary-button"
                 type="submit"
@@ -502,10 +768,10 @@ function App() {
               </button>
             </form>
 
-            {/* Return to the login screen */}
             <p className="switch-page">
               Already have an account?{" "}
               <button
+                type="button"
                 className="text-button"
                 onClick={() => changePage("login")}
               >
@@ -515,13 +781,9 @@ function App() {
           </>
         )}
 
-        {
-        
-        // ===================================================
-        //                FORGOT-PASSWORD SCREEN
-        // ===================================================
-            
-            }
+        {/* ===========================================
+            FORGOT PASSWORD SCREEN
+        =========================================== */}
 
         {page === "forgot" && (
           <>
@@ -529,12 +791,14 @@ function App() {
 
             <p className="section-description">
               Enter the email address associated with your account.
-              Firebase can send you a password reset link.
+              If an account exists, Firebase will send a reset link.
             </p>
 
             <form onSubmit={handleForgotPassword}>
-              {/* Email address receiving the reset instructions */}
-              <label htmlFor="reset-email">Email Address</label>
+              <label htmlFor="reset-email">
+                Email Address
+              </label>
+
               <input
                 id="reset-email"
                 type="email"
@@ -545,11 +809,14 @@ function App() {
                 required
               />
 
-              {/* Display errors or password-reset confirmation */}
-              {error && <p className="error-message">{error}</p>}
-              {message && <p className="success-message">{message}</p>}
+              {error && (
+                <p className="error-message">{error}</p>
+              )}
 
-              {/* Request a reset email from Firebase */}
+              {message && (
+                <p className="success-message">{message}</p>
+              )}
+
               <button
                 className="primary-button"
                 type="submit"
@@ -559,10 +826,10 @@ function App() {
               </button>
             </form>
 
-            {/* Allow the user to return to login */}
             <p className="switch-page">
               Remember your password?{" "}
               <button
+                type="button"
                 className="text-button"
                 onClick={() => changePage("login")}
               >
@@ -572,7 +839,135 @@ function App() {
           </>
         )}
 
-        {/* Footer displayed on all authentication screens */}
+        {/* ===========================================
+            RESET PASSWORD SCREEN
+        =========================================== */}
+
+        {page === "reset" && (
+          <>
+            <h2>Create a New Password</h2>
+
+            <p className="section-description">
+              {resetEmail
+                ? `Choose a new password for ${resetEmail}.`
+                : "Verifying your password reset link..."}
+            </p>
+
+            {error && (
+              <p className="error-message">{error}</p>
+            )}
+
+            {message && (
+              <p className="success-message">{message}</p>
+            )}
+
+            {/* Display a loading message while verifying the link. */}
+            {loading && !resetCodeValid && (
+              <p>Verifying your reset link...</p>
+            )}
+
+            {/* Only show the form after successful verification. */}
+            {resetCodeValid && (
+              <form onSubmit={handleResetPasswordSubmit}>
+                <label htmlFor="new-password">
+                  New Password
+                </label>
+
+                <input
+                  id="new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="At least 6 characters"
+                  value={newPassword}
+                  onChange={(event) =>
+                    setNewPassword(event.target.value)
+                  }
+                  minLength={6}
+                  required
+                />
+
+                <label htmlFor="confirm-new-password">
+                  Confirm New Password
+                </label>
+
+                <input
+                  id="confirm-new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Enter your new password again"
+                  value={confirmNewPassword}
+                  onChange={(event) =>
+                    setConfirmNewPassword(event.target.value)
+                  }
+                  minLength={6}
+                  required
+                />
+
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Saving Password..." : "Save New Password"}
+                </button>
+              </form>
+            )}
+
+            {/* Let users request another link if verification fails. */}
+            {!loading && !resetCodeValid && error && (
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  // Remove the invalid reset parameters from the URL.
+                  window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname
+                  );
+
+                  // Clear reset information before returning to recovery.
+                  setResetCode("");
+                  setResetCodeValid(false);
+                  setNewPassword("");
+                  setConfirmNewPassword("");
+                  setEmail(resetEmail || email);
+
+                  changePage("forgot");
+                }}
+              >
+                Request a New Reset Link
+              </button>
+            )}
+
+            <p className="switch-page">
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  // Remove the reset code from the address bar.
+                  window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname
+                  );
+
+                  // Clear the reset form and return to login.
+                  setResetCode("");
+                  setResetCodeValid(false);
+                  setNewPassword("");
+                  setConfirmNewPassword("");
+
+                  changePage("login");
+                }}
+              >
+                Back to Login
+              </button>
+            </p>
+          </>
+        )}
+
+        {/* Footer displayed on every authentication screen. */}
         <footer className="auth-footer">
           SpaceByte · Your food journey, simplified.
         </footer>
@@ -581,5 +976,6 @@ function App() {
   );
 }
 
-// Make the App component available to main.jsx.
+// Export App so main.jsx can render it.
 export default App;
+

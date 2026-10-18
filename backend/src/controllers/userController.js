@@ -51,38 +51,56 @@ exports.createProfile = async (req, res) => {
 };
 
 
+
 // Get the currently logged-in user's profile.
+// If a profile does not exist yet, create one using the verified Firebase Authentication account.
 exports.getProfile = async (req, res) => {
-
   try {
-
     // Get the UID from the verified Firebase token.
     const uid = req.user.uid;
 
-    // Find the user's Firestore document.
-    const userDocument = await db
-      .collection("users")
-      .doc(uid)
-      .get();
+    // Find the user's Firebase Authentication record.
+    const userRecord = await admin.auth().getUser(uid);
 
-    // Check whether the profile exists.
+    // Find the user's Firestore profile document.
+    const userRef = db.collection("users").doc(uid);
+    const userDocument = await userRef.get();
+
+    // If the profile doesn't exist, create it.
     if (!userDocument.exists) {
-      return res.status(404).json({
-        message: "User profile not found."
+      const newProfile = {
+        uid: uid,
+        email: userRecord.email || "",
+        displayName: userRecord.displayName || "",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+
+      // Save the new profile under the authenticated user's UID.
+      await userRef.set(newProfile);
+
+      // Return the newly created profile.
+      return res.status(200).json({
+        message: "User profile created successfully.",
+        user: {
+          uid: uid,
+          email: userRecord.email || "",
+          displayName: userRecord.displayName || ""
+        }
       });
     }
 
-    // Return the user's profile.
-    res.status(200).json({
+    // Return the existing profile if one was found.
+    return res.status(200).json({
       user: userDocument.data()
     });
 
   } catch (error) {
-
+    // Log details in the backend terminal for troubleshooting.
     console.error("Get profile error:", error);
 
-    res.status(500).json({
-      message: "Unable to retrieve user profile."
+    return res.status(500).json({
+      message: "Unable to retrieve or create user profile."
     });
   }
 };

@@ -47,7 +47,10 @@ const app = express();
 // Vite normally runs on port 5173 during development.
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [ 
+    "http://localhost:5173",
+    "http://localhost:5174",
+     ],
   })
 );
 
