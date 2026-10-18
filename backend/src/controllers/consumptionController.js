@@ -4,21 +4,15 @@
 const { db, admin } = require("../config/firebase");
 
 
-/*
- * Record food consumption.
- */
+// Record food consumption.
+
 exports.logConsumption = async (req, res) => {
 
   try {
 
-    /*
-     * Get the authenticated user's UID.
-     *
-     * This comes from authMiddleware.js.
-     *
-     * This is safer than trusting a userId
-     * sent by the frontend.
-     */
+    // Get the authenticated user's UID.
+    // This comes from authMiddleware.js.
+    // This is safer than trusting a userId sent by the frontend.
     const userId = req.user.uid;
 
     // Get information from the request body.
@@ -31,9 +25,7 @@ exports.logConsumption = async (req, res) => {
       });
     }
 
-    /*
-     * Get the food document from Firestore.
-     */
+    // Get the food document from Firestore.
     const foodRef = db.collection("inventory").doc(foodId);
 
     const foodDocument = await foodRef.get();
@@ -55,18 +47,13 @@ exports.logConsumption = async (req, res) => {
       });
     }
 
-    /*
-     * Decrease the inventory quantity.
-     */
+    // Decrease the inventory quantity.
     await foodRef.update({
       quantity: food.quantity - amount
     });
 
-    /*
-     * Save the consumption record.
-     *
-     * The userId comes from Firebase Authentication.
-     */
+    // Save the consumption record.
+    // The userId comes from Firebase Authentication.
     await db.collection("consumptionLogs").add({
       userId: userId,
       foodId: foodId,

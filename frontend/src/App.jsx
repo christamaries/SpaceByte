@@ -22,7 +22,9 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   signOut,
-  updateProfile
+  updateProfile,
+  verifyPasswordResetCode,
+  confirmPasswordReset
 } from "firebase/auth";
 
 // Import the Firebase Authentication instance
@@ -33,6 +35,7 @@ import { auth } from "./firebase";
 import "./App.css";
 
 function App() {
+
   // ===========================================
   //              REACT STATE
   // ===========================================
@@ -57,6 +60,25 @@ function App() {
 
   // Prevent duplicate form submissions while a request is running.
   const [loading, setLoading] = useState(false);
+
+  // ===========================================
+  //       PASSWORD RESET STATE
+  // ===========================================
+
+  // Store the new password entered on the reset page.
+  const [newPassword, setNewPassword] = useState("");
+
+  // Store the confirmation of the new password.
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  // Store the email address associated with the reset code.
+  const [resetEmail, setResetEmail] = useState("");
+
+  // Store Firebase's one-time password reset code.
+  const [resetCode, setResetCode] = useState("");
+
+  // Track whether Firebase has verified the reset code.
+  const [resetCodeValid, setResetCodeValid] = useState(false);
 
   // ===============================================
   //        MONITOR FIREBASE LOGIN STATUS
@@ -298,9 +320,9 @@ function App() {
     );
   }
 
-  // ---------------------------------------------------------
-  // 9. AUTHENTICATION PAGE LAYOUT
-  // ---------------------------------------------------------
+  // ===================================================
+  //         AUTHENTICATION PAGE LAYOUT
+  // ===================================================
 
   return (
     <main className="spacebyte-page">
@@ -319,7 +341,7 @@ function App() {
         {
         
        // ===================================================
-       //     LOGIN SCREEN
+       //                 LOGIN SCREEN
        // ===================================================
        
        }
