@@ -1,23 +1,37 @@
-// SpaceByte - Authentication Frontend
-  // This file manages:
-  // 1. Login
-  // 2. Sign-up
-  // 3. Forgot Password
-  // 4. Reset Password
-  // 5. Signed-in user dashboard
+/*
+===========================================================
+ SPACEBYTE - AUTHENTICATION FRONTEND
+===========================================================
 
-  // React manages the screens and form inputs.
-  // Firebase Authentication manages user accounts and passwords.
+ This file manages:
+ 1. Login
+ 2. Sign-up
+ 3. Forgot Password
+ 4. Reset Password
+ 5. Terms of Service
+ 6. Privacy Policy
+ 7. Firebase authentication status
+ 8. Backend user-profile connection
+ 9. Signed-in dashboard
 
-// ===================================================
-//                    IMPORTS
-// ===================================================
+ Password requirements:
+ - At least 8 characters
+ - At least one digit
+ - At least one special character
+ - At least one uppercase letter
+ - At least one lowercase letter
 
-// Import React hooks for managing state and effects.
+ IMPORTANT:
+ The Terms and Privacy Policy below are starter templates for
+ a student project. Review them to ensure they accurately
+ describe SpaceByte before using them in a public deployment.
+*/
+
+// =========================================================
+//                        IMPORTS
+// =========================================================
+
 import { useEffect, useState } from "react";
-
-// Helper for communicating with the Express backend.
-import { apiRequest } from "./api";
 
 import {
   createUserWithEmailAndPassword,
@@ -30,185 +44,222 @@ import {
   confirmPasswordReset,
 } from "firebase/auth";
 
-// Firebase Authentication instance from src/firebase.js.
 import { auth } from "./firebase";
-
-// Signed-in layout: Crew Galley dashboard + Meal Planner.
+import { apiRequest } from "./api";
 import AppShell from "./components/AppShell";
-
-// Styles for SpaceByte authentication screens.
 import "./auth.css";
 
-function App() {
-  
-  // ===================================================
-  //                    REACT STATE
-  // ===================================================
 
-  // Track the screen currently displayed.
-  // Possible values: login, signup, forgot, reset.
+// =========================================================
+//             PASSWORD VALIDATION HELPER
+// =========================================================
+
+function validatePassword(password) {
+  return {
+    minLength: password.length >= 8,
+    hasNumber: /[0-9]/.test(password),
+    hasSpecial: /[^A-Za-z0-9]/.test(password),
+    hasUppercase: /[A-Z]/.test(password),
+    hasLowercase: /[a-z]/.test(password),
+  };
+}
+
+
+// =========================================================
+//                  PASSWORD EYE ICONS
+// =========================================================
+
+function EyeIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M3 3l18 18" />
+      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+      <path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a14.8 14.8 0 0 1-3.1 3.9" />
+      <path d="M6.2 6.2C3.5 8.1 2 12 2 12s3.6 7 10 7a10.4 10.4 0 0 0 4-.8" />
+    </svg>
+  );
+}
+
+
+// =========================================================
+//                      MAIN APP
+// =========================================================
+
+function App() {
+  // Current screen:
+  // login, signup, forgot, reset, terms, or privacy.
   const [page, setPage] = useState("login");
 
-  // Store registration and login form values.
+  // Login and sign-up fields.
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Store the signed-in Firebase user.
+  // Firebase user and feedback messages.
   const [user, setUser] = useState(null);
-
-  // Store success messages and error messages.
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  // Prevent repeated submissions while loading.
   const [loading, setLoading] = useState(false);
 
-  // "I agree to the Terms and Privacy Policy" checkbox on sign-up.
+  // Terms and Privacy Policy checkbox.
   const [agreed, setAgreed] = useState(false);
 
-  // ===========================================
-  //       BACKEND CONNECTION STATE
-  // ===========================================
+  // Password visibility settings.
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] =
+    useState(false);
 
-  // Stores the profile returned by the backend.
+  // Live password checklist for sign-up.
+  const passwordRules = validatePassword(password);
+
+  // Backend profile information.
   const [backendProfile, setBackendProfile] = useState(null);
-
-  // Tracks whether the backend request is in progress.
   const [backendLoading, setBackendLoading] = useState(false);
-
-  // Stores backend connection or authentication errors.
   const [backendError, setBackendError] = useState("");
 
-  // ===================================================
-  //                PASSWORD RESET STATE
-  // ===================================================
-
-  // Store the new password and its confirmation.
+  // Password reset information.
   const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] =
-    useState("");
-
-  // Store the email associated with the reset request.
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
-
-  // Store the one-time Firebase password reset code.
   const [resetCode, setResetCode] = useState("");
-
-  // Only true after Firebase verifies the reset code.
   const [resetCodeValid, setResetCodeValid] = useState(false);
 
-  // ===================================================
-  //          MONITOR FIREBASE LOGIN STATUS
-  // ===================================================
+
+  // =======================================================
+  //          MONITOR FIREBASE AUTHENTICATION
+  // =======================================================
 
   useEffect(() => {
-    // Listen for login, logout, and authentication changes.
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
 
-    // Remove the listener when the component unmounts.
     return () => unsubscribe();
   }, []);
 
-// ===================================================
-//       CONNECT FIREBASE USER TO BACKEND
-// ===================================================
 
-// When Firebase identifies a signed-in user, request that user's profile from the backend.
-useEffect(() => {
-  // If nobody is signed in, clear backend information.
-  if (!user) {
-    setBackendProfile(null);
-    setBackendError("");
-    setBackendLoading(false);
-    return;
-  }
-
-  // Prevent an old request from updating the UI
-  // if the user signs out or changes accounts.
-  let cancelled = false;
-
-  async function loadBackendProfile() {
-    setBackendLoading(true);
-    setBackendError("");
-
-    try {
-      // Obtain a Firebase ID token for this user.
-      const token = await user.getIdToken();
-
-      // Request the protected profile endpoint.
-      const profile = await apiRequest("/users/profile", token);
-
-      // Update state only if this request is still active.
-      if (!cancelled) {
-        setBackendProfile(profile);
-      }
-    } catch (error) {
-      if (!cancelled) {
-        setBackendError(error.message);
-        setBackendProfile(null);
-      }
-    } finally {
-      if (!cancelled) {
-        setBackendLoading(false);
-      }
-    }
-  }
-
-  loadBackendProfile();
-
-  // Clean up if the authenticated user changes.
-  return () => {
-    cancelled = true;
-  };
-}, [user]);
-
-  // ===================================================
-  //       DETECT AND VERIFY A RESET LINK
-  // ===================================================
+  // =======================================================
+  //      LOAD THE SIGNED-IN USER'S BACKEND PROFILE
+  // =======================================================
 
   useEffect(() => {
-    // Read Firebase's password-reset parameters from the URL.
+    if (!user) {
+      setBackendProfile(null);
+      setBackendError("");
+      setBackendLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadBackendProfile() {
+      setBackendLoading(true);
+      setBackendError("");
+
+      try {
+        // Firebase provides the token used by the Express backend.
+        const token = await user.getIdToken();
+
+        // This endpoint must require Firebase authentication.
+        const profile = await apiRequest("/users/profile", token);
+
+        if (!cancelled) {
+          setBackendProfile(profile);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setBackendError(
+            err.message || "Unable to load your user profile."
+          );
+          setBackendProfile(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setBackendLoading(false);
+        }
+      }
+    }
+
+    loadBackendProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+
+  // =======================================================
+  //      VERIFY A FIREBASE PASSWORD RESET LINK
+  // =======================================================
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const mode = params.get("mode");
     const code = params.get("oobCode");
 
-    // Do nothing when this is not a password-reset link.
+    // Do nothing if this is not a Firebase password reset link.
     if (mode !== "resetPassword") {
       return;
     }
 
-    // Open the reset screen immediately.
     setPage("reset");
     setMessage("");
     setError("");
     setResetCodeValid(false);
 
-    // A reset code is required.
     if (!code) {
       setError(
-        "This reset link is missing its security code. Please request a new link."
+        "This reset link is missing its security code. " +
+        "Please request a new link."
       );
       return;
     }
 
     let active = true;
 
-    // Verify the code before displaying the new-password form.
     async function verifyResetLink() {
       setLoading(true);
 
       try {
-        // Firebase validates the code and returns the account email.
-        const accountEmail = await verifyPasswordResetCode(
-          auth,
-          code
-        );
+        const accountEmail = await verifyPasswordResetCode(auth, code);
 
-        // Avoid updating state if the component has unmounted.
         if (!active) return;
 
         setResetCode(code);
@@ -220,16 +271,14 @@ useEffect(() => {
         if (!active) return;
 
         console.error("Password reset verification failed:", err);
-
         setResetCodeValid(false);
 
         if (err.code === "auth/expired-action-code") {
-          setError(
-            "This reset link has expired. Please request a new one."
-          );
+          setError("This reset link has expired. Please request a new one.");
         } else if (err.code === "auth/invalid-action-code") {
           setError(
-            "This reset link is invalid or has already been used. Please request a new one."
+            "This reset link is invalid or has already been used. " +
+            "Please request a new one."
           );
         } else {
           setError(
@@ -245,58 +294,74 @@ useEffect(() => {
 
     verifyResetLink();
 
-    // Prevent state updates after the component unmounts.
     return () => {
       active = false;
     };
   }, []);
 
-  // ===================================================
-  //       SWITCH BETWEEN AUTHENTICATION SCREENS
-  // ===================================================
+
+  // =======================================================
+  //                    CHANGE SCREENS
+  // =======================================================
 
   function changePage(nextPage) {
-    // Display the requested screen.
     setPage(nextPage);
-
-    // Clear messages from the previous screen.
     setMessage("");
     setError("");
 
-    // Clear login and signup password fields.
+    // Clear password fields when changing screens.
     setPassword("");
     setConfirmPassword("");
+
+    // Hide passwords when changing screens.
+    setShowLoginPassword(false);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmNewPassword(false);
   }
 
-  // ===================================================
-  //             CREATE A NEW USER ACCOUNT
-  // ===================================================
+  // Return from legal pages to sign-up.
+  // This function intentionally does not reset the agreement checkbox.
+  function returnToSignUp() {
+    setPage("signup");
+    setMessage("");
+    setError("");
+  }
+
+
+  // =======================================================
+  //                CREATE A NEW ACCOUNT
+  // =======================================================
 
   async function handleSignUp(event) {
     event.preventDefault();
-
     setMessage("");
     setError("");
 
-    // Require the user's full name.
     if (!fullName.trim()) {
       setError("Please enter your full name.");
       return;
     }
 
-    // Check the minimum password length.
-    if (password.length < 6) {
-      setError("Your password must be at least 6 characters.");
+    // Recheck every password requirement before sending to Firebase.
+    const rules = validatePassword(password);
+    const allRulesPass = Object.values(rules).every(Boolean);
+
+    if (!allRulesPass) {
+      setError(
+        "Your password must contain at least 8 characters, " +
+        "one digit, one special character, one uppercase letter, " +
+        "and one lowercase letter."
+      );
       return;
     }
 
-    // The user must accept the Terms and Privacy Policy.
     if (!agreed) {
       setError("Please agree to the Terms and Privacy Policy.");
       return;
     }
 
-    // Make sure the passwords match.
     if (password !== confirmPassword) {
       setError("Your passwords do not match.");
       return;
@@ -312,16 +377,16 @@ useEffect(() => {
         password
       );
 
-      // Save the user's full name to their Firebase profile.
+      // Save the user's name to their Firebase Auth profile.
       await updateProfile(credential.user, {
         displayName: fullName.trim(),
       });
 
       setMessage("Your account was created successfully!");
-
-      // Clear password fields after registration.
       setPassword("");
       setConfirmPassword("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
     } catch (err) {
       setError(getFriendlyError(err));
     } finally {
@@ -329,27 +394,26 @@ useEffect(() => {
     }
   }
 
-  // ===================================================
-  //              LOG IN AN EXISTING USER
-  // ===================================================
+
+  // =======================================================
+  //                      LOG IN
+  // =======================================================
 
   async function handleLogin(event) {
     event.preventDefault();
-
     setMessage("");
     setError("");
 
     try {
       setLoading(true);
 
-      // Authenticate the user with Firebase.
       await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
 
-      // The authentication listener updates the user state.
+      // onAuthStateChanged updates the user state.
     } catch (err) {
       setError(getFriendlyError(err));
     } finally {
@@ -357,17 +421,16 @@ useEffect(() => {
     }
   }
 
-  // ===================================================
-  //             SEND A PASSWORD RESET EMAIL
-  // ===================================================
+
+  // =======================================================
+  //            SEND PASSWORD RESET EMAIL
+  // =======================================================
 
   async function handleForgotPassword(event) {
     event.preventDefault();
-
     setMessage("");
     setError("");
 
-    // Require an email address.
     if (!email.trim()) {
       setError("Enter your email address first.");
       return;
@@ -376,15 +439,14 @@ useEffect(() => {
     try {
       setLoading(true);
 
-      // Firebase sends the password reset email.
       await sendPasswordResetEmail(auth, email.trim(), {
-        url: "http://localhost:5174",
+        url: "http://localhost:5173",
         handleCodeInApp: false,
       });
 
-      // Use neutral wording to protect account privacy.
       setMessage(
-        "If an account exists for this email, a password reset email has been requested. Check your inbox and spam folder."
+        "If an account exists for this email, a password reset email " +
+        "has been requested. Check your inbox and spam folder."
       );
     } catch (err) {
       setError(getFriendlyError(err));
@@ -393,17 +455,16 @@ useEffect(() => {
     }
   }
 
-  // ===================================================
-  //          SAVE THE USER'S NEW PASSWORD
-  // ===================================================
+
+  // =======================================================
+  //                SAVE THE NEW PASSWORD
+  // =======================================================
 
   async function handleResetPasswordSubmit(event) {
     event.preventDefault();
-
     setMessage("");
     setError("");
 
-    // Require a verified Firebase reset code.
     if (!resetCodeValid || !resetCode) {
       setError(
         "This reset link is not valid. Please request a new password reset email."
@@ -411,15 +472,18 @@ useEffect(() => {
       return;
     }
 
-    // Check the minimum password length.
-    if (newPassword.length < 6) {
+    const resetRules = validatePassword(newPassword);
+    const resetPasswordIsValid = Object.values(resetRules).every(Boolean);
+
+    if (!resetPasswordIsValid) {
       setError(
-        "Your new password must contain at least 6 characters."
+        "Your new password must contain at least 8 characters, " +
+        "one digit, one special character, one uppercase letter, " +
+        "and one lowercase letter."
       );
       return;
     }
 
-    // Ensure the password confirmation matches.
     if (newPassword !== confirmNewPassword) {
       setError("Your new passwords do not match.");
       return;
@@ -428,52 +492,41 @@ useEffect(() => {
     try {
       setLoading(true);
 
-      // Update the password using Firebase's verified reset code.
-      await confirmPasswordReset(
-        auth,
-        resetCode,
-        newPassword
-      );
+      await confirmPasswordReset(auth, resetCode, newPassword);
 
-      // Preserve the account email for the next login.
       setEmail(resetEmail);
-
-      // Clear passwords and the one-time reset code.
       setNewPassword("");
       setConfirmNewPassword("");
       setResetCode("");
       setResetCodeValid(false);
 
-      // Remove the reset code from the address bar.
+      // Remove reset parameters from the address bar.
       window.history.replaceState(
         {},
         document.title,
         window.location.pathname
       );
 
-      // Return to login after the password is successfully changed.
       setPage("login");
-
       setMessage(
-        "Your password has been reset successfully. Please sign in with your new password."
+        "Your password has been reset successfully. " +
+        "Please sign in with your new password."
       );
     } catch (err) {
       console.error("Password reset failed:", err);
 
       if (err.code === "auth/expired-action-code") {
-        setError(
-          "This reset link has expired. Please request a new one."
-        );
+        setError("This reset link has expired. Please request a new one.");
       } else if (err.code === "auth/invalid-action-code") {
         setError(
-          "This reset link is invalid or has already been used. Please request a new one."
+          "This reset link is invalid or has already been used. " +
+          "Please request a new one."
         );
       } else if (err.code === "auth/weak-password") {
         setError("Please choose a stronger password.");
       } else {
         setError(
-          err.message ||
-            "We couldn't reset your password. Please try again."
+          err.message || "We couldn't reset your password. Please try again."
         );
       }
     } finally {
@@ -481,9 +534,10 @@ useEffect(() => {
     }
   }
 
-  // ===================================================
-  //      CONVERT FIREBASE ERRORS INTO MESSAGES
-  // ===================================================
+
+  // =======================================================
+  //        FRIENDLY FIREBASE ERROR MESSAGES
+  // =======================================================
 
   function getFriendlyError(err) {
     switch (err.code) {
@@ -517,42 +571,64 @@ useEffect(() => {
     }
   }
 
-  // ===================================================
-  //             SIGNED-IN USER DASHBOARD
-  // ===================================================
 
-  // Show the dashboard + meal planner to signed-in users,
-  // except when they are processing a password-reset link.
+  // =======================================================
+  //                  SIGNED-IN DASHBOARD
+  // =======================================================
+
+  // Keep reset links on the reset screen even if a user is signed in.
   if (user && page !== "reset") {
     return (
-      <AppShell
-        user={user}
-        onSignOut={async () => {
-          try {
-            await signOut(auth);
-            setMessage("");
-            setError("");
-          } catch (err) {
-            setError(getFriendlyError(err));
-          }
-        }}
-      />
+      <>
+        {backendLoading && (
+          <p className="backend-status">
+            Connecting to your SpaceByte profile...
+          </p>
+        )}
+
+        {backendError && (
+          <p className="error-message backend-error">
+            Backend profile: {backendError}
+          </p>
+        )}
+
+        <AppShell
+          user={user}
+          onSignOut={async () => {
+            try {
+              await signOut(auth);
+              setMessage("");
+              setError("");
+              setBackendProfile(null);
+              setBackendError("");
+              setPage("login");
+            } catch (err) {
+              setError(getFriendlyError(err));
+            }
+          }}
+        />
+      </>
     );
   }
 
-  // ===================================================
-  //             AUTHENTICATION PAGE LAYOUT
-  // ===================================================
 
-  // Sign-up uses a different hero panel than the other screens.
+  // =======================================================
+  //               AUTHENTICATION PAGE
+  // =======================================================
+
   const isSignup = page === "signup";
+  const isLegalPage = page === "terms" || page === "privacy";
 
   return (
     <main className="auth-page">
       <div className="auth-shell">
 
-        {/* ---------- LEFT: hero panel ---------- */}
-        <aside className={`auth-hero ${isSignup ? "hero-signup" : "hero-login"}`}>
+        {/* LEFT SIDE: SPACEBYTE BRANDING */}
+        <aside
+          className={`auth-hero ${
+            isSignup ? "hero-signup" : "hero-login"
+          }`}
+        >
           <div className="auth-logo">
             <span className="auth-logo-mark">✦</span>
             <span className="auth-logo-text">
@@ -560,7 +636,7 @@ useEffect(() => {
             </span>
           </div>
 
-          {!isSignup && (
+          {!isSignup && !isLegalPage && (
             <div className="auth-tagline">
               <h2>Fuel your mission.</h2>
               <p>
@@ -573,13 +649,227 @@ useEffect(() => {
           )}
         </aside>
 
-        {/* ---------- RIGHT: form panel ---------- */}
-        <section className="auth-panel">
 
-          {/* ===========================================
-              LOGIN SCREEN
-          =========================================== */}
+        {/* RIGHT SIDE: FORMS OR LEGAL PAGES */}
+        <section className={`auth-panel ${isLegalPage ? "legal-panel" : ""}`}>
 
+          {
+          // ===============================================
+          //             TERMS OF SERVICE PAGE
+          // =============================================== 
+          }
+          
+          {page === "terms" && (
+            <article className="legal-content">
+              <h1 className="auth-title">Terms of Service</h1>
+              <p className="legal-updated">Last updated: October 19, 2026</p>
+
+              <p>
+                Welcome to SpaceByte. SpaceByte is a food inventory and
+                nutrition-planning project designed to demonstrate how
+                users can track food supplies, expiration dates, meals,
+                and estimated nutrition information.
+              </p>
+
+              <h2>1. Acceptance of These Terms</h2>
+              <p>
+                By creating an account or using SpaceByte, you acknowledge
+                that you have read these Terms. If you do not agree, do not
+                create an account or use the application.
+              </p>
+
+              <h2>2. Intended Use</h2>
+              <p>
+                SpaceByte is intended to support food inventory tracking,
+                meal planning, and educational demonstrations. You agree
+                to use the application lawfully and not to attempt to
+                access another person's account or data.
+              </p>
+
+              <h2>3. Accounts and Security</h2>
+              <p>
+                You are responsible for providing accurate account
+                information and protecting access to your account.
+                Contact the project team if you believe your account
+                has been accessed without your permission.
+              </p>
+
+              <h2>4. Food and Nutrition Information</h2>
+              <p>
+                Food quantities, expiration dates, calorie totals, and
+                nutrition estimates may be incomplete or inaccurate.
+                Do not rely on SpaceByte as the sole source for food
+                safety, allergy decisions, medical needs, or nutritional
+                treatment. SpaceByte does not replace advice from a
+                qualified healthcare professional or food-safety expert.
+              </p>
+
+              <h2>5. Availability and Changes</h2>
+              <p>
+                Features may change as the project is developed.
+                SpaceByte may be unavailable during maintenance or
+                development. We cannot guarantee that every feature
+                or record will always be available.
+              </p>
+
+              <h2>6. Project Status</h2>
+              <p>
+                SpaceByte is a developing project. Do not use it as
+                the only record of important inventory, dietary, or
+                operational information.
+              </p>
+
+              <h2>7. Limitation</h2>
+              <p>
+                To the extent permitted by applicable law, SpaceByte is
+                provided for educational and informational use without
+                a guarantee that all information will be complete,
+                current, or error-free.
+              </p>
+
+              <h2>8. Updates to These Terms</h2>
+              <p>
+                These Terms may be revised as the application changes.
+                The date at the top indicates when this page was last
+                updated.
+              </p>
+
+              <h2>9. Contact</h2>
+              <p>
+                For questions about these Terms, contact the SpaceByte
+                project team through the contact method provided by
+                your project or course.
+              </p>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={returnToSignUp}
+              >
+                Back to Create Account
+              </button>
+            </article>
+          )}
+
+
+          {
+          // ===============================================
+          //             PRIVACY POLICY PAGE
+          // =============================================== 
+          }
+          
+          {page === "privacy" && (
+            <article className="legal-content">
+              <h1 className="auth-title">Privacy Policy</h1>
+              <p className="legal-updated">Last updated: October 19, 2026</p>
+
+              <p>
+                This Privacy Policy explains how SpaceByte may handle
+                information when you use its food inventory, meal-planning,
+                and nutrition features. Review this policy and update it
+                to match the actual services and data practices used by
+                your deployed application.
+              </p>
+
+              <h2>1. Information You Provide</h2>
+              <p>
+                Depending on the features you use, SpaceByte may process
+                your name and email address, account identifier, food
+                inventory entries, expiration dates, meal-planning
+                information, and nutrition or consumption records you enter.
+              </p>
+
+              <h2>2. How Information Is Used</h2>
+              <p>
+                Information may be used to authenticate your account,
+                display your profile, manage inventory, calculate or
+                display nutrition estimates, support meal planning,
+                troubleshoot errors, and improve the project.
+              </p>
+
+              <h2>3. Service Providers</h2>
+              <p>
+                SpaceByte uses Firebase Authentication for account
+                authentication and an Express backend for application
+                requests. Depending on your configuration, Firebase
+                services may also store profile or application data.
+                Review your actual Firebase and hosting configuration
+                before publishing this policy.
+              </p>
+
+              <h2>4. Sharing of Information</h2>
+              <p>
+                Information may be processed by the services required
+                to operate the application or disclosed when required
+                by law. Update this section if the application shares
+                data with additional services, collaborators, or other
+                recipients.
+              </p>
+
+              <h2>5. Data Security</h2>
+              <p>
+                SpaceByte uses the security controls configured for its
+                authentication, backend, database, and hosting services.
+                No online system can be guaranteed to be completely
+                secure. Never place service-account credentials, private
+                API secrets, or passwords in frontend source code.
+              </p>
+
+              <h2>6. Data Retention and Deletion</h2>
+              <p>
+                Information may be retained while an account or project
+                record remains active. Before publishing, document how
+                users can request account or data deletion and make sure
+                the process is implemented in the application and its
+                connected services.
+              </p>
+
+              <h2>7. Children's Privacy</h2>
+              <p>
+                SpaceByte is not intended to collect personal information
+                from children in violation of applicable privacy laws.
+                If the project is made available to children, review the
+                legal requirements that apply before collecting their data.
+              </p>
+
+              <h2>8. Changes to This Policy</h2>
+              <p>
+                This policy may be updated as SpaceByte's features,
+                data storage, or service providers change. The date at
+                the top indicates when this page was last updated.
+              </p>
+
+              <h2>9. Contact</h2>
+              <p>
+                For privacy questions, contact the SpaceByte project
+                team through the contact method provided by your
+                project or course.
+              </p>
+
+              <p className="legal-note">
+                Student-project note: Do not enter real sensitive personal,
+                medical, or dietary information into a demonstration
+                environment unless the project has been reviewed and
+                configured to handle that information appropriately.
+              </p>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={returnToSignUp}
+              >
+                Back to Create Account
+              </button>
+            </article>
+          )}
+
+
+          {
+          // ===============================================
+          //               LOGIN SCREEN
+          // =============================================== 
+          }
+          
           {page === "login" && (
             <>
               <p className="auth-caption">
@@ -599,24 +889,37 @@ useEffect(() => {
                 />
 
                 <label htmlFor="login-password">Password</label>
-                <input
-                  id="login-password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                />
 
-                {error && <p className="error-message">{error}</p>}
-                {message && <p className="success-message">{message}</p>}
+                <div className="password-input-wrapper">
+                  <input
+                    id="login-password"
+                    type={showLoginPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
 
-                <button
-                  className="primary-button"
-                  type="submit"
-                  disabled={loading}
-                >
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowLoginPassword((previous) => !previous)
+                    }
+                    aria-label={
+                      showLoginPassword ? "Hide password" : "Show password"
+                    }
+                    aria-pressed={showLoginPassword}
+                  >
+                    {showLoginPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+
+                {error && <p className="error-message" role="alert">{error}</p>}
+                {message && <p className="success-message" role="status">{message}</p>}
+
+                <button className="primary-button" type="submit" disabled={loading}>
                   {loading ? "Signing In..." : "Sign In"}
                 </button>
 
@@ -644,10 +947,13 @@ useEffect(() => {
             </>
           )}
 
-          {/* ===========================================
-              SIGN-UP SCREEN
-          =========================================== */}
 
+          {
+          // ===============================================
+          //              SIGN-UP SCREEN
+          // =============================================== 
+          }
+          
           {page === "signup" && (
             <>
               <h2 className="auth-title">Create Account</h2>
@@ -676,29 +982,89 @@ useEffect(() => {
                 />
 
                 <label htmlFor="signup-password">Password</label>
-                <input
-                  id="signup-password"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  minLength={6}
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword((previous) => !previous)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                  >
+                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+
+                {
+                // Live password requirement checklist 
+                }
+                <div className="password-requirements" aria-live="polite">
+                  <p className="password-requirements-title">
+                    Your password must contain:
+                  </p>
+
+                  <p className={passwordRules.minLength ? "rule-valid" : "rule-invalid"}>
+                    {passwordRules.minLength ? "✓" : "○"} At least 8 characters
+                  </p>
+
+                  <p className={passwordRules.hasNumber ? "rule-valid" : "rule-invalid"}>
+                    {passwordRules.hasNumber ? "✓" : "○"} At least one digit (0–9)
+                  </p>
+
+                  <p className={passwordRules.hasSpecial ? "rule-valid" : "rule-invalid"}>
+                    {passwordRules.hasSpecial ? "✓" : "○"} At least one special character (!@#$)
+                  </p>
+
+                  <p className={passwordRules.hasUppercase ? "rule-valid" : "rule-invalid"}>
+                    {passwordRules.hasUppercase ? "✓" : "○"} At least one uppercase letter (A–Z)
+                  </p>
+
+                  <p className={passwordRules.hasLowercase ? "rule-valid" : "rule-invalid"}>
+                    {passwordRules.hasLowercase ? "✓" : "○"} At least one lowercase letter (a–z)
+                  </p>
+                </div>
 
                 <label htmlFor="confirm-password">Confirm Password</label>
-                <input
-                  id="confirm-password"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="Re-enter your password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  minLength={6}
-                  required
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="Re-enter your password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    required
+                  />
 
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() =>
+                      setShowConfirmPassword((previous) => !previous)
+                    }
+                    aria-label={
+                      showConfirmPassword
+                        ? "Hide confirmation password"
+                        : "Show confirmation password"
+                    }
+                    aria-pressed={showConfirmPassword}
+                  >
+                    {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+
+                {
+                // Legal links now open the actual in-app pages. 
+                }
                 <label className="terms-row" htmlFor="agree-terms">
                   <input
                     id="agree-terms"
@@ -706,22 +1072,39 @@ useEffect(() => {
                     checked={agreed}
                     onChange={(event) => setAgreed(event.target.checked)}
                   />
+
                   <span>
                     I agree to the{" "}
-                    <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>{" "}
+                    <a
+                      href="#terms"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setPage("terms");
+                        setMessage("");
+                        setError("");
+                      }}
+                    >
+                      Terms
+                    </a>{" "}
                     and{" "}
-                    <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
+                    <a
+                      href="#privacy"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setPage("privacy");
+                        setMessage("");
+                        setError("");
+                      }}
+                    >
+                      Privacy Policy
+                    </a>
                   </span>
                 </label>
 
-                {error && <p className="error-message">{error}</p>}
-                {message && <p className="success-message">{message}</p>}
+                {error && <p className="error-message" role="alert">{error}</p>}
+                {message && <p className="success-message" role="status">{message}</p>}
 
-                <button
-                  className="primary-button"
-                  type="submit"
-                  disabled={loading}
-                >
+                <button className="primary-button" type="submit" disabled={loading}>
                   {loading ? "Creating Account..." : "Create Account"}
                 </button>
               </form>
@@ -739,17 +1122,19 @@ useEffect(() => {
             </>
           )}
 
-          {/* ===========================================
-              FORGOT PASSWORD SCREEN
-          =========================================== */}
 
+          {
+          // ===============================================
+          //          FORGOT PASSWORD SCREEN
+          // =============================================== 
+          }
           {page === "forgot" && (
             <>
               <h2 className="auth-title">Reset Password</h2>
 
               <p className="auth-caption">
-                Enter the email address for your account and we'll send a
-                reset link.
+                Enter the email address for your account and we'll
+                send a reset link.
               </p>
 
               <form onSubmit={handleForgotPassword}>
@@ -764,14 +1149,10 @@ useEffect(() => {
                   required
                 />
 
-                {error && <p className="error-message">{error}</p>}
-                {message && <p className="success-message">{message}</p>}
+                {error && <p className="error-message" role="alert">{error}</p>}
+                {message && <p className="success-message" role="status">{message}</p>}
 
-                <button
-                  className="primary-button"
-                  type="submit"
-                  disabled={loading}
-                >
+                <button className="primary-button" type="submit" disabled={loading}>
                   {loading ? "Sending..." : "Send Reset Link"}
                 </button>
               </form>
@@ -789,10 +1170,13 @@ useEffect(() => {
             </>
           )}
 
-          {/* ===========================================
-              RESET PASSWORD SCREEN
-          =========================================== */}
 
+          {
+          // ===============================================
+          //             RESET PASSWORD SCREEN
+          // =============================================== 
+          }
+          
           {page === "reset" && (
             <>
               <h2 className="auth-title">New Password</h2>
@@ -803,8 +1187,8 @@ useEffect(() => {
                   : "Verifying your password reset link..."}
               </p>
 
-              {error && <p className="error-message">{error}</p>}
-              {message && <p className="success-message">{message}</p>}
+              {error && <p className="error-message" role="alert">{error}</p>}
+              {message && <p className="success-message" role="status">{message}</p>}
 
               {loading && !resetCodeValid && (
                 <p className="auth-caption">Verifying your reset link...</p>
@@ -813,38 +1197,58 @@ useEffect(() => {
               {resetCodeValid && (
                 <form onSubmit={handleResetPasswordSubmit}>
                   <label htmlFor="new-password">New Password</label>
-                  <input
-                    id="new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="At least 6 characters"
-                    value={newPassword}
-                    onChange={(event) => setNewPassword(event.target.value)}
-                    minLength={6}
-                    required
-                  />
+                  <div className="password-input-wrapper">
+                    <input
+                      id="new-password"
+                      type={showNewPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      placeholder="Create a strong password"
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      required
+                    />
 
-                  <label htmlFor="confirm-new-password">
-                    Confirm New Password
-                  </label>
-                  <input
-                    id="confirm-new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Enter your new password again"
-                    value={confirmNewPassword}
-                    onChange={(event) =>
-                      setConfirmNewPassword(event.target.value)
-                    }
-                    minLength={6}
-                    required
-                  />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowNewPassword((previous) => !previous)}
+                      aria-label={showNewPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showNewPassword}
+                    >
+                      {showNewPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
 
-                  <button
-                    className="primary-button"
-                    type="submit"
-                    disabled={loading}
-                  >
+                  <label htmlFor="confirm-new-password">Confirm New Password</label>
+                  <div className="password-input-wrapper">
+                    <input
+                      id="confirm-new-password"
+                      type={showConfirmNewPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      placeholder="Enter your new password again"
+                      value={confirmNewPassword}
+                      onChange={(event) => setConfirmNewPassword(event.target.value)}
+                      required
+                    />
+
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() =>
+                        setShowConfirmNewPassword((previous) => !previous)
+                      }
+                      aria-label={
+                        showConfirmNewPassword
+                          ? "Hide confirmation password"
+                          : "Show confirmation password"
+                      }
+                      aria-pressed={showConfirmNewPassword}
+                    >
+                      {showConfirmNewPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+
+                  <button className="primary-button" type="submit" disabled={loading}>
                     {loading ? "Saving Password..." : "Save New Password"}
                   </button>
                 </form>
@@ -860,6 +1264,7 @@ useEffect(() => {
                       document.title,
                       window.location.pathname
                     );
+
                     setResetCode("");
                     setResetCodeValid(false);
                     setNewPassword("");
@@ -882,6 +1287,7 @@ useEffect(() => {
                       document.title,
                       window.location.pathname
                     );
+
                     setResetCode("");
                     setResetCodeValid(false);
                     setNewPassword("");
@@ -894,12 +1300,16 @@ useEffect(() => {
               </p>
             </>
           )}
+
         </section>
       </div>
     </main>
   );
 }
 
-// Export App so main.jsx can render it.
-export default App;
 
+// =========================================================
+//                    EXPORT APP
+// =========================================================
+
+export default App;
