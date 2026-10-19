@@ -58,8 +58,28 @@ SpaceByte/
 ```text
 SpaceByte/
 │
-├── frontend/
-│   │
-│   ├── node_modules/
-│   ├── public/
-│   ├── src/
+frontend/
+├── node_modules/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── appShell.jsx
+│   │   ├── dashboard.jsx
+│   │   └── mealPlanner.jsx
+│   ├── api.js
+│   ├── App.jsx
+│   ├── auth.css
+│   ├── firebase.js
+│   ├── index.css
+│   ├── main.jsx
+│   ├── spacebyte-ui.css
+│   └── spacebyteConfig.js
+├── .env
+├── .gitignore
+├── .oxlintrc.json
+├── index.html
+├── package-lock.json
+├── package.json
+├── README.md
+└── vite.config.js
