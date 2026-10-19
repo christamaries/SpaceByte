@@ -35,6 +35,10 @@ const resupplyRoutes =
 const recommendationRoutes =
   require("./routes/recommendationRoutes");
 
+// Import meal plan routes.
+const mealPlanRoutes =
+  require("./routes/mealPlanRoutes");
+
 // Create the Express application.
 const app = express();
 
@@ -112,6 +116,13 @@ app.use("/recommendations", recommendationRoutes);
 
 // Routes for the SpaceByte dashboard.
 app.use("/dashboard", dashboardRoutes);
+
+// ================================================
+//                MEAL PLAN ROUTES
+// ================================================
+
+// Routes for the weekly meal planner.
+app.use("/meal-plan", mealPlanRoutes);
 
 
 

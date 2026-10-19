@@ -1,0 +1,205 @@
+/* SpaceByte login / sign-up / reset screens.
+   Split layout: hero panel on the left, form panel on the right.
+
+    IMAGES: drop your exported artwork into frontend/public as
+     login-hero.jpg   (Earth + ISS artwork for the login hero)
+     signup-hero.jpg  (planet artwork for the sign-up hero)
+   If a file is missing, the CSS-drawn space scene is shown instead. */
+
+* { box-sizing: border-box; }
+
+html { width: 100%; min-height: 100%; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+button, input { font: inherit; touch-action: manipulation; }
+
+/* ===========================
+             page 
+   =========================== */
+.auth-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  color: #fff;
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff9, transparent),
+    radial-gradient(1px 1px at 78% 12%, #fff8, transparent),
+    radial-gradient(1.5px 1.5px at 88% 70%, #fff9, transparent),
+    radial-gradient(1px 1px at 30% 85%, #fff7, transparent),
+    radial-gradient(1px 1px at 55% 40%, #fff6, transparent),
+    radial-gradient(ellipse at 50% 120%, #14308055, transparent 60%),
+    #070b1c;
+}
+
+.auth-shell {
+  width: 100%;
+  max-width: 980px;
+  min-height: 540px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid #1b2a4a;
+  background: #0b1424;
+  overflow: hidden;
+  box-shadow: 0 24px 70px #000a;
+}
+
+/* ===========================
+          hero (left) 
+   =========================== */
+.auth-hero {
+  position: relative;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background-color: #060b1f;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Optional artwork on top, with the CSS scene as fallback beneath. */
+.hero-login  { background-image: url("/login-hero.jpg"); }
+.hero-signup { background-image: url("/signup-hero.jpg"); }
+
+/* CSS-drawn planet + glow (visible when no artwork is supplied;
+   hidden underneath the artwork when it is). */
+.auth-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #4aa0ff 0%, #1d4fa8 38%, #0a1f4d 70%, #050b22 100%);
+  box-shadow: 0 0 60px 10px #2f7bff55, inset -30px -20px 60px #00000099;
+}
+.hero-login::before  { width: 300px; height: 300px; left: 12%; top: 22%; }
+.hero-signup::before { width: 620px; height: 620px; left: -120px; bottom: -380px; }
+
+/* Orbit rings */
+.auth-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  border: 1px solid #5cc8ff66;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero-login::after  { width: 380px; height: 300px; left: 4%; top: 28%; transform: rotate(-12deg); }
+.hero-signup::after { width: 560px; height: 300px; left: -80px; bottom: 60px; transform: rotate(-18deg); }
+
+.auth-logo, .auth-tagline { position: relative; z-index: 1; }
+
+.auth-logo { display: flex; align-items: center; gap: 10px; }
+.hero-signup .auth-logo { flex-direction: column; margin-top: 48px; gap: 4px; }
+.auth-logo-mark { font-size: 34px; color: #5ad1b0; line-height: 1; }
+.auth-logo-text { font-size: 30px; font-weight: 800; letter-spacing: .3px; }
+.auth-logo-text b { color: #5fd3ff; }
+
+.auth-tagline h2 { margin: 0 0 10px; font-size: 40px; line-height: 1.05; }
+.auth-tagline p { margin: 0 0 18px; color: #aab8d6; font-size: 16px; line-height: 1.4; }
+.auth-tagline small { letter-spacing: .25em; color: #5fd3ff; font-size: 12px; }
+
+/* ===========================
+        form panel (right) 
+   =========================== */
+.auth-panel {
+  padding: 56px 56px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #0b1424;
+}
+
+.auth-title { margin: 0 0 26px; text-align: center; font-size: 26px; }
+.auth-caption { margin: 0 0 24px; text-align: center; color: #7f8aa6; font-size: 12px; }
+
+.auth-panel form { display: flex; flex-direction: column; }
+
+.auth-panel label {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8edf8;
+}
+
+.auth-panel input[type="email"],
+.auth-panel input[type="password"],
+.auth-panel input[type="text"] {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: #fff;
+  color: #101828;
+  font-size: 13px;
+}
+.auth-panel input::placeholder { color: #8892a6; }
+.auth-panel input:focus { outline: 2px solid #4a85f0; outline-offset: 1px; }
+
+.primary-button {
+  margin-top: 22px;
+  padding: 12px;
+  border: 0;
+  border-radius: 6px;
+  background: #3f7be8;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.primary-button:hover:not(:disabled) { background: #5a8ff0; }
+.primary-button:disabled { opacity: .6; cursor: not-allowed; }
+
+.forgot-row { margin-top: 16px; text-align: right; }
+
+.text-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #5fb4ff;
+  font-size: 12px;
+  cursor: pointer;
+}
+.text-button:hover { text-decoration: underline; }
+.text-button.muted { color: #7f8aa6; }
+
+.switch-page { margin: 24px 0 0; text-align: center; color: #7f8aa6; font-size: 12px; }
+
+.terms-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0 !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  color: #aab4cc !important;
+}
+.terms-row input { width: 14px; height: 14px; margin: 0; }
+.terms-row a { color: #5fb4ff; text-decoration: none; }
+.terms-row a:hover { text-decoration: underline; }
+
+.error-message { margin: 14px 0 0; color: #ff8fa3; font-size: 12px; }
+.success-message { margin: 14px 0 0; color: #5ad1b0; font-size: 12px; }
+
+/* ===========================
+            moblie 
+   =========================== */
+@media (max-width: 760px) {
+  .auth-page { padding: 0; align-items: stretch; }
+  .auth-shell { grid-template-columns: 1fr; border: 0; min-height: 100vh; }
+  .auth-hero { min-height: 220px; padding: 20px; }
+  .auth-tagline h2 { font-size: 28px; }
+  .auth-tagline p, .auth-tagline small { display: none; }
+  .hero-signup .auth-logo { margin-top: 0; }
+  .auth-panel { padding: 32px 24px; }
+}

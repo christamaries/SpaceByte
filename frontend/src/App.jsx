@@ -1,4 +1,3 @@
-
 // SpaceByte - Authentication Frontend
   // This file manages:
   // 1. Login
@@ -34,8 +33,11 @@ import {
 // Firebase Authentication instance from src/firebase.js.
 import { auth } from "./firebase";
 
+// Signed-in layout: Crew Galley dashboard + Meal Planner.
+import AppShell from "./components/AppShell";
+
 // Styles for SpaceByte authentication screens.
-import "./App.css";
+import "./auth.css";
 
 function App() {
   
@@ -62,6 +64,9 @@ function App() {
 
   // Prevent repeated submissions while loading.
   const [loading, setLoading] = useState(false);
+
+  // "I agree to the Terms and Privacy Policy" checkbox on sign-up.
+  const [agreed, setAgreed] = useState(false);
 
   // ===========================================
   //       BACKEND CONNECTION STATE
@@ -282,6 +287,12 @@ useEffect(() => {
     // Check the minimum password length.
     if (password.length < 6) {
       setError("Your password must be at least 6 characters.");
+      return;
+    }
+
+    // The user must accept the Terms and Privacy Policy.
+    if (!agreed) {
+      setError("Please agree to the Terms and Privacy Policy.");
       return;
     }
 
@@ -510,73 +521,22 @@ useEffect(() => {
   //             SIGNED-IN USER DASHBOARD
   // ===================================================
 
-  // Show the dashboard to signed-in users, except when
-  // they are processing a password-reset link.
+  // Show the dashboard + meal planner to signed-in users,
+  // except when they are processing a password-reset link.
   if (user && page !== "reset") {
     return (
-      <main className="spacebyte-page">
-        <section className="auth-card dashboard-card">
-          <div className="brand">
-            <span className="brand-icon">✦</span>
-            <h1>SpaceByte</h1>
-          </div>
-
-          <h2>
-            Welcome, {user.displayName || "SpaceByte user"}!
-          </h2>
-
-          <p className="subtitle">
-            You are successfully signed in.
-          </p>
-
-          
-          <p className="profile-email">{user.email}</p>
-
-          {
-          // =========================================
-          //        BACKEND CONNECTION STATUS
-          // ========================================= 
+      <AppShell
+        user={user}
+        onSignOut={async () => {
+          try {
+            await signOut(auth);
+            setMessage("");
+            setError("");
+          } catch (err) {
+            setError(getFriendlyError(err));
           }
-          <section>
-            <h3>Account Connection</h3>
-
-            {/* Show while the backend request is loading */}
-            {backendLoading && (
-              <p>Loading your account from the backend...</p>
-            )}
-
-            {/* Show if the backend request fails */}
-            {backendError && (
-              <p role="alert">
-                Backend connection error: {backendError}
-              </p>
-            )}
-
-            {/* Show after the profile loads successfully */}
-            {backendProfile && !backendError && (
-              <p>
-                Your account is connected to the SpaceByte backend.
-              </p>
-            )}
-          </section>
-
-          {/* Sign Out button */}
-          <button
-            className="primary-button"
-            onClick={async () => {
-              try {
-                await signOut(auth);
-                setMessage("");
-                setError("");
-              } catch (err) {
-                setError(getFriendlyError(err));
-              }
-            }}
-          >
-            Sign Out
-          </button>
-        </section>
-      </main>
+        }}
+      />
     );
   }
 
@@ -584,394 +544,358 @@ useEffect(() => {
   //             AUTHENTICATION PAGE LAYOUT
   // ===================================================
 
+  // Sign-up uses a different hero panel than the other screens.
+  const isSignup = page === "signup";
+
   return (
-    <main className="spacebyte-page">
-      <section className="auth-card">
+    <main className="auth-page">
+      <div className="auth-shell">
 
-        {/* SpaceByte brand */}
-        <div className="brand">
-          <span className="brand-icon">✦</span>
-          <h1>SpaceByte</h1>
-        </div>
+        {/* ---------- LEFT: hero panel ---------- */}
+        <aside className={`auth-hero ${isSignup ? "hero-signup" : "hero-login"}`}>
+          <div className="auth-logo">
+            <span className="auth-logo-mark">✦</span>
+            <span className="auth-logo-text">
+              Space<b>Byte</b>
+            </span>
+          </div>
 
-        <p className="subtitle">
-          Smart food tracking for your everyday journey.
-        </p>
+          {!isSignup && (
+            <div className="auth-tagline">
+              <h2>Fuel your mission.</h2>
+              <p>
+                Personalized nutrition for wherever
+                <br />
+                your mission takes you.
+              </p>
+              <small>EARTH · ISS · MOON</small>
+            </div>
+          )}
+        </aside>
 
-        {/* ===========================================
-            LOGIN SCREEN
-        =========================================== */}
+        {/* ---------- RIGHT: form panel ---------- */}
+        <section className="auth-panel">
 
-        {page === "login" && (
-          <>
-            <h2>Welcome Back!</h2>
+          {/* ===========================================
+              LOGIN SCREEN
+          =========================================== */}
 
-            <p className="section-description">
-              Sign in to your SpaceByte account.
-            </p>
+          {page === "login" && (
+            <>
+              <p className="auth-caption">
+                Sign in to continue to SpaceByte
+              </p>
 
-            <form onSubmit={handleLogin}>
-              <label htmlFor="login-email">
-                Email Address
-              </label>
-
-              <input
-                id="login-email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-
-              <label htmlFor="login-password">
-                Password
-              </label>
-
-              <input
-                id="login-password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-
-              {/* Open the Forgot Password screen. */}
-              <div className="forgot-row">
-                <button
-                  type="button"
-                  className="text-button"
-                  onClick={() => changePage("forgot")}
-                >
-                  Forgot Password?
-                </button>
-              </div>
-
-              {error && (
-                <p className="error-message">{error}</p>
-              )}
-
-              {message && (
-                <p className="success-message">{message}</p>
-              )}
-
-              <button
-                className="primary-button"
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? "Signing In..." : "Sign In"}
-              </button>
-            </form>
-
-            <p className="switch-page">
-              Don't have an account?{" "}
-              <button
-                type="button"
-                className="text-button"
-                onClick={() => changePage("signup")}
-              >
-                Sign Up
-              </button>
-            </p>
-          </>
-        )}
-
-        {/* ===========================================
-            SIGN-UP SCREEN
-        =========================================== */}
-
-        {page === "signup" && (
-          <>
-            <h2>Create Your Account</h2>
-
-            <p className="section-description">
-              Enter your information to get started.
-            </p>
-
-            <form onSubmit={handleSignUp}>
-              <label htmlFor="signup-name">Full Name</label>
-
-              <input
-                id="signup-name"
-                type="text"
-                autoComplete="name"
-                placeholder="Enter your full name"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                required
-              />
-
-              <label htmlFor="signup-email">
-                Email Address
-              </label>
-
-              <input
-                id="signup-email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-
-              <label htmlFor="signup-password">
-                Create Password
-              </label>
-
-              <input
-                id="signup-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="At least 6 characters"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                minLength={6}
-                required
-              />
-
-              <label htmlFor="confirm-password">
-                Confirm Password
-              </label>
-
-              <input
-                id="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Enter your password again"
-                value={confirmPassword}
-                onChange={(event) =>
-                  setConfirmPassword(event.target.value)
-                }
-                minLength={6}
-                required
-              />
-
-              {error && (
-                <p className="error-message">{error}</p>
-              )}
-
-              {message && (
-                <p className="success-message">{message}</p>
-              )}
-
-              <button
-                className="primary-button"
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? "Creating Account..." : "Create Account"}
-              </button>
-            </form>
-
-            <p className="switch-page">
-              Already have an account?{" "}
-              <button
-                type="button"
-                className="text-button"
-                onClick={() => changePage("login")}
-              >
-                Back to Login
-              </button>
-            </p>
-          </>
-        )}
-
-        {/* ===========================================
-            FORGOT PASSWORD SCREEN
-        =========================================== */}
-
-        {page === "forgot" && (
-          <>
-            <h2>Reset Your Password</h2>
-
-            <p className="section-description">
-              Enter the email address associated with your account.
-              If an account exists, Firebase will send a reset link.
-            </p>
-
-            <form onSubmit={handleForgotPassword}>
-              <label htmlFor="reset-email">
-                Email Address
-              </label>
-
-              <input
-                id="reset-email"
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-
-              {error && (
-                <p className="error-message">{error}</p>
-              )}
-
-              {message && (
-                <p className="success-message">{message}</p>
-              )}
-
-              <button
-                className="primary-button"
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? "Sending..." : "Send Reset Link"}
-              </button>
-            </form>
-
-            <p className="switch-page">
-              Remember your password?{" "}
-              <button
-                type="button"
-                className="text-button"
-                onClick={() => changePage("login")}
-              >
-                Back to Login
-              </button>
-            </p>
-          </>
-        )}
-
-        {/* ===========================================
-            RESET PASSWORD SCREEN
-        =========================================== */}
-
-        {page === "reset" && (
-          <>
-            <h2>Create a New Password</h2>
-
-            <p className="section-description">
-              {resetEmail
-                ? `Choose a new password for ${resetEmail}.`
-                : "Verifying your password reset link..."}
-            </p>
-
-            {error && (
-              <p className="error-message">{error}</p>
-            )}
-
-            {message && (
-              <p className="success-message">{message}</p>
-            )}
-
-            {/* Display a loading message while verifying the link. */}
-            {loading && !resetCodeValid && (
-              <p>Verifying your reset link...</p>
-            )}
-
-            {/* Only show the form after successful verification. */}
-            {resetCodeValid && (
-              <form onSubmit={handleResetPasswordSubmit}>
-                <label htmlFor="new-password">
-                  New Password
-                </label>
-
+              <form onSubmit={handleLogin}>
+                <label htmlFor="login-email">Email address</label>
                 <input
-                  id="new-password"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="At least 6 characters"
-                  value={newPassword}
-                  onChange={(event) =>
-                    setNewPassword(event.target.value)
-                  }
-                  minLength={6}
+                  id="login-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   required
                 />
 
-                <label htmlFor="confirm-new-password">
-                  Confirm New Password
-                </label>
-
+                <label htmlFor="login-password">Password</label>
                 <input
-                  id="confirm-new-password"
+                  id="login-password"
                   type="password"
-                  autoComplete="new-password"
-                  placeholder="Enter your new password again"
-                  value={confirmNewPassword}
-                  onChange={(event) =>
-                    setConfirmNewPassword(event.target.value)
-                  }
-                  minLength={6}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   required
                 />
+
+                {error && <p className="error-message">{error}</p>}
+                {message && <p className="success-message">{message}</p>}
 
                 <button
                   className="primary-button"
                   type="submit"
                   disabled={loading}
                 >
-                  {loading ? "Saving Password..." : "Save New Password"}
+                  {loading ? "Signing In..." : "Sign In"}
+                </button>
+
+                <div className="forgot-row">
+                  <button
+                    type="button"
+                    className="text-button muted"
+                    onClick={() => changePage("forgot")}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              </form>
+
+              <p className="switch-page">
+                New to SpaceByte?{" "}
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => changePage("signup")}
+                >
+                  Create account
+                </button>
+              </p>
+            </>
+          )}
+
+          {/* ===========================================
+              SIGN-UP SCREEN
+          =========================================== */}
+
+          {page === "signup" && (
+            <>
+              <h2 className="auth-title">Create Account</h2>
+
+              <form onSubmit={handleSignUp}>
+                <label htmlFor="signup-name">Full Name</label>
+                <input
+                  id="signup-name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  required
+                />
+
+                <label htmlFor="signup-email">Email Address</label>
+                <input
+                  id="signup-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+
+                <label htmlFor="signup-password">Password</label>
+                <input
+                  id="signup-password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  minLength={6}
+                  required
+                />
+
+                <label htmlFor="confirm-password">Confirm Password</label>
+                <input
+                  id="confirm-password"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="Re-enter your password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  minLength={6}
+                  required
+                />
+
+                <label className="terms-row" htmlFor="agree-terms">
+                  <input
+                    id="agree-terms"
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(event) => setAgreed(event.target.checked)}
+                  />
+                  <span>
+                    I agree to the{" "}
+                    <a href="#terms" onClick={(e) => e.preventDefault()}>Terms</a>{" "}
+                    and{" "}
+                    <a href="#privacy" onClick={(e) => e.preventDefault()}>Privacy Policy</a>
+                  </span>
+                </label>
+
+                {error && <p className="error-message">{error}</p>}
+                {message && <p className="success-message">{message}</p>}
+
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Creating Account..." : "Create Account"}
                 </button>
               </form>
-            )}
 
-            {/* Let users request another link if verification fails. */}
-            {!loading && !resetCodeValid && error && (
-              <button
-                type="button"
-                className="text-button"
-                onClick={() => {
-                  // Remove the invalid reset parameters from the URL.
-                  window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname
-                  );
+              <p className="switch-page">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => changePage("login")}
+                >
+                  Sign In
+                </button>
+              </p>
+            </>
+          )}
 
-                  // Clear reset information before returning to recovery.
-                  setResetCode("");
-                  setResetCodeValid(false);
-                  setNewPassword("");
-                  setConfirmNewPassword("");
-                  setEmail(resetEmail || email);
+          {/* ===========================================
+              FORGOT PASSWORD SCREEN
+          =========================================== */}
 
-                  changePage("forgot");
-                }}
-              >
-                Request a New Reset Link
-              </button>
-            )}
+          {page === "forgot" && (
+            <>
+              <h2 className="auth-title">Reset Password</h2>
 
-            <p className="switch-page">
-              <button
-                type="button"
-                className="text-button"
-                onClick={() => {
-                  // Remove the reset code from the address bar.
-                  window.history.replaceState(
-                    {},
-                    document.title,
-                    window.location.pathname
-                  );
+              <p className="auth-caption">
+                Enter the email address for your account and we'll send a
+                reset link.
+              </p>
 
-                  // Clear the reset form and return to login.
-                  setResetCode("");
-                  setResetCodeValid(false);
-                  setNewPassword("");
-                  setConfirmNewPassword("");
+              <form onSubmit={handleForgotPassword}>
+                <label htmlFor="reset-email">Email address</label>
+                <input
+                  id="reset-email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
 
-                  changePage("login");
-                }}
-              >
-                Back to Login
-              </button>
-            </p>
-          </>
-        )}
+                {error && <p className="error-message">{error}</p>}
+                {message && <p className="success-message">{message}</p>}
 
-        {/* Footer displayed on every authentication screen. */}
-        <footer className="auth-footer">
-          SpaceByte · Your food journey, simplified.
-        </footer>
-      </section>
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                </button>
+              </form>
+
+              <p className="switch-page">
+                Remember your password?{" "}
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => changePage("login")}
+                >
+                  Back to Login
+                </button>
+              </p>
+            </>
+          )}
+
+          {/* ===========================================
+              RESET PASSWORD SCREEN
+          =========================================== */}
+
+          {page === "reset" && (
+            <>
+              <h2 className="auth-title">New Password</h2>
+
+              <p className="auth-caption">
+                {resetEmail
+                  ? `Choose a new password for ${resetEmail}.`
+                  : "Verifying your password reset link..."}
+              </p>
+
+              {error && <p className="error-message">{error}</p>}
+              {message && <p className="success-message">{message}</p>}
+
+              {loading && !resetCodeValid && (
+                <p className="auth-caption">Verifying your reset link...</p>
+              )}
+
+              {resetCodeValid && (
+                <form onSubmit={handleResetPasswordSubmit}>
+                  <label htmlFor="new-password">New Password</label>
+                  <input
+                    id="new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="At least 6 characters"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    minLength={6}
+                    required
+                  />
+
+                  <label htmlFor="confirm-new-password">
+                    Confirm New Password
+                  </label>
+                  <input
+                    id="confirm-new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Enter your new password again"
+                    value={confirmNewPassword}
+                    onChange={(event) =>
+                      setConfirmNewPassword(event.target.value)
+                    }
+                    minLength={6}
+                    required
+                  />
+
+                  <button
+                    className="primary-button"
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Saving Password..." : "Save New Password"}
+                  </button>
+                </form>
+              )}
+
+              {!loading && !resetCodeValid && error && (
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => {
+                    window.history.replaceState(
+                      {},
+                      document.title,
+                      window.location.pathname
+                    );
+                    setResetCode("");
+                    setResetCodeValid(false);
+                    setNewPassword("");
+                    setConfirmNewPassword("");
+                    setEmail(resetEmail || email);
+                    changePage("forgot");
+                  }}
+                >
+                  Request a New Reset Link
+                </button>
+              )}
+
+              <p className="switch-page">
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => {
+                    window.history.replaceState(
+                      {},
+                      document.title,
+                      window.location.pathname
+                    );
+                    setResetCode("");
+                    setResetCodeValid(false);
+                    setNewPassword("");
+                    setConfirmNewPassword("");
+                    changePage("login");
+                  }}
+                >
+                  Back to Login
+                </button>
+              </p>
+            </>
+          )}
+        </section>
+      </div>
     </main>
   );
 }

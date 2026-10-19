@@ -8,6 +8,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      function showErr(msg) {
+        var pre = document.createElement("pre");
+        pre.style.cssText = "color:#ff8fb8;background:#111;padding:20px;white-space:pre-wrap";
+        pre.textContent = "Page error:\n\n" + msg;
+        document.body.appendChild(pre);
+      }
+      window.addEventListener("error", function (e) {
+        showErr(e.message + "\n" + (e.filename || "") + ":" + (e.lineno || ""));
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        showErr(String(e.reason && (e.reason.stack || e.reason)));
+      });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
