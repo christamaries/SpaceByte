@@ -5,61 +5,75 @@ Project Board: https://trello.com/b/8X54wyuJ/spacebyte?utm_source=eval-email&utm
 
 # Backend Structure
 ```text
+
 SpaceByte/
 │
-├── backend/
-│   │
-│   ├── node_modules/
-│   │
-│   ├── src/
-│   │   ├── app.js
-│   │   │
-│   │   ├── config/
-│   │   │   ├── firebase.js
-│   │   │   └── seedFirestore.js
-│   │   │
-│   │   ├── controllers/
-│   │   │   ├── consumptionController.js
-│   │   │   ├── dashboardController.js
-│   │   │   ├── inventoryController.js
-│   │   │   ├── mealPlanController.js
-│   │   │   ├── nutritionController.js
-│   │   │   ├── recommendationController.js
-│   │   │   ├── resupplyController.js
-│   │   │   └── userController.js
-│   │   │
-│   │   ├── middleware/
-│   │   │   └── authMiddleware.js
-│   │   │
-│   │   ├── routes/
-│   │   │   ├── consumptionRoutes.js
-│   │   │   ├── dashboardRoutes.js
-│   │   │   ├── inventoryRoutes.js
-│   │   │   ├── mealPlanRoutes.js
-│   │   │   ├── nutritionRoutes.js
-│   │   │   ├── recommendationRoutes.js
-│   │   │   ├── resupplyRoutes.js
-│   │   │   └── userRoutes.js
-│   │   │
-│   │   ├── services/
-│   │   │   ├── inventoryService.js
-│   │   │   ├── dashboardService.js
-│   │   │   ├── nutritionService.js
-│   │   │   ├── recommendationservice.js
-│   │   │   └── resupplyservice.js
-│   │ 
-│   ├── .gitignore
-│   ├── package.json
-│   ├── package-lock.json
-│   └── serviceAccountKey.json
+backend/
+├── node_modules/
+├── src/
+│   ├── app.js
+│   ├── config/
+│   │   ├── firebase.js
+│   │   └── seedFirestore.js
+│   ├── controllers/
+│   │   ├── consumptionController.js
+│   │   ├── dashboardController.js
+│   │   ├── inventoryController.js
+│   │   ├── mealPlanController.js
+│   │   ├── nutritionController.js
+│   │   ├── recommendationController.js
+│   │   ├── resupplyController.js
+│   │   └── userController.js
+│   ├── middleware/
+│   │   └── authMiddleware.js
+│   ├── routes/
+│   │   ├── consumptionRoutes.js
+│   │   ├── dashboardRoutes.js
+│   │   ├── inventoryRoutes.js
+│   │   ├── mealPlanRoutes.js
+│   │   ├── nutritionRoutes.js
+│   │   ├── recommendationRoutes.js
+│   │   ├── resupplyRoutes.js
+│   │   └── userRoutes.js
+│   └── services/
+│       ├── dashboardService.js
+│       ├── inventoryService.js
+│       ├── nutritionService.js
+│       ├── recommendationService.js
+│       └── resupplyService.js
+├── .gitignore
+├── package-json
+├── package-lock.json
+└── serviceAccountKey.json
 ```
 
 # Frontend Structure
 ```text
+
 SpaceByte/
 │
-├── frontend/
-│   │
-│   ├── node_modules/
-│   ├── public/
-│   ├── src/
+frontend/
+├── node_modules/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── appShell.jsx
+│   │   ├── dashboard.jsx
+│   │   └── mealPlanner.jsx
+│   ├── api.js
+│   ├── App.jsx
+│   ├── auth.css
+│   ├── firebase.js
+│   ├── index.css
+│   ├── main.jsx
+│   ├── spacebyte-ui.css
+│   └── spacebyteConfig.js
+├── .env
+├── .gitignore
+├── .oxlintrc.json
+├── index.html
+├── package-lock.json
+├── package.json
+├── README.md
+└── vite.config.js
