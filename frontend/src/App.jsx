@@ -1,18 +1,20 @@
+
 /*
 ===========================================================
  SPACEBYTE - AUTHENTICATION FRONTEND
 ===========================================================
 
  This file manages:
- 1. Login
- 2. Sign-up
- 3. Forgot Password
- 4. Reset Password
- 5. Terms of Service
- 6. Privacy Policy
- 7. Firebase authentication status
- 8. Backend user-profile connection
- 9. Signed-in dashboard
+ 1. Public landing page
+ 2. Login
+ 3. Sign-up
+ 4. Forgot Password
+ 5. Reset Password
+ 6. Terms of Service
+ 7. Privacy Policy
+ 8. Firebase authentication status
+ 9. Backend user-profile connection
+ 10. Signed-in dashboard
 
  Password requirements:
  - At least 8 characters
@@ -22,9 +24,8 @@
  - At least one lowercase letter
 
  IMPORTANT:
- The Terms and Privacy Policy below are starter templates for
- a student project. Review them to ensure they accurately
- describe SpaceByte before using them in a public deployment.
+ The Terms and Privacy Policy are student-project templates.
+ Review them before deploying SpaceByte publicly.
 */
 
 // =========================================================
@@ -46,7 +47,16 @@ import {
 
 import { auth } from "./firebase";
 import { apiRequest } from "./api";
+
+// Existing authenticated dashboard.
 import AppShell from "./components/AppShell";
+
+// NEW: Public landing page.
+// This path matches a file at src/components/landingPage.jsx.
+// Keep the capitalization consistent with your actual filename.
+import LandingPage from "./components/landingPage";
+
+// Existing authentication styles.
 import "./auth.css";
 
 
@@ -119,9 +129,20 @@ function EyeOffIcon() {
 // =========================================================
 
 function App() {
-  // Current screen:
-  // login, signup, forgot, reset, terms, or privacy.
-  const [page, setPage] = useState("login");
+
+  // NEW: Start at the public landing page.
+  //
+  // Available page values:
+  // landing, login, signup, forgot, reset, terms, privacy.
+  //
+  // Firebase authentication determines whether the user
+  // sees this public page or the authenticated dashboard.
+  const [page, setPage] = useState("landing");
+
+
+  // =======================================================
+  //                   FORM STATE
+  // =======================================================
 
   // Login and sign-up fields.
   const [fullName, setFullName] = useState("");
@@ -166,6 +187,8 @@ function App() {
   //          MONITOR FIREBASE AUTHENTICATION
   // =======================================================
 
+  // Firebase tells React when the user signs in or out.
+  // This also restores an existing Firebase session.
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -229,6 +252,9 @@ function App() {
   //      VERIFY A FIREBASE PASSWORD RESET LINK
   // =======================================================
 
+  // IMPORTANT:
+  // A Firebase reset link must take priority over the
+  // landing page when the URL contains mode=resetPassword.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const mode = params.get("mode");
@@ -304,16 +330,17 @@ function App() {
   //                    CHANGE SCREENS
   // =======================================================
 
+  // Reuse this function for navigation between existing forms.
   function changePage(nextPage) {
     setPage(nextPage);
     setMessage("");
     setError("");
 
-    // Clear password fields when changing screens.
+    // Clear passwords when switching forms.
     setPassword("");
     setConfirmPassword("");
 
-    // Hide passwords when changing screens.
+    // Hide passwords when switching forms.
     setShowLoginPassword(false);
     setShowPassword(false);
     setShowConfirmPassword(false);
@@ -321,12 +348,47 @@ function App() {
     setShowConfirmNewPassword(false);
   }
 
-  // Return from legal pages to sign-up.
-  // This function intentionally does not reset the agreement checkbox.
+  // Return from the legal pages to sign-up.
+  // Preserve the agreement checkbox state.
   function returnToSignUp() {
     setPage("signup");
     setMessage("");
     setError("");
+  }
+
+
+  // =======================================================
+  //            NEW: LANDING PAGE CALLBACKS
+  // =======================================================
+
+  // The LandingPage component receives these functions
+  // through its props. This keeps the landing page independent
+  // of the authentication implementation.
+
+  // Header: "Sign in"
+  function handleLandingSignIn() {
+    changePage("login");
+  }
+
+  // Header: "Create account"
+  function handleLandingCreateAccount() {
+    changePage("signup");
+  }
+
+  // Hero: "Start planning"
+  // Signed-out visitors must sign in before accessing the
+  // authenticated dashboard and its planning functionality.
+  function handleStartPlanning() {
+    changePage("login");
+  }
+
+  // Hero: "Tour the galley"
+  // Scroll to the meal planner preview on the landing page.
+  function handleTourGalley() {
+    document.getElementById("meal-planner")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }
 
 
@@ -344,7 +406,7 @@ function App() {
       return;
     }
 
-    // Recheck every password requirement before sending to Firebase.
+    // Recheck all password requirements before Firebase.
     const rules = validatePassword(password);
     const allRulesPass = Object.values(rules).every(Boolean);
 
@@ -413,7 +475,9 @@ function App() {
         password
       );
 
-      // onAuthStateChanged updates the user state.
+      // The Firebase auth listener updates the user state.
+      // The authenticated-dashboard condition below then
+      // renders AppShell.
     } catch (err) {
       setError(getFriendlyError(err));
     } finally {
@@ -576,7 +640,10 @@ function App() {
   //                  SIGNED-IN DASHBOARD
   // =======================================================
 
-  // Keep reset links on the reset screen even if a user is signed in.
+  // Authenticated users see the existing dashboard.
+  //
+  // Exception: if the page is "reset", keep the reset form
+  // available even when a Firebase user session exists.
   if (user && page !== "reset") {
     return (
       <>
@@ -596,12 +663,17 @@ function App() {
           user={user}
           onSignOut={async () => {
             try {
+              // Sign the user out of Firebase.
               await signOut(auth);
+
+              // Clear old feedback and profile information.
               setMessage("");
               setError("");
               setBackendProfile(null);
               setBackendError("");
-              setPage("login");
+
+              // NEW: Return to the public landing page.
+              setPage("landing");
             } catch (err) {
               setError(getFriendlyError(err));
             }
@@ -613,9 +685,39 @@ function App() {
 
 
   // =======================================================
+  //               NEW: PUBLIC LANDING PAGE
+  // =======================================================
+
+  // Display the landing page only when:
+  // 1. There is no signed-in Firebase user.
+  // 2. The selected page is "landing".
+  //
+  // This condition comes AFTER the authenticated dashboard
+  // condition, so signed-in users still reach AppShell.
+  if (!user && page === "landing") {
+    return (
+      <LandingPage
+        // Connect the landing page's Sign in button.
+        onSignIn={handleLandingSignIn}
+
+        // Connect the landing page's Create account button.
+        onCreateAccount={handleLandingCreateAccount}
+
+        // Connect the landing page's Start planning button.
+        onStartPlanning={handleStartPlanning}
+
+        // Connect the landing page's Tour the galley button.
+        onTourGalley={handleTourGalley}
+      />
+    );
+  }
+
+
+  // =======================================================
   //               AUTHENTICATION PAGE
   // =======================================================
 
+  // These values control the existing authentication layout.
   const isSignup = page === "signup";
   const isLegalPage = page === "terms" || page === "privacy";
 
@@ -651,18 +753,22 @@ function App() {
 
 
         {/* RIGHT SIDE: FORMS OR LEGAL PAGES */}
-        <section className={`auth-panel ${isLegalPage ? "legal-panel" : ""}`}>
+        <section
+          className={`auth-panel ${
+            isLegalPage ? "legal-panel" : ""
+          }`}
+        >
 
-          {
-          // ===============================================
-          //             TERMS OF SERVICE PAGE
-          // =============================================== 
-          }
-          
+          {/* ================================================
+                       TERMS OF SERVICE PAGE
+             ================================================ */}
+
           {page === "terms" && (
             <article className="legal-content">
               <h1 className="auth-title">Terms of Service</h1>
-              <p className="legal-updated">Last updated: October 19, 2026</p>
+              <p className="legal-updated">
+                Last updated: October 19, 2026
+              </p>
 
               <p>
                 Welcome to SpaceByte. SpaceByte is a food inventory and
@@ -752,16 +858,16 @@ function App() {
           )}
 
 
-          {
-          // ===============================================
-          //             PRIVACY POLICY PAGE
-          // =============================================== 
-          }
-          
+          {/* ================================================
+                         PRIVACY POLICY PAGE
+             ================================================ */}
+
           {page === "privacy" && (
             <article className="legal-content">
               <h1 className="auth-title">Privacy Policy</h1>
-              <p className="legal-updated">Last updated: October 19, 2026</p>
+              <p className="legal-updated">
+                Last updated: October 19, 2026
+              </p>
 
               <p>
                 This Privacy Policy explains how SpaceByte may handle
@@ -864,12 +970,10 @@ function App() {
           )}
 
 
-          {
-          // ===============================================
-          //               LOGIN SCREEN
-          // =============================================== 
-          }
-          
+          {/* ================================================
+                              LOGIN SCREEN
+             ================================================ */}
+
           {page === "login" && (
             <>
               <p className="auth-caption">
@@ -916,10 +1020,23 @@ function App() {
                   </button>
                 </div>
 
-                {error && <p className="error-message" role="alert">{error}</p>}
-                {message && <p className="success-message" role="status">{message}</p>}
+                {error && (
+                  <p className="error-message" role="alert">
+                    {error}
+                  </p>
+                )}
 
-                <button className="primary-button" type="submit" disabled={loading}>
+                {message && (
+                  <p className="success-message" role="status">
+                    {message}
+                  </p>
+                )}
+
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading}
+                >
                   {loading ? "Signing In..." : "Sign In"}
                 </button>
 
@@ -944,16 +1061,25 @@ function App() {
                   Create account
                 </button>
               </p>
+
+              {/* NEW: Allow visitors to return to the homepage. */}
+              <p className="switch-page">
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => changePage("landing")}
+                >
+                  Back to Home
+                </button>
+              </p>
             </>
           )}
 
 
-          {
-          // ===============================================
-          //              SIGN-UP SCREEN
-          // =============================================== 
-          }
-          
+          {/* ================================================
+                             SIGN-UP SCREEN
+             ================================================ */}
+
           {page === "signup" && (
             <>
               <h2 className="auth-title">Create Account</h2>
@@ -982,6 +1108,7 @@ function App() {
                 />
 
                 <label htmlFor="signup-password">Password</label>
+
                 <div className="password-input-wrapper">
                   <input
                     id="signup-password"
@@ -996,17 +1123,19 @@ function App() {
                   <button
                     type="button"
                     className="password-toggle"
-                    onClick={() => setShowPassword((previous) => !previous)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() =>
+                      setShowPassword((previous) => !previous)
+                    }
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                     aria-pressed={showPassword}
                   >
                     {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                   </button>
                 </div>
 
-                {
-                // Live password requirement checklist 
-                }
+                {/* Live password requirement checklist. */}
                 <div className="password-requirements" aria-live="polite">
                   <p className="password-requirements-title">
                     Your password must contain:
@@ -1034,6 +1163,7 @@ function App() {
                 </div>
 
                 <label htmlFor="confirm-password">Confirm Password</label>
+
                 <div className="password-input-wrapper">
                   <input
                     id="confirm-password"
@@ -1041,7 +1171,9 @@ function App() {
                     autoComplete="new-password"
                     placeholder="Re-enter your password"
                     value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    onChange={(event) =>
+                      setConfirmPassword(event.target.value)
+                    }
                     required
                   />
 
@@ -1062,9 +1194,7 @@ function App() {
                   </button>
                 </div>
 
-                {
-                // Legal links now open the actual in-app pages. 
-                }
+                {/* Legal links open the existing in-app pages. */}
                 <label className="terms-row" htmlFor="agree-terms">
                   <input
                     id="agree-terms"
@@ -1101,10 +1231,23 @@ function App() {
                   </span>
                 </label>
 
-                {error && <p className="error-message" role="alert">{error}</p>}
-                {message && <p className="success-message" role="status">{message}</p>}
+                {error && (
+                  <p className="error-message" role="alert">
+                    {error}
+                  </p>
+                )}
 
-                <button className="primary-button" type="submit" disabled={loading}>
+                {message && (
+                  <p className="success-message" role="status">
+                    {message}
+                  </p>
+                )}
+
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading}
+                >
                   {loading ? "Creating Account..." : "Create Account"}
                 </button>
               </form>
@@ -1119,15 +1262,25 @@ function App() {
                   Sign In
                 </button>
               </p>
+
+              {/* NEW: Return to the public landing page. */}
+              <p className="switch-page">
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => changePage("landing")}
+                >
+                  Back to Home
+                </button>
+              </p>
             </>
           )}
 
 
-          {
-          // ===============================================
-          //          FORGOT PASSWORD SCREEN
-          // =============================================== 
-          }
+          {/* ================================================
+                         FORGOT PASSWORD SCREEN
+             ================================================ */}
+
           {page === "forgot" && (
             <>
               <h2 className="auth-title">Reset Password</h2>
@@ -1139,6 +1292,7 @@ function App() {
 
               <form onSubmit={handleForgotPassword}>
                 <label htmlFor="reset-email">Email address</label>
+
                 <input
                   id="reset-email"
                   type="email"
@@ -1149,10 +1303,23 @@ function App() {
                   required
                 />
 
-                {error && <p className="error-message" role="alert">{error}</p>}
-                {message && <p className="success-message" role="status">{message}</p>}
+                {error && (
+                  <p className="error-message" role="alert">
+                    {error}
+                  </p>
+                )}
 
-                <button className="primary-button" type="submit" disabled={loading}>
+                {message && (
+                  <p className="success-message" role="status">
+                    {message}
+                  </p>
+                )}
+
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading}
+                >
                   {loading ? "Sending..." : "Send Reset Link"}
                 </button>
               </form>
@@ -1171,12 +1338,10 @@ function App() {
           )}
 
 
-          {
-          // ===============================================
-          //             RESET PASSWORD SCREEN
-          // =============================================== 
-          }
-          
+          {/* ================================================
+                          RESET PASSWORD SCREEN
+             ================================================ */}
+
           {page === "reset" && (
             <>
               <h2 className="auth-title">New Password</h2>
@@ -1187,16 +1352,28 @@ function App() {
                   : "Verifying your password reset link..."}
               </p>
 
-              {error && <p className="error-message" role="alert">{error}</p>}
-              {message && <p className="success-message" role="status">{message}</p>}
+              {error && (
+                <p className="error-message" role="alert">
+                  {error}
+                </p>
+              )}
+
+              {message && (
+                <p className="success-message" role="status">
+                  {message}
+                </p>
+              )}
 
               {loading && !resetCodeValid && (
-                <p className="auth-caption">Verifying your reset link...</p>
+                <p className="auth-caption">
+                  Verifying your reset link...
+                </p>
               )}
 
               {resetCodeValid && (
                 <form onSubmit={handleResetPasswordSubmit}>
                   <label htmlFor="new-password">New Password</label>
+
                   <div className="password-input-wrapper">
                     <input
                       id="new-password"
@@ -1204,30 +1381,43 @@ function App() {
                       autoComplete="new-password"
                       placeholder="Create a strong password"
                       value={newPassword}
-                      onChange={(event) => setNewPassword(event.target.value)}
+                      onChange={(event) =>
+                        setNewPassword(event.target.value)
+                      }
                       required
                     />
 
                     <button
                       type="button"
                       className="password-toggle"
-                      onClick={() => setShowNewPassword((previous) => !previous)}
-                      aria-label={showNewPassword ? "Hide password" : "Show password"}
+                      onClick={() =>
+                        setShowNewPassword((previous) => !previous)
+                      }
+                      aria-label={
+                        showNewPassword ? "Hide password" : "Show password"
+                      }
                       aria-pressed={showNewPassword}
                     >
                       {showNewPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </button>
                   </div>
 
-                  <label htmlFor="confirm-new-password">Confirm New Password</label>
+                  <label htmlFor="confirm-new-password">
+                    Confirm New Password
+                  </label>
+
                   <div className="password-input-wrapper">
                     <input
                       id="confirm-new-password"
-                      type={showConfirmNewPassword ? "text" : "password"}
+                      type={
+                        showConfirmNewPassword ? "text" : "password"
+                      }
                       autoComplete="new-password"
                       placeholder="Enter your new password again"
                       value={confirmNewPassword}
-                      onChange={(event) => setConfirmNewPassword(event.target.value)}
+                      onChange={(event) =>
+                        setConfirmNewPassword(event.target.value)
+                      }
                       required
                     />
 
@@ -1244,16 +1434,23 @@ function App() {
                       }
                       aria-pressed={showConfirmNewPassword}
                     >
-                      {showConfirmNewPassword ? <EyeOffIcon /> : <EyeIcon />}
+                      {showConfirmNewPassword
+                        ? <EyeOffIcon />
+                        : <EyeIcon />}
                     </button>
                   </div>
 
-                  <button className="primary-button" type="submit" disabled={loading}>
+                  <button
+                    className="primary-button"
+                    type="submit"
+                    disabled={loading}
+                  >
                     {loading ? "Saving Password..." : "Save New Password"}
                   </button>
                 </form>
               )}
 
+              {/* Offer a new reset email if verification failed. */}
               {!loading && !resetCodeValid && error && (
                 <button
                   type="button"

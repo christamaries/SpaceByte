@@ -1,0 +1,669 @@
+/*
+===========================================================
+ SPACEBYTE LANDING PAGE STYLES
+===========================================================
+
+ Includes:
+ 1. Star-field page background
+ 2. Sticky navigation bar
+ 3. Hero section with orbit visual
+ 4. Buttons, labels and shared pieces
+ 5. Features, missions and how-it-works cards
+ 6. Meal planner preview
+ 7. Footer
+ 8. Desktop, tablet and mobile layouts
+
+ Colors match auth.css:
+ Background #070b1c / #0b1424, blue #3f7be8, cyan #5fd3ff,
+ teal #5ad1b0, muted text #7f8aa6 / #aab8d6.
+ Extra accents (purple, yellow, pink) are used for icon chips,
+ progress bars and step numbers.
+
+ All class names start with "lp-" so they never clash with
+ auth.css or spacebyte-ui.css.
+*/
+
+/* =====================================================
+            MAIN PAGE AND STAR-FIELD BACKGROUND
+   ===================================================== */
+
+.lp {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #fff;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  line-height: 1.5;
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff9, transparent),
+    radial-gradient(1px 1px at 78% 12%, #fff8, transparent),
+    radial-gradient(1.5px 1.5px at 88% 70%, #fff9, transparent),
+    radial-gradient(1px 1px at 30% 85%, #fff7, transparent),
+    radial-gradient(1px 1px at 55% 40%, #fff6, transparent),
+    radial-gradient(ellipse at 50% 120%, #14308055, transparent 60%),
+    #070b1c;
+}
+
+.lp a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lp img {
+  max-width: 100%;
+}
+
+.lp :focus-visible {
+  outline: 2px solid #5ad1b0;
+  outline-offset: 3px;
+}
+
+/* =====================================================
+                    NAVIGATION BAR
+   ===================================================== */
+
+.lp-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px clamp(20px, 5vw, 72px);
+  background: #070b1ce6;
+  border-bottom: 1px solid #1b2a4a;
+  backdrop-filter: blur(8px);
+}
+
+.lp-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5ad1b0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.lp-brand img {
+  height: 40px;
+}
+
+.lp-nav nav {
+  display: flex;
+  gap: 28px;
+  color: #aab8d6;
+  font-size: 13px;
+}
+
+.lp-nav nav a:hover {
+  color: #fff;
+}
+
+.lp-auth {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* =====================================================
+            BUTTONS, LABELS AND ACCENT COLORS
+   ===================================================== */
+
+.lp-btn {
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lp-btn.primary {
+  background: #3f7be8;
+}
+
+.lp-btn.primary:hover {
+  background: #5a8ff0;
+}
+
+.lp-btn.ghost {
+  background: #101e31;
+  border: 1px solid #1b2a4a;
+}
+
+.lp-btn.ghost:hover {
+  background: #162a44;
+}
+
+/* Text-only button, same look as .text-button in auth.css. */
+.lp-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #5fb4ff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lp-link:hover {
+  text-decoration: underline;
+}
+
+.lp-eyebrow {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.green {
+  color: #5ad1b0;
+}
+
+.pink {
+  color: #ee6fa8;
+}
+
+/* =====================================================
+        HERO: INTRO COPY (LEFT) AND ORBIT VISUAL (RIGHT)
+   ===================================================== */
+
+.lp-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  padding: 56px clamp(20px, 5vw, 72px) 80px;
+}
+
+.lp-hero h1 {
+  margin: 0 0 28px;
+  font-size: clamp(44px, 7vw, 80px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.lp-lede {
+  max-width: 62ch;
+  margin: 0 0 28px;
+  color: #aab8d6;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.lp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+/* Floating cards are positioned inside this box. */
+.lp-orbit {
+  position: relative;
+  min-height: 440px;
+}
+
+.lp-earth {
+  position: absolute;
+  left: 18%;
+  top: 20%;
+  width: 46%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4aa0ff 0%, #1d4fa8 38%, #0a1f4d 70%, #050b22 100%);
+  box-shadow: 0 0 60px 10px #2f7bff55;
+}
+
+.lp-moon {
+  position: absolute;
+  right: 6%;
+  top: 0;
+  width: 70px;
+  border-radius: 50%;
+  background: #9a9aa8;
+}
+
+/* =====================================================
+            FLOATING STAT CARDS IN THE HERO
+   ===================================================== */
+
+.lp-float {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #1b2a4a;
+  border-radius: 10px;
+  background: #0b1424;
+  font-size: 13px;
+  box-shadow: 0 24px 70px #000a;
+}
+
+.lp-float small {
+  display: block;
+  color: #7f8aa6;
+  font-size: 11px;
+}
+
+.lp-float.kcal {
+  left: 0;
+  top: 12%;
+}
+
+.lp-float.kcal b {
+  font-size: 22px;
+}
+
+.lp-float.kcal em {
+  color: #7f8aa6;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.lp-float.nutrition {
+  right: 0;
+  bottom: 16%;
+  flex-direction: column;
+  align-items: stretch;
+  width: 190px;
+}
+
+.lp-float.nutrition label {
+  display: grid;
+  gap: 4px;
+  color: #aab8d6;
+  font-size: 11px;
+}
+
+.lp-float.alert {
+  left: 6%;
+  bottom: 2%;
+}
+
+/* =====================================================
+            ICON CHIPS AND PROGRESS BARS
+   ===================================================== */
+
+.chip {
+  display: inline-block;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.chip.green {
+  background: #5ad1b0;
+}
+
+.chip.purple {
+  background: #6c63ff;
+}
+
+.chip.yellow {
+  background: #f6c85f;
+}
+
+.chip.pink {
+  background: #ee6fa8;
+}
+
+.chip.blue {
+  background: #6bb9ff;
+}
+
+.bar {
+  display: block;
+  height: 6px;
+  border-radius: 9px;
+  background: #1b2a4a;
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  border-radius: 9px;
+}
+
+.bar i.purple {
+  background: #6c63ff;
+}
+
+.bar i.yellow {
+  background: #f6c85f;
+}
+
+.bar i.pink {
+  background: #ee6fa8;
+}
+
+.bar i.green {
+  background: #5ad1b0;
+}
+
+/* =====================================================
+        SECTION LAYOUT, HEADINGS AND CARD GRIDS
+   ===================================================== */
+
+.lp-section {
+  padding: 56px clamp(20px, 5vw, 72px);
+}
+
+.lp-section h2 {
+  max-width: 18ch;
+  margin: 0 0 12px;
+  font-size: clamp(28px, 3.6vw, 42px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.lp-sub {
+  max-width: 56ch;
+  margin: 0 0 28px;
+  color: #aab8d6;
+  font-size: 15px;
+}
+
+.lp-grid {
+  display: grid;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.lp-grid.four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.lp-grid.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.lp-card {
+  padding: 22px;
+  border: 1px solid #1b2a4a;
+  border-radius: 10px;
+  background: #0b1424;
+}
+
+.lp-card h3 {
+  margin: 16px 0 6px;
+  font-size: 16px;
+}
+
+.lp-card p {
+  margin: 0;
+  color: #7f8aa6;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.lp-card.mission img {
+  width: auto;
+  height: 72px;
+  margin-bottom: 8px;
+}
+
+/* =====================================================
+                MEAL PLANNER PREVIEW
+   ===================================================== */
+
+.planner {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.lp-checks {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #dce5f7;
+  font-size: 13px;
+}
+
+.lp-checks li::before {
+  content: "\2713";
+  margin-right: 10px;
+  color: #5ad1b0;
+}
+
+.lp-mock {
+  padding: 20px;
+  border: 1px solid #1b2a4a;
+  border-radius: 10px;
+  background: #0b1424;
+  box-shadow: 0 24px 70px #000a;
+}
+
+.lp-mock-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.lp-mock-head small {
+  color: #7f8aa6;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.tabs i {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #101e31;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.tabs i.on {
+  background: #3f7be8;
+}
+
+/* Day headings across the top, one .row per meal underneath. */
+.lp-table {
+  display: grid;
+  grid-template-columns: 80px repeat(4, 1fr);
+  gap: 8px;
+  font-size: 12px;
+}
+
+.lp-table .row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 80px repeat(4, 1fr);
+  gap: 8px;
+}
+
+.lp-table strong {
+  align-self: center;
+  color: #7f8aa6;
+  font-size: 11px;
+  text-align: center;
+}
+
+.row strong.breakfast {
+  color: #f6c85f;
+  text-align: left;
+}
+
+.row strong.lunch {
+  color: #5ad1b0;
+  text-align: left;
+}
+
+.row strong.dinner {
+  color: #8f88ff;
+  text-align: left;
+}
+
+.cell {
+  padding: 9px 6px;
+  border-radius: 6px;
+  background: #101e31;
+  text-align: center;
+}
+
+/* Today's meals are outlined in green. */
+.cell.on {
+  border: 1.5px solid #5ad1b0;
+}
+
+.lp-meters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 18px 0;
+  color: #aab8d6;
+  font-size: 12px;
+}
+
+.lp-meters label {
+  display: grid;
+  gap: 6px;
+}
+
+.lp-meters em {
+  float: right;
+  font-style: normal;
+}
+
+.lp-swap {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 3px solid #ee6fa8;
+  background: #101e31;
+  color: #c3cee3;
+  font-size: 12px;
+}
+
+.lp-swap b {
+  color: #ee6fa8;
+}
+
+/* =====================================================
+                    HOW IT WORKS
+   ===================================================== */
+
+.lp-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-steps h3 {
+  margin: 14px 0 6px;
+  font-size: 16px;
+}
+
+.lp-steps p {
+  margin: 0;
+  color: #7f8aa6;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.num {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #070b1c;
+  font-weight: 800;
+}
+
+.num.green {
+  background: #5ad1b0;
+}
+
+.num.yellow {
+  background: #f6c85f;
+}
+
+.num.pink {
+  background: #ee6fa8;
+}
+
+/* =====================================================
+                        FOOTER
+   ===================================================== */
+
+.lp-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 48px clamp(20px, 5vw, 72px);
+  border-top: 1px solid #1b2a4a;
+  color: #7f8aa6;
+  font-size: 13px;
+}
+
+.lp-foot h3 {
+  margin: 0 0 6px;
+  color: #5fd3ff;
+  font-size: 15px;
+}
+
+.lp-foot p {
+  margin: 0;
+}
+
+/* =====================================================
+                MOBILE AND TABLET SUPPORT
+   ===================================================== */
+
+@media (max-width: 960px) {
+  .lp-nav nav {
+    display: none;
+  }
+
+  .lp-hero,
+  .planner {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-grid.four {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lp-grid.three,
+  .lp-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .lp-grid.four,
+  .lp-foot {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-orbit {
+    min-height: 380px;
+  }
+
+  /* Smaller meal planner cells so four days fit on a phone. */
+  .lp-table,
+  .lp-table .row {
+    grid-template-columns: 60px repeat(4, 1fr);
+    gap: 4px;
+    font-size: 10px;
+  }
+}
