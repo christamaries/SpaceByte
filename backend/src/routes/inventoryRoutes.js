@@ -10,6 +10,10 @@ const router = express.Router();
 const inventoryController =
   require("../controllers/inventoryController");
 
+// Import authentication middleware.
+const verifyToken =
+  require("../middleware/authMiddleware");
+
 
 // ==========================================
 // GET ALL INVENTORY
@@ -33,6 +37,19 @@ router.get(
 router.get(
   "/expiring",
   inventoryController.getExpiringFood
+);
+
+
+// ==========================================
+// ADD FOOD ITEM
+// ==========================================
+
+// POST /inventory
+// Requires a logged-in user.
+router.post(
+  "/",
+  verifyToken,
+  inventoryController.addFood
 );
 
 
