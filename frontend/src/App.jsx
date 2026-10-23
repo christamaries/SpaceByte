@@ -358,7 +358,7 @@ function App() {
 
 
   // =======================================================
-  //            NEW: LANDING PAGE CALLBACKS
+  //            LANDING PAGE CALLBACKS
   // =======================================================
 
   // The LandingPage component receives these functions
@@ -685,7 +685,7 @@ function App() {
 
 
   // =======================================================
-  //               NEW: PUBLIC LANDING PAGE
+  //               PUBLIC LANDING PAGE
   // =======================================================
 
   // Display the landing page only when:

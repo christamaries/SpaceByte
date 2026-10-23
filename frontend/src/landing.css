@@ -1,3 +1,4 @@
+
 /*
 ===========================================================
  SPACEBYTE LANDING PAGE STYLES
@@ -13,19 +14,16 @@
  7. Footer
  8. Desktop, tablet and mobile layouts
 
- Colors match auth.css:
- Background #070b1c / #0b1424, blue #3f7be8, cyan #5fd3ff,
- teal #5ad1b0, muted text #7f8aa6 / #aab8d6.
- Extra accents (purple, yellow, pink) are used for icon chips,
- progress bars and step numbers.
-
- All class names start with "lp-" so they never clash with
- auth.css or spacebyte-ui.css.
+ All landing page class names use the lp- prefix to avoid
+ conflicts with auth.css and spacebyte-ui.css.
 */
 
 /* =====================================================
-            MAIN PAGE AND STAR-FIELD BACKGROUND
+          MAIN PAGE AND STAR-FIELD BACKGROUND
    ===================================================== */
+
+/* Main landing page container.
+Keeps the page at least as tall as the browser window. */
 
 .lp {
   min-height: 100vh;
@@ -33,6 +31,9 @@
   color: #fff;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   line-height: 1.5;
+
+  /* Creates the star-field effect using layered radial gradients.
+     The final color provides the dark navy background. */
   background:
     radial-gradient(1px 1px at 12% 18%, #fff9, transparent),
     radial-gradient(1px 1px at 78% 12%, #fff8, transparent),
@@ -43,15 +44,18 @@
     #070b1c;
 }
 
+/* Inherit the page's text color and remove default link underlines. */
 .lp a {
   color: inherit;
   text-decoration: none;
 }
 
+/* Prevent images from extending beyond their parent containers. */
 .lp img {
   max-width: 100%;
 }
 
+/* Makes keyboard focus visible for accessibility. */
 .lp :focus-visible {
   outline: 2px solid #5ad1b0;
   outline-offset: 3px;
@@ -64,12 +68,13 @@
 .lp-nav {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 5; /* Keeps the navigation above the page content. */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   padding: 18px clamp(20px, 5vw, 72px);
+/* Semi-transparent background allows the blur effect to show. */
   background: #070b1ce6;
   border-bottom: 1px solid #1b2a4a;
   backdrop-filter: blur(8px);
@@ -107,9 +112,10 @@
 }
 
 /* =====================================================
-            BUTTONS, LABELS AND ACCENT COLORS
+          BUTTONS, LABELS AND ACCENT COLORS
    ===================================================== */
 
+/* Shared styles for landing page buttons. */
 .lp-btn {
   padding: 11px 22px;
   border: 0;
@@ -117,32 +123,51 @@
   color: #fff;
   font-weight: 700;
   font-size: 13px;
-  cursor: pointer;
+  cursor: pointer; /* Shows a pointer when hovering over a button. */
 }
 
+/* Primary buttons: Create Account and Start Planning.
+   Uses the SpaceByte purple accent color. */
 .lp-btn.primary {
-  background: #3f7be8;
+  background: #6c63ff;
+  border: 1px solid #6c63ff;
+  color: #ffffff;
 }
 
+/* Darkens the primary button when the mouse hovers over it. */
 .lp-btn.primary:hover {
-  background: #5a8ff0;
+  background: #574bdb;
+  border-color: #574bdb;
+  color: #ffffff;
 }
 
+/* Adds a visible outline when a keyboard user focuses on a button. */
+.lp-btn.primary:focus-visible {
+  outline: 2px solid #a9a3ff;
+  outline-offset: 3px;
+}
+
+
+/* Tour Gallery Button */
 .lp-btn.ghost {
-  background: #101e31;
-  border: 1px solid #1b2a4a;
+  background: #6c63ff;
+  border: 1px solid #6c63ff;
+  color: #ffffff;
 }
 
+/* Applies a darker purple hover effect to the Tour Gallery button. */
 .lp-btn.ghost:hover {
-  background: #162a44;
+  background: #574bdb;
+  border-color: #574bdb;
+  color: #ffffff;
 }
 
-/* Text-only button, same look as .text-button in auth.css. */
+
 .lp-link {
   background: none;
   border: 0;
   padding: 0;
-  color: #5fb4ff;
+  color: #ffffff;
   font-size: 13px;
   cursor: pointer;
 }
@@ -167,10 +192,13 @@
   color: #ee6fa8;
 }
 
+
 /* =====================================================
-        HERO: INTRO COPY (LEFT) AND ORBIT VISUAL (RIGHT)
+            HERO: INTRO COPY AND ORBIT VISUAL
    ===================================================== */
 
+   /* Creates a two-column hero layout:
+   introduction on the left and space artwork on the right. */
 .lp-hero {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -179,6 +207,7 @@
   padding: 56px clamp(20px, 5vw, 72px) 80px;
 }
 
+/* Makes the main heading responsive to different screen sizes. */
 .lp-hero h1 {
   margin: 0 0 28px;
   font-size: clamp(44px, 7vw, 80px);
@@ -186,6 +215,7 @@
   letter-spacing: -0.03em;
 }
 
+/* Styles the supporting paragraph beneath the main heading. */
 .lp-lede {
   max-width: 62ch;
   margin: 0 0 28px;
@@ -194,6 +224,8 @@
   line-height: 1.6;
 }
 
+/* Places the call-to-action buttons in a flexible row.
+   Buttons wrap onto another line when space is limited. */
 .lp-cta {
   display: flex;
   flex-wrap: wrap;
@@ -201,19 +233,27 @@
   margin-bottom: 28px;
 }
 
-/* Floating cards are positioned inside this box. */
+/* Provides a positioning area for Earth, Moon, and stat cards. */
 .lp-orbit {
   position: relative;
   min-height: 440px;
 }
 
+/* Positions the Earth illustration within the orbit area. */
 .lp-earth {
   position: absolute;
   left: 18%;
   top: 20%;
   width: 46%;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #4aa0ff 0%, #1d4fa8 38%, #0a1f4d 70%, #050b22 100%);
+  background: radial-gradient(
+    circle at 35% 30%,
+    #4aa0ff 0%,
+    #1d4fa8 38%,
+    #0a1f4d 70%,
+    #050b22 100%
+  );
+  /* Creates a blue glow around Earth. */
   box-shadow: 0 0 60px 10px #2f7bff55;
 }
 
@@ -230,6 +270,7 @@
             FLOATING STAT CARDS IN THE HERO
    ===================================================== */
 
+   /* Styles the floating information cards in the hero area. */
 .lp-float {
   position: absolute;
   display: flex;
@@ -240,6 +281,7 @@
   border-radius: 10px;
   background: #0b1424;
   font-size: 13px;
+   /* Adds depth against the dark background. */
   box-shadow: 0 24px 70px #000a;
 }
 
@@ -288,6 +330,7 @@
             ICON CHIPS AND PROGRESS BARS
    ===================================================== */
 
+/* Creates consistent square backgrounds for dashboard icons. */
 .chip {
   display: inline-block;
   flex: none;
@@ -296,6 +339,7 @@
   border-radius: 10px;
 }
 
+/* Existing chip colors. */
 .chip.green {
   background: #5ad1b0;
 }
@@ -316,14 +360,56 @@
   background: #6bb9ff;
 }
 
+/* =====================================================
+              FEATURE ICON BLOCKS
+   These styles center the icons inside colored squares.
+   ===================================================== */
+
+   /* Centers the feature icons inside their colored backgrounds. */
+.lp-feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border-radius: 10px;
+  vertical-align: top;
+}
+
+/* Dark icons provide contrast on these backgrounds. */
+.lp-feature-icon.green,
+.lp-feature-icon.yellow,
+.lp-feature-icon.pink {
+  color: #102033;
+}
+
+/* White icon on the purple background. */
+.lp-feature-icon.purple {
+  color: #ffffff;
+}
+
+/* Prevent the SVG icon from shrinking or displaying inline gaps. */
+.lp-feature-icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* =====================================================
+                      PROGRESS BARS
+   ===================================================== */
+
+   /* Progress bar track: the dark background behind the progress. */
 .bar {
   display: block;
   height: 6px;
   border-radius: 9px;
   background: #1b2a4a;
-  overflow: hidden;
+  overflow: hidden; /* Keeps the progress fill inside rounded edges. */
 }
 
+/* Progress fill: stretches across the track to show a value. */
 .bar i {
   display: block;
   height: 100%;
@@ -369,6 +455,7 @@
   font-size: 15px;
 }
 
+/* Creates the card grid used to display SpaceByte features. */
 .lp-grid {
   display: grid;
   gap: 18px;
@@ -383,6 +470,7 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+/* Individual feature card with a dark background and subtle border. */
 .lp-card {
   padding: 22px;
   border: 1px solid #1b2a4a;
@@ -409,9 +497,10 @@
 }
 
 /* =====================================================
-                MEAL PLANNER PREVIEW
+                  MEAL PLANNER PREVIEW
    ===================================================== */
 
+   /* Arranges the meal planner description and preview side by side. */
 .planner {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
@@ -419,6 +508,7 @@
   align-items: center;
 }
 
+/* Removes default list styling from the meal planner checklist. */
 .lp-checks {
   display: grid;
   gap: 8px;
@@ -429,12 +519,14 @@
   font-size: 13px;
 }
 
+/* Adds a mint checkmark before each checklist item. */
 .lp-checks li::before {
   content: "\2713";
   margin-right: 10px;
   color: #5ad1b0;
 }
 
+/* Styles the sample meal planner dashboard container. */
 .lp-mock {
   padding: 20px;
   border: 1px solid #1b2a4a;
@@ -473,7 +565,7 @@
   background: #3f7be8;
 }
 
-/* Day headings across the top, one .row per meal underneath. */
+/* Displays the days and meal categories in a grid. */
 .lp-table {
   display: grid;
   grid-template-columns: 80px repeat(4, 1fr);
@@ -541,6 +633,7 @@
   font-style: normal;
 }
 
+/* Shows a suggested food substitution with a pink accent. */
 .lp-swap {
   margin: 0;
   padding: 10px 14px;
@@ -605,6 +698,7 @@
                         FOOTER
    ===================================================== */
 
+/* Footer: separates future plans and team information into columns. */
 .lp-foot {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -625,13 +719,49 @@
   margin: 0;
 }
 
+
+/* Gives the capstone attribution its SpaceByte mint accent. */
+.lp-capstone {
+  color: #5ad1b0;
+}
+
+/* Centers and styles the JACE team name. */
+.lp-team-name {
+  margin: 0 0 10px;
+  color: #5fd3ff; /* Matches the footer headings */
+  font-size: 14px;
+  font-weight: 800; /* Bold */
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+
+/* Centers the team heading, JACE, and team description. */
+.lp-foot #contact {
+  text-align: center;
+}
+
+.lp-copyright {
+  width: 100%;
+  padding: 16px 24px 24px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #8b93a7;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lp-copyright p {
+  margin: 0;
+}
+
 /* =====================================================
-                MOBILE AND TABLET SUPPORT
+              MOBILE AND TABLET SUPPORT
    ===================================================== */
 
+   /* Tablet layout: switches the hero and planner to one column
+   and reduces the number of cards per row. */
 @media (max-width: 960px) {
   .lp-nav nav {
-    display: none;
+    display: none; /* Hides the main navigation links on smaller screens. */
   }
 
   .lp-hero,
@@ -649,6 +779,8 @@
   }
 }
 
+/* Mobile layout: stacks footer sections and simplifies the
+   meal planner grid to fit narrower screens. */
 @media (max-width: 560px) {
   .lp-grid.four,
   .lp-foot {
@@ -659,7 +791,7 @@
     min-height: 380px;
   }
 
-  /* Smaller meal planner cells so four days fit on a phone. */
+   /* Reduces cell spacing so the meal planner fits on phones. */
   .lp-table,
   .lp-table .row {
     grid-template-columns: 60px repeat(4, 1fr);
@@ -667,3 +799,4 @@
     font-size: 10px;
   }
 }
+
