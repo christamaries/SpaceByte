@@ -15,6 +15,7 @@
  8. Firebase authentication status
  9. Backend user-profile connection
  10. Signed-in dashboard
+ 11. NEW: Email verification (verify screen + resend)
 
  Password requirements:
  - At least 8 characters
@@ -26,6 +27,16 @@
  IMPORTANT:
  The Terms and Privacy Policy are student-project templates.
  Review them before deploying SpaceByte publicly.
+
+ EMAIL VERIFICATION CHANGES (search for "NEW" or "CHANGED"):
+ 1. Import sendEmailVerification
+ 2. New state: emailVerified, verifySending
+ 3. Auth listener also tracks emailVerified
+ 4. Backend profile only loads once verified
+ 5. New polling effect that detects when the link was clicked
+ 6. handleSignUp sends the verification email
+ 7. New handlers: resend, check now, sign out from verify screen
+ 8. New "Verify Your Email" screen shown before the dashboard
 */
 
 // =========================================================
@@ -38,6 +49,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification, // NEW: sends the verification link
   onAuthStateChanged,
   signOut,
   updateProfile,
@@ -156,6 +168,13 @@ function App() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // NEW: Email verification state.
+  // Firebase changes user.emailVerified IN PLACE after reload(),
+  // which does not trigger a React re-render by itself. This
+  // separate state value makes the screen update.
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [verifySending, setVerifySending] = useState(false);
+
   // Terms and Privacy Policy checkbox.
   const [agreed, setAgreed] = useState(false);
 
@@ -192,6 +211,9 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+
+      // NEW: Remember whether this user has verified their email.
+      setEmailVerified(currentUser?.emailVerified ?? false);
     });
 
     return () => unsubscribe();
@@ -203,7 +225,10 @@ function App() {
   // =======================================================
 
   useEffect(() => {
-    if (!user) {
+    // CHANGED: Also wait for email verification. An unverified
+    // user should not call the backend (the backend should
+    // reject them anyway).
+    if (!user || !emailVerified) {
       setBackendProfile(null);
       setBackendError("");
       setBackendLoading(false);
@@ -245,7 +270,40 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, emailVerified]); // CHANGED: added emailVerified
+
+
+  // =======================================================
+  //    NEW: DETECT WHEN THE USER VERIFIES THEIR EMAIL
+  // =======================================================
+
+  // While a signed-in user is unverified, check Firebase every
+  // 5 seconds. When they click the link in their email (even
+  // in another tab or on another device), this screen moves on
+  // to the dashboard automatically.
+  //
+  // IMPORTANT: This effect must stay above every early
+  // "return" in the component (React hooks rule).
+  useEffect(() => {
+    if (!user || emailVerified) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        await user.reload();
+
+        if (auth.currentUser?.emailVerified) {
+          // Refresh the token so the backend sees
+          // email_verified: true on the next request.
+          await auth.currentUser.getIdToken(true);
+          setEmailVerified(true);
+        }
+      } catch (err) {
+        console.error("Verification check failed:", err);
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [user, emailVerified]);
 
 
   // =======================================================
@@ -444,7 +502,19 @@ function App() {
         displayName: fullName.trim(),
       });
 
-      setMessage("Your account was created successfully!");
+      // NEW: Send the verification email.
+      // The "url" is where Firebase's "Continue" button sends the
+      // user after they verify. It must match a domain listed in
+      // Firebase Console > Authentication > Settings > Authorized
+      // domains. Change it to your real domain when you deploy.
+      await sendEmailVerification(credential.user, {
+        url: "http://localhost:5173",
+      });
+
+      // CHANGED: Previously this said "Your account was created
+      // successfully!". The Verify Your Email screen now replaces
+      // the form, so no message is needed here.
+      setMessage("");
       setPassword("");
       setConfirmPassword("");
       setShowPassword(false);
@@ -478,10 +548,81 @@ function App() {
       // The Firebase auth listener updates the user state.
       // The authenticated-dashboard condition below then
       // renders AppShell.
+      //
+      // NEW: If the email is not verified yet, the Verify Your
+      // Email screen is shown instead of AppShell.
     } catch (err) {
       setError(getFriendlyError(err));
     } finally {
       setLoading(false);
+    }
+  }
+
+
+  // =======================================================
+  //     NEW: EMAIL VERIFICATION HANDLERS
+  // =======================================================
+
+  // "Resend verification email" button.
+  async function handleResendVerification() {
+    setMessage("");
+    setError("");
+
+    try {
+      setVerifySending(true);
+
+      await sendEmailVerification(auth.currentUser, {
+        url: "http://localhost:5173",
+      });
+
+      setMessage(
+        "Verification email sent. Check your inbox and spam folder."
+      );
+    } catch (err) {
+      // getFriendlyError already handles auth/too-many-requests.
+      setError(getFriendlyError(err));
+    } finally {
+      setVerifySending(false);
+    }
+  }
+
+  // "I've Verified My Email" button: check right now instead of
+  // waiting for the 5-second automatic check.
+  async function handleCheckVerified() {
+    setMessage("");
+    setError("");
+
+    try {
+      setLoading(true);
+
+      await auth.currentUser.reload();
+
+      if (auth.currentUser.emailVerified) {
+        // Refresh the token so the backend sees email_verified: true.
+        await auth.currentUser.getIdToken(true);
+        setEmailVerified(true);
+      } else {
+        setError(
+          "Your email isn't verified yet. Click the link in the " +
+          "email we sent, then try again."
+        );
+      }
+    } catch (err) {
+      setError(getFriendlyError(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // "Use a different account" button on the verify screen.
+  async function handleVerifySignOut() {
+    try {
+      await signOut(auth);
+      setMessage("");
+      setError("");
+      setPage("login");
+    } catch (err) {
+      setError(getFriendlyError(err));
     }
   }
 
@@ -637,10 +778,98 @@ function App() {
 
 
   // =======================================================
+  //     NEW: VERIFY YOUR EMAIL SCREEN
+  // =======================================================
+
+  // A user who is signed in but has NOT verified their email
+  // sees this screen instead of the dashboard.
+  //
+  // This block MUST stay above the signed-in dashboard block
+  // below, so unverified users never reach AppShell.
+  //
+  // Exception: keep the password reset form available.
+  if (user && !emailVerified && page !== "reset") {
+    return (
+      <main className="auth-page">
+        <div className="auth-shell">
+
+          {/* LEFT SIDE: SPACEBYTE BRANDING */}
+          <aside className="auth-hero hero-login">
+            <div className="auth-logo">
+              <span className="auth-logo-mark">✦</span>
+              <span className="auth-logo-text">
+                Space<b>Byte</b>
+              </span>
+            </div>
+          </aside>
+
+          {/* RIGHT SIDE: VERIFY INSTRUCTIONS */}
+          <section className="auth-panel">
+            <h2 className="auth-title">Verify Your Email</h2>
+
+            <p className="auth-caption">
+              We sent a verification link to <b>{user.email}</b>.
+              Click it to activate your account. This page will
+              continue automatically. Check your spam folder if
+              you don't see it.
+            </p>
+
+            {error && (
+              <p className="error-message" role="alert">
+                {error}
+              </p>
+            )}
+
+            {message && (
+              <p className="success-message" role="status">
+                {message}
+              </p>
+            )}
+
+            <button
+              type="button"
+              className="primary-button"
+              onClick={handleCheckVerified}
+              disabled={loading}
+            >
+              {loading ? "Checking..." : "I've Verified My Email"}
+            </button>
+
+            <p className="switch-page">
+              <button
+                type="button"
+                className="text-button"
+                onClick={handleResendVerification}
+                disabled={verifySending}
+              >
+                {verifySending ? "Sending..." : "Resend verification email"}
+              </button>
+            </p>
+
+            <p className="switch-page">
+              <button
+                type="button"
+                className="text-button"
+                onClick={handleVerifySignOut}
+              >
+                Use a different account
+              </button>
+            </p>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
+
+  // =======================================================
   //                  SIGNED-IN DASHBOARD
   // =======================================================
 
   // Authenticated users see the existing dashboard.
+  //
+  // NEW: Because the verify screen above returns first,
+  // only VERIFIED users reach this block. No change needed.
   //
   // Exception: if the page is "reset", keep the reset form
   // available even when a Firebase user session exists.

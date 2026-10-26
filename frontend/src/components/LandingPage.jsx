@@ -140,8 +140,13 @@ export default function LandingPage({
             <img src={logo} alt="" />
             </a>
 
-        
-        
+        <nav aria-label="Primary">
+          {NAV.map(([label, href]) => (
+            <a key={label} href={href}>
+              {label}
+            </a>
+          ))}
+        </nav>
 
         <div className="lp-auth">
           <button className="lp-link" onClick={onSignIn}>
