@@ -5,7 +5,7 @@ const { db } = require("../config/firebase");
 
 
 // ==========================================
-// GET TODAY'S NUTRITION
+//        GET TODAY'S NUTRITION
 // ==========================================
 
 async function getTodayNutrition(userId) {
@@ -33,7 +33,11 @@ async function getTodayNutrition(userId) {
 
     const log = doc.data();
 
-    // ADDED THISSkip records from before today.
+    // ADDED THIS Skip records from before today.
+    // consumptionController saves "consumedAt"; older/seeded
+    // records may use "timestamp", so accept either.
+    const logTime = log.consumedAt || log.timestamp;
+    
     const logDate =
       log.timestamp && log.timestamp.toDate
         ? log.timestamp.toDate()

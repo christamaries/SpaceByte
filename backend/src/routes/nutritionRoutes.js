@@ -1,27 +1,24 @@
-// In nutritionService.js, the code grabs all of the user's consumption logs, with no date filter. It will add up everything they've ever eaten, not just today's food. It needs a filter on the log's date.
 // nutritionRoutes.js
 
-// Import Express.
+// Import Express to create routes.
 const express = require("express");
 
-// Create router.
+// Create one Express router for nutrition endpoints.
 const router = express.Router();
 
-// Import authentication middleware.
-const verifyToken =
-  require("../middleware/authMiddleware");
-
-// Import nutrition controller.
+// Import the nutrition controller only once.
 const nutritionController =
   require("../controllers/nutritionController");
 
+// Import middleware to verify the user's authentication token.
+const verifyToken =
+  require("../middleware/authMiddleware");
 
 // ==========================================
-// GET TODAY'S NUTRITION
+//        GET TODAY'S NUTRITION
 // ==========================================
 
 // GET /nutrition/today
-//
 // Requires a logged-in user.
 router.get(
   "/today",
@@ -29,6 +26,18 @@ router.get(
   nutritionController.getTodayNutrition
 );
 
+// ==========================================
+// GET NUTRITION FOR A SPECIFIC FOOD ITEM
+// ==========================================
 
-// Export router.
+// GET /nutrition/:foodId
+// Example: GET /nutrition/food1
+// Requires a logged-in user.
+router.get(
+  "/:foodId",
+  verifyToken,
+  nutritionController.getNutrition
+);
+
+// Export the router so app.js can use it.
 module.exports = router;

@@ -10,7 +10,7 @@ const {
 
 
 // ==========================================
-// GET ALL FOOD
+//            GET ALL FOOD
 // ==========================================
 
 // GET /inventory
@@ -55,7 +55,7 @@ exports.getAllFood = async (req, res) => {
 
 
 // ==========================================
-// GET EXPIRING FOOD
+//          GET EXPIRING FOOD
 // ==========================================
 
 // GET /inventory/expiring

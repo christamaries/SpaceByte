@@ -16,10 +16,10 @@ const mealPlanController =
 
 
 // ==========================================
-// GET MEAL PLAN
+//          GET MEAL PLAN
 // ==========================================
 
-// GET /meal-plan
+// Get meal-plan
 router.get(
   "/",
   verifyToken,
@@ -28,10 +28,10 @@ router.get(
 
 
 // ==========================================
-// CREATE MEAL
+//            CREATE MEAL
 // ==========================================
 
-// POST /meal-plan
+// Create meal-plan
 router.post(
   "/",
   verifyToken,
@@ -40,10 +40,10 @@ router.post(
 
 
 // ==========================================
-// DELETE MEAL
+//              DELETE MEAL
 // ==========================================
 
-// DELETE /meal-plan/:id
+// DELETE meal-plan
 router.delete(
   "/:id",
   verifyToken,

@@ -3,10 +3,10 @@
 // Import Express.
 const express = require("express");
 
-// Create router.
+// Create an Express router.
 const router = express.Router();
 
-// Import inventory controller.
+// Import the inventory controller.
 const inventoryController =
   require("../controllers/inventoryController");
 
@@ -15,13 +15,12 @@ const verifyToken =
   require("../middleware/authMiddleware");
 
 
-// ==========================================
-// GET ALL INVENTORY
-// ==========================================
 
-// GET /inventory
+// Get all inventory items.
+// The user must be logged in.
 router.get(
   "/",
+  verifyToken,
   inventoryController.getAllFood
 );
 
@@ -53,5 +52,5 @@ router.post(
 );
 
 
-// Export router.
+// Export the router.
 module.exports = router;

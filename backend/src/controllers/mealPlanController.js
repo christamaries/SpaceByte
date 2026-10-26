@@ -6,11 +6,10 @@ const { db, admin } =
 
 
 // ==========================================
-// GET MEAL PLAN
+//            GET MEAL PLAN
 // ==========================================
 
 // GET /meal-plan
-//
 // Returns the authenticated user's meal plan.
 exports.getMealPlan = async (req, res) => {
 
@@ -57,7 +56,7 @@ exports.getMealPlan = async (req, res) => {
 
 
 // ==========================================
-// CREATE MEAL
+//            CREATE MEAL
 // ==========================================
 
 // POST /meal-plan
@@ -214,7 +213,7 @@ exports.createMeal = async (req, res) => {
 
 
 // ==========================================
-// DELETE MEAL
+//              DELETE MEAL
 // ==========================================
 
 // DELETE /meal-plan/:id

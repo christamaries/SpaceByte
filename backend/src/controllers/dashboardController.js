@@ -7,11 +7,10 @@ const {
 
 
 // ==========================================
-// GET DASHBOARD
+//              GET DASHBOARD
 // ==========================================
 
 // GET /dashboard
-//
 // Returns inventory, alerts, and today's
 // nutrition for the authenticated user.
 exports.getDashboard = async (req, res) => {

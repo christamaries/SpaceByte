@@ -7,15 +7,10 @@ const {
 
 
 // ==========================================
-// GET RESUPPLY FORECAST
+//        GET RESUPPLY FORECAST
 // ==========================================
 
-// GET /resupply/forecast
-//
-// Example:
-//
-// /resupply/forecast?days=30
-//
+
 // This estimates how much food should
 // arrive on the next cargo flight.
 exports.getResupplyForecast = async (req, res) => {

@@ -16,13 +16,13 @@ const resupplyController =
 
 
 // ==========================================
-// RESUPPLY FORECAST
+//            RESUPPLY FORECAST
 // ==========================================
 
-// GET /resupply/forecast
+// resupply forecast
 //
 // Example:
-// /resupply/forecast?days=30
+// /resupply forecast days = 30
 router.get(
   "/forecast",
   verifyToken,

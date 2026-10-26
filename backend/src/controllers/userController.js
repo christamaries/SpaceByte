@@ -1,107 +1,138 @@
 // userController.js
 
-// Import the Firestore database connection
-const { db, admin } = require("../config/firebase");
+// Import Firebase Admin and Firestore.
+const { admin, db } = require("../config/firebase");
 
-// Get the currently logged-in user's profile
-exports.getProfile = async (req, res) => {
+
+// Create a user profile in Firestore.
+// Firebase Authentication handles the actual authentication account.
+exports.createProfile = async (req, res) => {
 
   try {
 
-    // Firebase provides the user's unique ID
-    const userId = req.user.uid;
+    // Get the authenticated user's UID.
+    const uid = req.user.uid;
 
-    // Find the user's profile in Firestore
-    const userDoc = await db
-      .collection("users")
-      .doc(userId)
-      .get();
+    // Get information from the request body.
+    const { displayName } = req.body;
 
-    // Check whether the profile exists
-    if (!userDoc.exists) {
+  
+    // Get the user's Firebase Authentication record.
+    const userRecord = await admin.auth().getUser(uid);
 
-      return res.status(404).json({
-        error: "User profile not found"
-      });
-    }
+    
+    // Create or update the user's profile without deleting
+    // existing profile fields that are not included here.
+    await db.collection("users").doc(uid).set(
+      {
+        uid: uid,
+        email: userRecord.email,
+        displayName: displayName || userRecord.displayName || "",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
 
-    // Return the user's profile
-    res.status(200).json({
-      id: userDoc.id,
-      ...userDoc.data()
+    // Send a successful response.
+    res.status(201).json({
+      message: "User profile created successfully."
     });
 
   } catch (error) {
 
-    // Display the error in the server console
-    console.error("Error getting profile:", error);
+    // Display the error in the terminal.
+    console.error("Create profile error:", error);
 
-    // Send an error response
+    // Send an error response.
     res.status(500).json({
-      error: error.message
+      message: "Unable to create user profile."
     });
   }
 };
 
 
-// Create or update the user's profile
-exports.createProfile = async (req, res) => {
 
+// Get the currently logged-in user's profile.
+// If a profile does not exist yet, create one using the verified Firebase Authentication account.
+exports.getProfile = async (req, res) => {
   try {
+    // Get the UID from the verified Firebase token.
+    const uid = req.user.uid;
 
-    // Get the authenticated user's ID
-    const userId = req.user.uid;
+    // Find the user's Firebase Authentication record.
+    const userRecord = await admin.auth().getUser(uid);
 
-    // Get profile information from the request
-    const {
-      firstName,
-      lastName
-    } = req.body;
+    // Find the user's Firestore profile document.
+    const userRef = db.collection("users").doc(uid);
+    const userDocument = await userRef.get();
 
-    // Make sure the required information was provided
-    if (!firstName || !lastName) {
+    // If the profile doesn't exist, create it.
+    if (!userDocument.exists) {
+      const newProfile = {
+        uid: uid,
+        email: userRecord.email || "",
+        displayName: userRecord.displayName || "",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
 
-      return res.status(400).json({
-        error: "First name and last name are required"
+      // Save the new profile under the authenticated user's UID.
+      await userRef.set(newProfile);
+
+      // Return the newly created profile.
+      return res.status(200).json({
+        message: "User profile created successfully.",
+        user: {
+          uid: uid,
+          email: userRecord.email || "",
+          displayName: userRecord.displayName || ""
+        }
       });
     }
 
-    // Create or update the user's Firestore profile
-    await db
-      .collection("users")
-      .doc(userId)
-      .set({
+    // Return the existing profile if one was found.
+    return res.status(200).json({
+      user: userDocument.data()
+    });
 
-        // Store the user's Firebase ID
-        userId: userId,
+  } catch (error) {
+    // Log details in the backend terminal for troubleshooting.
+    console.error("Get profile error:", error);
 
-        // Store the user's first name
-        firstName: firstName,
+    return res.status(500).json({
+      message: "Unable to retrieve or create user profile."
+    });
+  }
+};
 
-        // Store the user's last name
-        lastName: lastName,
 
-        // Store the user's email
-        email: req.user.email,
+// Logout the authenticated user.
+// Firebase logout normally happens on the frontend.
+// This backend function revokes the user's Firebase refresh tokens.
+exports.logoutUser = async (req, res) => {
 
-        // Store the date the profile was created or updated
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  try {
 
-      }, { merge: true });
+    // Get the logged-in user's UID.
+    const uid = req.user.uid;
 
-    // Send a successful response
+    
+    // Revoke the user's refresh tokens.
+    // This makes previously issued refresh tokens
+    //invalid.
+    await admin.auth().revokeRefreshTokens(uid);
+
+    // Send a successful response.
     res.status(200).json({
-      message: "Profile saved successfully"
+      message: "User logged out successfully."
     });
 
   } catch (error) {
 
-    // Display the error in the server console
-    console.error("Error creating profile:", error);
+    console.error("Logout error:", error);
 
-    // Send an error response
     res.status(500).json({
-      error: error.message
+      message: "Unable to log out user."
     });
   }
 };

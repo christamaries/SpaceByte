@@ -7,7 +7,7 @@ const {
 
 
 // ==========================================
-// GET RECOMMENDATIONS
+//          GET RECOMMENDATIONS
 // ==========================================
 
 // GET /recommendations
