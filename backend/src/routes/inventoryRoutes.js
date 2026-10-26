@@ -25,5 +25,32 @@ router.get(
 );
 
 
+// ==========================================
+// GET EXPIRING FOOD
+// ==========================================
+
+// GET /inventory/expiring
+//
+// Example:
+// /inventory/expiring?days=7
+router.get(
+  "/expiring",
+  inventoryController.getExpiringFood
+);
+
+
+// ==========================================
+// ADD FOOD ITEM
+// ==========================================
+
+// POST /inventory
+// Requires a logged-in user.
+router.post(
+  "/",
+  verifyToken,
+  inventoryController.addFood
+);
+
+
 // Export the router.
 module.exports = router;

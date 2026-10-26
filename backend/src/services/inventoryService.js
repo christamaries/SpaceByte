@@ -1,7 +1,7 @@
 // inventoryService.js
 
 // Import the Firestore database.
-const { db } = require("../config/firebase");
+const { db,admin } = require("../config/firebase");
 
 
 // ==========================================
@@ -150,7 +150,53 @@ async function getExpiringFood(days = 7) {
   });
 
 }
+// ==========================================
+//           ADD A FOOD ITEM
+// ==========================================
 
+async function addFoodItem(food) {
+
+  // Clean up the values the user typed.
+  const fields = {
+
+    name: food.name.trim(),
+
+    quantity: Number(food.quantity),
+
+    calories: Number(food.calories) || 0,
+    protein: Number(food.protein) || 0,
+    carbs: Number(food.carbs) || 0,
+    fat: Number(food.fat) || 0,
+
+    lowStockThreshold:
+      Number(food.lowStockThreshold) || 10,
+
+    expirationDate: food.expirationDate || null,
+
+    // null means "not specified".
+    isVegetarian: food.isVegetarian ?? null,
+    isVegan: food.isVegan ?? null,
+
+    allergens: Array.isArray(food.allergens)
+      ? food.allergens
+      : []
+
+  };
+
+  // Save it. Firestore creates the ID.
+  const docRef =
+    await db.collection("inventory").add({
+      ...fields,
+      createdAt:
+        admin.firestore.FieldValue.serverTimestamp()
+    });
+
+  return {
+    id: docRef.id,
+    ...fields
+  };
+
+}
 
 // Export the functions so controllers
 // can use them.
@@ -158,5 +204,6 @@ module.exports = {
   getInventory,
   getFoodById,
   getFoodStatus,
-  getExpiringFood
+  getExpiringFood,
+  addFoodItem
 };

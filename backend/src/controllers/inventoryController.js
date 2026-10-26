@@ -4,7 +4,8 @@
 const {
   getInventory,
   getFoodStatus,
-  getExpiringFood
+  getExpiringFood,
+  addFoodItem
 } = require("../services/inventoryService");
 
 
@@ -89,6 +90,56 @@ exports.getExpiringFood = async (req, res) => {
 
     res.status(500).json({
       error: "Unable to retrieve expiration information"
+    });
+
+  }
+
+};
+
+
+// ==========================================
+//            ADD FOOD ITEM
+// ==========================================
+
+// POST /inventory
+exports.addFood = async (req, res) => {
+
+  try {
+
+    const { name, quantity } = req.body;
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({
+        error: "Food name is required"
+      });
+    }
+
+    const qty = Number(quantity);
+
+    if (
+      quantity === undefined ||
+      quantity === "" ||
+      isNaN(qty) ||
+      qty < 0
+    ) {
+      return res.status(400).json({
+        error: "Quantity must be 0 or more"
+      });
+    }
+
+    const newItem = await addFoodItem(req.body);
+
+    return res.status(201).json({
+      message: "Food item added",
+      item: newItem
+    });
+
+  } catch (error) {
+
+    console.error("Error adding food:", error);
+
+    return res.status(500).json({
+      error: "Unable to add food item"
     });
 
   }
