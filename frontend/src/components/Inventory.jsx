@@ -1,4 +1,5 @@
 
+
 /*
 ===========================================================
  SPACEBYTE - INVENTORY PAGE
@@ -8,9 +9,9 @@
  1. Add inventory items manually.
  2. Store quantity, weight, shelf life, expiration date,
     and item type.
- 3. Load saved items from the backend.
- 4. Display status and handle loading/errors.
- 5. Use the existing Firebase authentication and API helper.
+ 3. Store nutrition values per serving.
+ 4. Load saved items from the backend.
+ 5. Preserve Firebase authentication and existing UI.
 ===========================================================
 */
 
@@ -25,6 +26,12 @@ const EMPTY_FORM = {
   shelfLife: "",
   expirationDate: "",
   type: "Perishable",
+
+  // Nutrition values are entered per serving.
+  calories: "",
+  protein: "",
+  carbs: "",
+  fat: "",
 };
 
 const ITEM_TYPES = [
@@ -36,10 +43,16 @@ const ITEM_TYPES = [
   "Other",
 ];
 
+const NUTRITION_FIELDS = [
+  { name: "calories", label: "Calories (kcal)" },
+  { name: "protein", label: "Protein (g)" },
+  { name: "carbs", label: "Carbohydrates (g)" },
+  { name: "fat", label: "Fat (g)" },
+];
+
 function formatDate(value) {
   if (!value) return "—";
 
-  // The backend stores expiration dates as YYYY-MM-DD.
   const date = new Date(`${value}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) return value;
@@ -73,9 +86,10 @@ export default function Inventory({ user }) {
       const token = await user.getIdToken();
       const result = await apiRequest("/inventory", token);
 
-      // The current backend GET /inventory returns an array.
       if (!Array.isArray(result)) {
-        throw new Error("The backend returned an unexpected inventory response.");
+        throw new Error(
+          "The backend returned an unexpected inventory response."
+        );
       }
 
       setItems(result);
@@ -115,13 +129,12 @@ export default function Inventory({ user }) {
       return;
     }
 
-    if (form.quantity === "" || Number(form.quantity) < 0) {
-      setError("Quantity must be zero or greater.");
-      return;
-    }
-
-    if (!Number.isFinite(Number(form.quantity))) {
-      setError("Enter a valid quantity.");
+    if (
+      form.quantity.trim() === "" ||
+      !Number.isFinite(Number(form.quantity)) ||
+      Number(form.quantity) < 0
+    ) {
+      setError("Enter a valid quantity of zero or greater.");
       return;
     }
 
@@ -132,6 +145,23 @@ export default function Inventory({ user }) {
     ) {
       setError("Shelf life must be zero or more days.");
       return;
+    }
+
+    // All four nutrition fields are required so the app
+    // does not silently treat missing nutrition as zero.
+    for (const field of NUTRITION_FIELDS) {
+      const value = form[field.name];
+
+      if (
+        value.trim() === "" ||
+        !Number.isFinite(Number(value)) ||
+        Number(value) < 0
+      ) {
+        setError(
+          `Enter a valid ${field.label.toLowerCase()} value of zero or greater.`
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -147,6 +177,13 @@ export default function Inventory({ user }) {
           form.shelfLife === "" ? null : Number(form.shelfLife),
         expirationDate: form.expirationDate || null,
         type: form.type,
+
+        // Nutrition values PER SERVING, sourced from the
+        // product label or another reliable nutrition source.
+        calories: Number(form.calories),
+        protein: Number(form.protein),
+        carbs: Number(form.carbs),
+        fat: Number(form.fat),
       };
 
       await apiRequest("/inventory", token, {
@@ -154,10 +191,9 @@ export default function Inventory({ user }) {
         body: JSON.stringify(payload),
       });
 
-      setForm(EMPTY_FORM);
+      setForm({ ...EMPTY_FORM });
       setNotice("Inventory item added successfully.");
 
-      // Reload the data returned by the backend.
       await loadInventory();
     } catch (err) {
       setError(err.message || "Unable to add this inventory item.");
@@ -173,7 +209,7 @@ export default function Inventory({ user }) {
           <p className="sb-inventory-eyebrow">CREW GALLEY</p>
           <h1>Food Inventory</h1>
           <p className="sb-inventory-subtitle">
-            Track supplies, shelf life, and expiration dates.
+            Track supplies, shelf life, expiration dates, and nutrition.
           </p>
         </div>
 
@@ -184,13 +220,19 @@ export default function Inventory({ user }) {
       </header>
 
       {error && (
-        <div className="sb-inventory-message sb-inventory-error" role="alert">
+        <div
+          className="sb-inventory-message sb-inventory-error"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
       {notice && (
-        <div className="sb-inventory-message sb-inventory-success" role="status">
+        <div
+          className="sb-inventory-message sb-inventory-success"
+          role="status"
+        >
           {notice}
         </div>
       )}
@@ -210,7 +252,7 @@ export default function Inventory({ user }) {
               name="name"
               value={form.name}
               onChange={updateField}
-              placeholder="e.g. Freeze-dried strawberries"
+              placeholder="e.g. Mac and cheese"
               maxLength={120}
               required
             />
@@ -276,6 +318,36 @@ export default function Inventory({ user }) {
               ))}
             </select>
           </label>
+
+          {/* Nutrition section */}
+          <div className="sb-inventory-section-heading">
+            <div>
+              <h2>Nutrition per serving</h2>
+              <p>
+                Copy these values from the product nutrition label.
+                Enter 0 only when the verified value is zero.
+              </p>
+            </div>
+          </div>
+
+          {NUTRITION_FIELDS.map((field) => (
+            <label
+              className="sb-inventory-field"
+              key={field.name}
+            >
+              <span>{field.label} *</span>
+              <input
+                name={field.name}
+                type="number"
+                min="0"
+                step="any"
+                value={form[field.name]}
+                onChange={updateField}
+                placeholder="Enter label value"
+                required
+              />
+            </label>
+          ))}
 
           <div className="sb-inventory-form-actions">
             <button

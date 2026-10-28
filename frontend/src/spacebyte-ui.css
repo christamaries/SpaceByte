@@ -2029,3 +2029,125 @@ body,
     transition: none;
   }
 }
+
+/*
+===========================================================
+ SPACEBYTE - NUTRIENT BREAKDOWN
+===========================================================
+
+ Protein       = Purple
+ Carbohydrates = Yellow
+ Fat           = Pink
+===========================================================
+*/
+
+/* Nutrient breakdown section */
+.sb-nutrient-breakdown {
+  width: 100%;
+  margin-top: 24px;
+}
+
+/* Section heading and description */
+.sb-nutrient-breakdown h2,
+.sb-nutrient-breakdown h3 {
+  color: #f4f6ff;
+  margin-bottom: 8px;
+}
+
+.sb-nutrient-breakdown p {
+  color: #aab4ce;
+  line-height: 1.5;
+}
+
+/* Layout for the nutrient cards */
+.sb-nutrient-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+/* Base style shared by all nutrient cards */
+.sb-nutrient-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #263253;
+  border-radius: 16px;
+  background: rgba(15, 23, 48, 0.88);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sb-nutrient-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Nutrient name */
+.sb-nutrient-card h3,
+.sb-nutrient-card .sb-nutrient-name {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Large nutrient amount, such as 0g */
+.sb-nutrient-card .sb-nutrient-value {
+  display: block;
+  margin: 0 0 10px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Supporting description */
+.sb-nutrient-card .sb-nutrient-description {
+  margin: 0;
+  color: #aab4ce;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* PROTEIN — PURPLE */
+.sb-nutrient-protein {
+  border-color: rgba(140, 100, 255, 0.45);
+}
+
+.sb-nutrient-protein h3,
+.sb-nutrient-protein .sb-nutrient-name,
+.sb-nutrient-protein .sb-nutrient-value {
+  color: #a78bfa;
+}
+
+/* CARBOHYDRATES — YELLOW */
+.sb-nutrient-carbs {
+  border-color: rgba(249, 213, 110, 0.45);
+}
+
+.sb-nutrient-carbs h3,
+.sb-nutrient-carbs .sb-nutrient-name,
+.sb-nutrient-carbs .sb-nutrient-value {
+  color: #f9d56e;
+}
+
+/* FAT — PINK */
+.sb-nutrient-fat {
+  border-color: rgba(238, 95, 167, 0.45);
+}
+
+.sb-nutrient-fat h3,
+.sb-nutrient-fat .sb-nutrient-name,
+.sb-nutrient-fat .sb-nutrient-value {
+  color: #ee5fa7;
+}
+
+/* Responsive layout for phones and narrow screens */
+@media (max-width: 640px) {
+  .sb-nutrient-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sb-nutrient-card {
+    padding: 16px;
+  }
+}

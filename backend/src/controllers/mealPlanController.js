@@ -134,6 +134,18 @@ exports.createMeal = async (req, res) => {
 
     const food = foodDoc.data();
 
+    
+console.log("========== SPACEBYTE FOOD DEBUG ==========");
+console.log("Selected food ID:", foodId);
+console.log("Inventory document found:", foodDoc.exists);
+
+// Print every field saved on this inventory record.
+console.log(
+  "ALL INVENTORY FIELDS:",
+  JSON.stringify(food, null, 2)
+);
+
+console.log("==========================================");
 
     // Determine servings.
     const mealServings =
