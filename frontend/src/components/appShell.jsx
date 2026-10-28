@@ -24,10 +24,9 @@
 */
 
 import { useState } from "react";
-
 import Dashboard from "./dashboard";
 import MealPlanner from "./mealPlanner";
-
+import Inventory from "./Inventory";
 import "../spacebyte-ui.css";
 
 /*
@@ -188,30 +187,31 @@ export default function AppShell({ user, onSignOut }) {
    * The other screens show placeholders until their real
    * components are connected.
    */
-  function renderScreen() {
-    switch (screen) {
-      case "home":
-        return <Dashboard user={user} />;
+  
+function renderScreen() {
+  switch (screen) {
+    case "home":
+      return <Dashboard user={user} />;
 
-      case "meals":
-        return <MealPlanner user={user} />;
+    case "inventory":
+      return <Inventory user={user} />;
 
-      case "inventory":
-        return <ComingSoon title="Inventory" />;
+    case "meals":
+      return <MealPlanner user={user} />;
 
-      case "nutrition":
-        return <ComingSoon title="Nutrition" />;
+    case "nutrition":
+      return <ComingSoon title="Nutrition" />;
 
-      case "health":
-        return <ComingSoon title="Crew health" />;
+    case "health":
+      return <ComingSoon title="Crew health" />;
 
-      case "missions":
-        return <ComingSoon title="Missions" />;
+    case "missions":
+      return <ComingSoon title="Missions" />;
 
-      default:
-        return <Dashboard user={user} />;
-    }
+    default:
+      return <Dashboard user={user} />;
   }
+}
 
   return (
     <div className="sb-stage">
