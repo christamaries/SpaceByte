@@ -154,3 +154,1250 @@
   .sb-grid { overflow-x: auto; min-width: 640px; }
   .sb-planner-main { overflow-x: auto; }
 }
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+.sb-stage {
+  min-height: 100vh;
+  padding: 0;
+  display: block;
+  background:
+    radial-gradient(ellipse at 5% 100%, #12355266, transparent 38%),
+    radial-gradient(ellipse at 85% 0%, #222a5b44, transparent 45%),
+    #080c22;
+}
+
+.sb-window {
+  width: 100%;
+  min-height: 100vh;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #0c102b;
+}
+
+.sb-body {
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.sb-sidebar {
+  box-sizing: border-box;
+  flex: 0 0 265px;
+  width: 265px;
+  align-items: stretch;
+  gap: 0;
+  padding: 24px 14px;
+  background: #111735;
+  border-right: 1px solid #20294e;
+}
+
+.sb-brand {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 24px;
+}
+
+.sb-brand-mark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 28px;
+  background: linear-gradient(135deg, #7967ff, #22d1b0);
+}
+
+.sb-brand-name {
+  color: #fff;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.sb-brand-name span {
+  color: #25d3b0;
+}
+
+.sb-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sb-sidebar .sb-nav-button {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 13px;
+  padding: 0 16px;
+  border-radius: 13px;
+  color: #aeb7d5;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.sb-sidebar .sb-nav-button:hover {
+  background: #20284f;
+  color: #fff;
+}
+
+.sb-sidebar .sb-nav-button.active {
+  background: #6959f5;
+  color: #fff;
+  box-shadow: 0 5px 18px #5141d533;
+}
+
+.sb-nav-icon {
+  width: 24px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 21px;
+}
+
+.sb-resupply {
+  margin-top: auto;
+  padding: 20px 16px;
+  border: 1px solid #303a6d;
+  border-radius: 17px;
+  background: #1a224d;
+}
+
+.sb-resupply small {
+  color: #9ba7d0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.sb-resupply strong {
+  display: block;
+  margin-top: 10px;
+  color: #fff;
+  font-size: 28px;
+}
+
+.sb-resupply p {
+  margin: 8px 0 0;
+  color: #aab3d4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sb-sidebar .sb-signout {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 0 16px;
+  border-radius: 12px;
+  color: #aab3d4;
+  font-size: 14px;
+}
+
+.sb-content {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 32px clamp(18px, 2.4vw, 42px);
+}
+
+.sb-dashboard {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.sb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.sb-eyebrow {
+  margin: 0 0 7px;
+  color: #7f8bb8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.sb-header h1 {
+  margin: 0;
+  color: #f8f9ff;
+  font-size: clamp(25px, 2.2vw, 38px);
+  line-height: 1.2;
+  letter-spacing: -0.7px;
+}
+
+.sb-header .sb-muted {
+  margin-top: 13px;
+}
+
+.sb-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sb-search {
+  box-sizing: border-box;
+  width: clamp(170px, 21vw, 320px);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #29335f;
+  border-radius: 14px;
+  background: #191f43;
+  color: #aab5dc;
+}
+
+.sb-search > span {
+  font-size: 23px;
+}
+
+.sb-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+
+.sb-search input::placeholder {
+  color: #7782ad;
+}
+
+.sb-notification {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 1px solid #29335f;
+  border-radius: 14px;
+  background: #191f43;
+  color: #fff;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.sb-notification-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff6fa9;
+}
+
+.sb-avatars {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.sb-avatar {
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  margin-left: -5px;
+  border: 2px solid #0c102b;
+  border-radius: 50%;
+  color: #111735;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sb-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0 0 24px;
+}
+
+.sb-stat {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 135px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 24px;
+  border: 1px solid #20294f;
+  border-radius: 22px;
+  background: #1b234f;
+}
+
+.sb-stat-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.sb-stat-icon.mint {
+  background: #20d0a7;
+  color: #082d3b;
+}
+
+.sb-stat-icon.blue {
+  background: #83cfff;
+  color: #102b4a;
+}
+
+.sb-stat-icon.yellow {
+  background: #ffd166;
+  color: #44300b;
+}
+
+.sb-stat-icon.pink {
+  background: #fa69aa;
+  color: #481532;
+}
+
+.sb-stat > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-stat small {
+  margin: 2px 0 9px;
+  color: #b0bbdc;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.07em;
+}
+
+.sb-stat strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #f7f8ff;
+  font-size: clamp(23px, 2vw, 36px);
+  line-height: 1.25;
+}
+
+.sb-stat em {
+  display: inline;
+  margin-left: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.sb-stat-track,
+.sb-summary-track {
+  height: 6px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #303961;
+}
+
+.sb-stat-track i,
+.sb-summary-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #21d0aa;
+}
+
+.sb-panels {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.sb-panel {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 25px;
+  border: 1px solid #20294f;
+  border-radius: 24px;
+  background: #1b234f;
+  scroll-margin-top: 20px;
+}
+
+.sb-panel h2 {
+  margin: 0;
+  color: #f5f7ff;
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.sb-panel-head {
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sb-link {
+  flex-shrink: 0;
+  color: #24d0ad;
+  font-weight: 700;
+}
+
+.sb-link:hover {
+  color: #8af3dc;
+  text-decoration: underline;
+}
+
+.sb-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.sb-inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.sb-inventory-table th {
+  padding: 10px 8px 13px;
+  border-bottom: 1px solid #343c69;
+  color: #9ca8d0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sb-inventory-table td {
+  padding: 14px 8px;
+  border-bottom: 1px solid #303961;
+  color: #bdc7e4;
+}
+
+.sb-inventory-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sb-inventory-table th:first-child,
+.sb-inventory-table td:first-child {
+  padding-left: 0;
+}
+
+.sb-food-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #f4f6ff;
+  font-weight: 600;
+}
+
+.sb-food-icon {
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.sb-align-right {
+  text-align: right !important;
+  font-weight: 750;
+  color: #f4f6ff !important;
+}
+
+.sb-badge {
+  display: inline-block;
+  min-width: 74px;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border-radius: 99px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sb-badge.green {
+  background: #20d0a7;
+  color: #08382f;
+}
+
+.sb-badge.pink {
+  background: #fa69aa;
+  color: #511532;
+}
+
+.sb-badge.yellow {
+  background: #ffd166;
+  color: #4a3609;
+}
+
+.sb-empty {
+  padding: 28px 10px !important;
+  color: #aab5dc !important;
+  text-align: center;
+}
+
+.sb-inventory-footer {
+  padding-top: 12px;
+  border-top: 1px solid #303961;
+  color: #909dc7;
+  font-size: 11px;
+}
+
+.sb-nutrition {
+  align-items: center;
+  justify-content: space-around;
+  gap: 24px;
+  padding: 10px 0;
+}
+
+.sb-donut-wrap {
+  width: clamp(135px, 14vw, 190px);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(
+    #20d0a7 0deg var(--sb-progress),
+    #303961 var(--sb-progress) 360deg
+  );
+  transform: rotate(0);
+}
+
+.sb-donut-center {
+  width: 78%;
+  height: 78%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #1b234f;
+}
+
+.sb-donut-center strong {
+  color: #f8f9ff;
+  font-size: clamp(27px, 2.6vw, 39px);
+  line-height: 1.2;
+}
+
+.sb-donut-center span {
+  margin-top: 5px;
+  color: #aab5dc;
+  font-size: 12px;
+}
+
+.sb-bars {
+  min-width: 0;
+  gap: 18px;
+}
+
+.sb-nutrient-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.sb-nutrient-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #e0e5fa;
+  font-size: 13px;
+}
+
+.sb-nutrient-label span:last-child {
+  color: #aab5dc;
+}
+
+.sb-bar {
+  height: 8px;
+  margin-top: 7px;
+  background: #303961;
+}
+
+.sb-nutrition-footnote {
+  margin-top: 15px;
+  font-size: 11px;
+}
+
+.sb-lower-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.sb-alert-count {
+  display: grid;
+  min-width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 50%;
+  background: #303961;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sb-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 0;
+  border-bottom: 1px solid #303961;
+  color: #edf0ff;
+  font-size: 13px;
+}
+
+.sb-alert-row:last-child {
+  border-bottom: 0;
+}
+
+.sb-alert-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #fa69aa;
+}
+
+.sb-alert-row small {
+  margin-left: auto;
+  color: #aab5dc;
+  text-align: right;
+}
+
+.sb-summary-number {
+  margin: 15px 0;
+  color: #f8f9ff;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.sb-summary-number span {
+  display: block;
+  margin-top: 5px;
+  color: #aab5dc;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sb-primary-button {
+  margin-top: 15px;
+  padding: 11px 17px;
+  border: 0;
+  border-radius: 10px;
+  background: #6959f5;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.sb-primary-button:hover {
+  background: #7e70ff;
+}
+
+.sb-error-panel {
+  max-width: 650px;
+  margin: 30px auto;
+  padding: 24px;
+  border: 1px solid #773b67;
+  border-radius: 18px;
+  background: #291c40;
+  color: #fff;
+}
+
+.sb-error-panel p {
+  color: #ffc1dc;
+  overflow-wrap: anywhere;
+}
+
+.sb-inline-warning {
+  padding: 12px 15px;
+  border: 1px solid #71522c;
+  border-radius: 10px;
+  background: #30263b;
+  color: #ffd98b;
+  font-size: 13px;
+}
+
+.sb-screen-note {
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+.sb-dashboard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 20px 0 5px;
+  color: #7f8bb8;
+  font-size: 11px;
+}
+
+/* Responsive layouts */
+@media (max-width: 1250px) {
+  .sb-sidebar {
+    flex-basis: 220px;
+    width: 220px;
+  }
+
+  .sb-content {
+    padding: 25px 20px;
+  }
+
+  .sb-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sb-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sb-donut-wrap {
+    width: 165px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sb-body {
+    display: block;
+  }
+
+  .sb-sidebar {
+    width: 100%;
+    padding: 12px;
+    border-right: 0;
+    border-bottom: 1px solid #20294e;
+  }
+
+  .sb-brand {
+    min-height: 42px;
+    padding: 0 8px 12px;
+  }
+
+  .sb-nav-items {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+
+  .sb-sidebar .sb-nav-button {
+    width: auto;
+    min-width: max-content;
+    min-height: 42px;
+    padding: 0 12px;
+  }
+
+  .sb-resupply {
+    display: none;
+  }
+
+  .sb-sidebar .sb-signout {
+    width: auto;
+    min-height: 36px;
+    margin-top: 8px;
+  }
+
+  .sb-content {
+    padding: 22px 14px;
+  }
+
+  .sb-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sb-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .sb-search {
+    flex: 1;
+    width: auto;
+  }
+
+  .sb-stats {
+    gap: 12px;
+  }
+
+  .sb-stat {
+    min-height: 112px;
+    padding: 15px;
+    gap: 10px;
+    border-radius: 17px;
+  }
+
+  .sb-stat-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .sb-stat strong {
+    font-size: 24px;
+  }
+
+  .sb-panel {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .sb-panel h2 {
+    font-size: 18px;
+  }
+
+  .sb-nutrition {
+    gap: 15px;
+  }
+
+  .sb-donut-wrap {
+    width: 125px;
+  }
+
+  .sb-lower-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .sb-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sb-nutrition {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sb-donut-wrap {
+    width: 145px;
+    align-self: center;
+  }
+
+  .sb-bars {
+    width: 100%;
+  }
+
+  .sb-inventory-table {
+    min-width: 440px;
+  }
+}
+
+
+/*
+===========================================================
+ SPACEBYTE - SIDEBAR NAVIGATION STYLES
+ File: frontend/src/spacebyte-ui.css
+
+ Add this block at the VERY BOTTOM of your existing file.
+ It overrides the old icon-only sidebar styles.
+===========================================================
+*/
+
+/* Sidebar layout: full-width navigation like the screenshot */
+.sb-sidebar {
+  width: 250px;
+  flex: 0 0 250px;
+  box-sizing: border-box;
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  background: #101631;
+  border-right: 1px solid #252b50;
+}
+
+/* SpaceByte logo and logo mark */
+.sb-logo {
+  min-height: 54px;
+  margin: 0 4px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #20d3ae;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.sb-logo-text {
+  color: #ffffff;
+  font-size: 21px;
+  letter-spacing: -0.6px;
+}
+
+.sb-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Every navigation button shares the same dimensions */
+.sb-sidebar .sb-nav-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 13px;
+
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+
+  color: #b5bddb;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Consistent SVG icon size and alignment */
+.sb-nav-button svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+/* Hover state */
+.sb-sidebar .sb-nav-button:hover {
+  background: #1c2347;
+  color: #ffffff;
+}
+
+/* Selected navigation item: purple highlight */
+.sb-sidebar .sb-nav-button.active {
+  background: #6958f5;
+  border-color: #786aff;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Keyboard accessibility */
+.sb-sidebar .sb-nav-button:focus-visible,
+.sb-sidebar .sb-signout:focus-visible {
+  outline: 2px solid #20d3ae;
+  outline-offset: 3px;
+}
+
+/* Keep the sign-out button at the bottom of the sidebar */
+.sb-sidebar .sb-signout {
+  width: 100%;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 13px;
+
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #b5bddb;
+
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sb-sidebar .sb-signout:hover {
+  background: #1c2347;
+  color: #ffffff;
+}
+
+/* Temporary page placeholders */
+.sb-coming-soon {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.sb-coming-soon h2 {
+  margin: 18px 0 8px;
+  font-size: 26px;
+}
+
+.sb-coming-soon p {
+  max-width: 440px;
+  color: #aab0d8;
+  line-height: 1.7;
+}
+
+.sb-coming-icon {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: #252850;
+  color: #20d3ae;
+}
+
+/* Responsive sidebar for phones and small tablets */
+@media (max-width: 700px) {
+  .sb-body {
+    flex-direction: column;
+  }
+
+  .sb-sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    padding: 12px;
+    border-right: 0;
+    border-bottom: 1px solid #252b50;
+  }
+
+  .sb-logo {
+    min-height: 40px;
+    margin-bottom: 4px;
+  }
+
+  .sb-nav-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .sb-sidebar .sb-nav-button {
+    width: auto;
+    min-height: 42px;
+    padding: 0 10px;
+    gap: 7px;
+    font-size: 12px;
+  }
+
+  .sb-sidebar .sb-nav-button svg {
+    width: 19px;
+    height: 19px;
+    flex-basis: 19px;
+  }
+
+  .sb-sidebar .sb-signout {
+    margin-top: 0;
+    width: auto;
+  }
+
+  .sb-content {
+    padding: 18px 14px;
+  }
+}
+
+
+/* Dashboard statistic icons: calendar, fire, water, bell */
+.sb-stat-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.sb-stat-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* Keep the icon and statistic content aligned horizontally */
+.sb-stats .sb-stat {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Prevent large calorie values from overflowing */
+.sb-stats .sb-stat strong {
+  display: block;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .sb-stat-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .sb-stats .sb-stat {
+    gap: 12px;
+  }
+}
+
+
+/* =========================================================
+   SPACEBYTE DASHBOARD STAT ICONS AND PROGRESS BARS
+   File: frontend/src/spacebyte-ui.css
+   Add at the very bottom of the file.
+========================================================= */
+
+/* Keep the stat cards aligned and responsive. */
+.sb-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+/* Standardized icon containers. */
+.sb-stat-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+}
+
+/* Calendar: mint green. */
+.sb-stat-icon.mint {
+  background: #20d0a7;
+  color: #082d3b;
+}
+
+/* Fire: light blue. */
+.sb-stat-icon.blue {
+  background: #83cfff;
+  color: #102b4a;
+}
+
+/* Water: yellow. */
+.sb-stat-icon.yellow {
+  background: #ffd166;
+  color: #44300b;
+}
+
+/* Notification bell: pink. */
+.sb-stat-icon.pink {
+  background: #fa69aa;
+  color: #481532;
+}
+
+/* Make inline SVG icons render at a consistent size. */
+.sb-stat-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+/* Small progress indicators inside stat cards. */
+.sb-stat-track {
+  width: 100%;
+  height: 6px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #303961;
+}
+
+.sb-stat-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #20d0a7;
+  transition: width 0.25s ease;
+}
+
+/* Keep all four cards usable on tablets. */
+@media (max-width: 1250px) {
+  .sb-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Stack cards on narrow mobile screens. */
+@media (max-width: 420px) {
+  .sb-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* SpaceByte dashboard logo */
+.sb-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 22px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.sb-logo-image {
+  display: block;
+  width: 200px;
+  height: 200px;
+  flex: 0 0 80px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.sb-logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sb-logo-name {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+
+.sb-logo-tagline {
+  color: #9ca9c5;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
