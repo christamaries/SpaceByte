@@ -1,9 +1,7 @@
-
-
 /*
 ===========================================================
  SPACEBYTE - APP SHELL
- File: frontend/src/components/AppShell.jsx
+ AppShell.jsx
 
  PURPOSE:
  1. Display the SpaceByte sidebar.
@@ -27,6 +25,7 @@ import { useState } from "react";
 import Dashboard from "./dashboard";
 import MealPlanner from "./mealPlanner";
 import Inventory from "./Inventory";
+import Nutrition from "./Nutrition";
 import "../spacebyte-ui.css";
 
 /*
@@ -191,25 +190,25 @@ export default function AppShell({ user, onSignOut }) {
 function renderScreen() {
   switch (screen) {
     case "home":
-      return <Dashboard user={user} />;
+      return <Dashboard user = {user} />;
 
     case "inventory":
-      return <Inventory user={user} />;
+      return <Inventory user = {user} />;
 
     case "meals":
-      return <MealPlanner user={user} />;
+      return <MealPlanner user = {user} />;
 
     case "nutrition":
-      return <ComingSoon title="Nutrition" />;
+      return <Nutrition user = {user} />;
 
     case "health":
-      return <ComingSoon title="Crew health" />;
+      return <ComingSoon title = "Crew health" />;
 
     case "missions":
-      return <ComingSoon title="Missions" />;
+      return <ComingSoon title = "Missions" />;
 
     default:
-      return <Dashboard user={user} />;
+      return <Dashboard user = {user} />;
   }
 }
 

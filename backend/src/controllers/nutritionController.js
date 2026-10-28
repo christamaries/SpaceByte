@@ -2,11 +2,11 @@
 
 // Import the nutrition service functions.
 const {
-  getTodayNutrition: calculateTodayNutrition
+  getTodayNutrition: calculateTodayNutrition,
 } = require("../services/nutritionService");
 
 // Import Firestore database connection.
-const db = require("../config/firebase");
+const { db } = require("../config/firebase");
 
 // ==========================================
 //  GET NUTRITION FOR A SPECIFIC FOOD ITEM
