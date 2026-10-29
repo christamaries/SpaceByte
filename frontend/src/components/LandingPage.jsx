@@ -135,11 +135,10 @@ export default function LandingPage({
                       NAVIGATION BAR
          ========================================= */  
         }
-      <header className="lp-nav">
-        <a href="#top" className="lp-brand" aria-label="SpaceByte home">
-          <img src={logo} alt="" />
-          <span>SpaceByte</span>
-        </a>
+        <header className="lp-nav">
+          <a href="#top" className="lp-brand" aria-label="SpaceByte home">
+            <img src={logo} alt="" />
+            </a>
 
         <nav aria-label="Primary">
           {NAV.map(([label, href]) => (
@@ -154,17 +153,13 @@ export default function LandingPage({
             Sign in
           </button>
 
-          <button
-            className="lp-btn primary"
-            onClick={onCreateAccount}
-          >
+          <button className="lp-btn primary" onClick={onCreateAccount}>
             Create account
           </button>
         </div>
       </header>
 
       <main id="top">
-
         {
         /* =========================================
                         HERO SECTION
@@ -255,8 +250,9 @@ export default function LandingPage({
 
             {/* Sample food expiry alert. */}
             <div className="lp-float alert">
-              <span className="chip pink" />
-
+              <span className="chip pink lp-alert-icon" aria-hidden="true">
+                <Bell size={20} strokeWidth={2} />
+              </span>  
               <div>
                 <b>Shrimp cocktail</b>
                 <small>Expires in 5 days · 12 left</small>

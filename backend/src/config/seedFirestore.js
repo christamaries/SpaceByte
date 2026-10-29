@@ -87,7 +87,7 @@ async function seedDatabase() {
       // will be used.
       //
       // This could later be changed to values such as:
-      // "Earth", "Space Station", or "Mars".
+      // "Earth", "ISS", or "Moon".
       environment: "Earth",
 
       // Automatically records when the user

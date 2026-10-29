@@ -65,6 +65,7 @@ Keeps the page at least as tall as the browser window. */
                     NAVIGATION BAR
    ===================================================== */
 
+/* Main navigation bar */  
 .lp-nav {
   position: sticky;
   top: 0;
@@ -91,7 +92,7 @@ Keeps the page at least as tall as the browser window. */
 }
 
 .lp-brand img {
-  height: 40px;
+  height: 85px;
 }
 
 .lp-nav nav {
@@ -262,8 +263,10 @@ Keeps the page at least as tall as the browser window. */
   right: 6%;
   top: 0;
   width: 70px;
+  height: 70px; 
+  object-fit: cover;
   border-radius: 50%;
-  background: #9a9aa8;
+  background: none;
 }
 
 /* =====================================================
@@ -392,6 +395,32 @@ Keeps the page at least as tall as the browser window. */
 
 /* Prevent the SVG icon from shrinking or displaying inline gaps. */
 .lp-feature-icon svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SHRIMP COCKTAIL EXPIRY ALERT BELL
+   ========================================================= */
+
+/* Center the bell inside the pink notification square. */
+.lp-alert-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+
+  /* Dark bell contrasts with the pink background. */
+  color: #24152b;
+}
+
+/* Keep the SVG bell centered and prevent it from shrinking. */
+.lp-alert-icon svg {
   display: block;
   flex-shrink: 0;
 }
@@ -562,7 +591,7 @@ Keeps the page at least as tall as the browser window. */
 }
 
 .tabs i.on {
-  background: #3f7be8;
+  background: #6c63ff;
 }
 
 /* Displays the days and meal categories in a grid. */
