@@ -32,11 +32,19 @@ router.get(
 // ==========================================
 
 // Create meal-plan
-router.post(
-  "/",
-  verifyToken,
-  mealPlanController.createMeal
-);
+router.post("/", verifyToken, mealPlanController.createMeal);
+
+// ============================
+//           MEAL EATEN
+// =============================
+
+router.post("/:id/eaten", verifyToken, mealPlanController.markMealEaten);
+
+// ===========================================================
+//  REPLACE FOOD IN AN EXISTING PLANNED MEAL
+// ===========================================================
+
+router.patch("/:id/swap", verifyToken, mealPlanController.swapMeal);
 
 
 // ==========================================

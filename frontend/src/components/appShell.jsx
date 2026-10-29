@@ -187,30 +187,44 @@ export default function AppShell({ user, onSignOut }) {
    * components are connected.
    */
   
+
 function renderScreen() {
   switch (screen) {
     case "home":
-      return <Dashboard user = {user} />;
+      return (
+        <Dashboard
+          user={user}
+          activeScreen="home"
+          onNavigate={setScreen}
+        />
+      );
 
     case "inventory":
-      return <Inventory user = {user} />;
+      return <Inventory user={user} />;
 
     case "meals":
-      return <MealPlanner user = {user} />;
+      return <MealPlanner user={user} />;
 
     case "nutrition":
-      return <Nutrition user = {user} />;
+      return <Nutrition user={user} />;
 
     case "health":
-      return <ComingSoon title = "Crew health" />;
+      return <ComingSoon title="Crew health" />;
 
     case "missions":
-      return <ComingSoon title = "Missions" />;
+      return <ComingSoon title="Missions" />;
 
     default:
-      return <Dashboard user = {user} />;
+      return (
+        <Dashboard
+          user={user}
+          activeScreen="home"
+          onNavigate={setScreen}
+        />
+      );
   }
 }
+
 
   return (
     <div className="sb-stage">

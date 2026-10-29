@@ -108,6 +108,11 @@ export default function MealPlanner({ user }) {
   // Identifies the meal currently being deleted.
   const [deletingId, setDeletingId] = useState(null);
 
+  // Identifies the meal currently being swapped.
+  const [swappingId, setSwappingId] = useState(null);
+  
+  // Identifies the meal currently being marked as eaten.
+  const [eatingId, setEatingId] = useState(null);
   /*
    * LOAD MEALS AND INVENTORY
    *
@@ -291,6 +296,89 @@ export default function MealPlanner({ user }) {
       setDeletingId(null);
     }
   }
+/*
+===========================================================
+ MARK A PLANNED MEAL AS EATEN
+===========================================================
+1. Sends the meal ID to the authenticated backend.
+2. The backend creates a consumption log.
+3. Reloads the meal plan and dashboard.
+4. Prevents duplicate clicks while the request is running.
+===========================================================
+*/
+async function markMealEaten(meal) {
+  if (!meal?.id || !user || eatingId) return;
+
+  // Do not record a meal that has already been eaten.
+  if (meal.consumedAt) return;
+
+  setEatingId(meal.id);
+  setError("");
+
+  try {
+    const token = await user.getIdToken();
+
+    await apiRequest(
+      `/meal-plan/${encodeURIComponent(meal.id)}/eaten`,
+      token,
+      {
+        method: "POST",
+      }
+    );
+
+    // Refresh both saved meals and dashboard inventory/nutrition.
+    await load();
+  } catch (err) {
+    console.error("Unable to record eaten meal:", err);
+    setError(
+      err?.message || "Could not mark this meal as eaten."
+    );
+  } finally {
+    setEatingId(null);
+  }
+}
+
+/*
+===========================================================
+ SWAP A PLANNED MEAL
+===========================================================
+ Replaces the selected meal with the suggested inventory item.
+ Uses the existing authenticated API helper.
+===========================================================
+*/
+async function swapMeal(meal, replacementFood) {
+  if (!meal?.id || !replacementFood?.id || !user || swappingId) {
+    return;
+  }
+
+  setSwappingId(meal.id);
+  setError("");
+
+  try {
+    const token = await user.getIdToken();
+
+    await apiRequest(
+      `/meal-plan/${encodeURIComponent(meal.id)}/swap`,
+      token,
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          foodId: String(replacementFood.id),
+        }),
+      }
+    );
+
+    // Reload the saved meal so the calendar and nutrition
+    // calculations use the updated Firestore record.
+    await load();
+  } catch (err) {
+    console.error("Unable to swap planned meal:", err);
+    setError(err?.message || "Could not swap this meal.");
+  } finally {
+    setSwappingId(null);
+  }
+}
+
 
   /*
    * =========================================================
@@ -407,17 +495,56 @@ export default function MealPlanner({ user }) {
     )
     .sort((a, b) => mealDate(a).localeCompare(mealDate(b)))[0];
 
+  
   const alternative = inventory
     .filter((food) => {
-      const status = String(food.status || "OK").toUpperCase();
+  const status = String(food.status || "OK").toUpperCase();
+  const quantity = Number(food.quantity);
 
-      return (
-        status === "OK" &&
-        Number(food.calories) > 0 &&
-        Number(food.quantity) > 0
-      );
-    })
-    .sort((a, b) => Number(b.quantity) - Number(a.quantity))[0];
+    // Require a valid food item with available stock.
+    if (
+      food.id == null ||
+      !food.name ||
+      !Number.isFinite(quantity) || quantity <= 0) {
+      return false;
+    }
+
+    // Exclude low-stock and expired items.
+    // Food expiring soon can still be suggested.
+    if (status === "LOW" || status === "EXPIRED") {
+      return false;
+    }
+
+    // Do not suggest the food already in this meal.
+    if (
+      lowMeal &&
+      String(food.id) === String(lowMeal.foodId)) {
+      return false;
+    }
+
+    return true;
+  })
+  .sort(
+    (a, b) => Number(b.quantity) - Number(a.quantity))[0];
+
+  // TEMPORARY DEBUGGING: remove after fixing the swap issue.
+console.log("SpaceByte suggested-swap debug:", {
+  inventoryCount: inventory.length,
+  inventory: inventory.map((food) => ({
+    id: food.id,
+    name: food.name,
+    quantity: food.quantity,
+    status: food.status,
+  })),
+  lowMeal: lowMeal
+    ? {
+        id: lowMeal.id,
+        foodId: lowMeal.foodId,
+        foodName: lowMeal.foodName,
+      }
+    : null,
+  alternative: alternative || null,
+});
 
   let swapText = "Everything planned this week is well stocked.";
 
@@ -675,6 +802,31 @@ export default function MealPlanner({ user }) {
                           {first.foodName || "Planned food"}
                         </span>
 
+                        {/* Show eaten status or the Mark as eaten button */}
+{first.consumedAt ? (
+  <small
+    className="sb-muted"
+    role="status"
+    title="This meal has been recorded as eaten."
+  >
+    ✓ Eaten
+  </small>
+) : (
+  <button
+    type="button"
+    className="sb-link"
+    disabled={eatingId !== null}
+    onClick={(event) => {
+      event.stopPropagation();
+      markMealEaten(first);
+    }}
+  >
+    {eatingId === first.id
+      ? "Recording…"
+      : "Mark as eaten"}
+  </button>
+)}
+
                         {/* Indicate when multiple meals share a cell */}
                         {list.length > 1 && (
                           <small className="sb-more">
@@ -783,15 +935,35 @@ export default function MealPlanner({ user }) {
           </div>
         ))}
 
-        {/* Suggested food replacement */}
-        <div className="sb-swap">
-          <strong>⇄ Suggested swap</strong>
-          <p>{swapText}</p>
-        </div>
-      </aside>
-    </div>
-  );
+        
+
+{/* Suggested food replacement */}
+<div className="sb-swap">
+  <strong>⇄ Suggested swap</strong>
+  <p>{swapText}</p>
+
+  {lowMeal && alternative && (
+    <button
+      type="button"
+      className="sb-pill active sb-swap-button"
+      disabled={
+        swappingId !== null ||
+        deletingId !== null ||
+        saving
+      }
+      onClick={() => swapMeal(lowMeal, alternative)}
+    >
+      {swappingId === lowMeal.id
+        ? "Swapping..."
+        : `Replace with ${alternative.name}`}
+    </button>
+  )}
+</div>
+</aside>
+</div>
+);
 }
+
 
 /*
  * Keep each meal row's cells as direct children of the calendar grid.
