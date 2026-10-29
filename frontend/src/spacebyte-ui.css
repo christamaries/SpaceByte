@@ -269,6 +269,44 @@ body,
   font-size: 21px;
 }
 
+/* sub-items under a sidebar button (e.g. OCR Capture) */
+.sb-sub-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 6px 22px;
+  padding-left: 12px;
+  border-left: 2px solid #20294e;
+}
+
+.sb-sidebar .sb-sub-button {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #aeb7d5;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sb-sidebar .sb-sub-button:hover {
+  background: #20284f;
+  color: #fff;
+}
+
+.sb-sidebar .sb-sub-button.active {
+  background: #6959f5;
+  color: #fff;
+}
+
 .sb-resupply {
   margin-top: auto;
   padding: 20px 16px;

@@ -21,11 +21,12 @@
 ===========================================================
 */
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Dashboard from "./dashboard";
 import MealPlanner from "./mealPlanner";
 import Inventory from "./Inventory";
 import Nutrition from "./Nutrition";
+import OcrCapture from "./OcrCapture";
 import "../spacebyte-ui.css";
 
 /*
@@ -127,9 +128,19 @@ function SidebarIcon({ name }) {
  */
 const NAV_ITEMS = [
   { key: "home", title: "Overview", icon: "home" },
-  { key: "inventory", title: "Inventory", icon: "inventory" },
+  {
+    key: "inventory",
+    title: "Inventory",
+    icon: "inventory",
+    children: [{ key: "ocr", title: "OCR Capture" }],
+  },
   { key: "nutrition", title: "Nutrition", icon: "nutrition" },
-  { key: "health", title: "Crew health", icon: "health" },
+  {
+    key: "health",
+    title: "Crew health",
+    icon: "health",
+    children: [{ key: "astronaut", title: "Astronaut" }],
+  },
   { key: "missions", title: "Missions", icon: "missions" },
   { key: "meals", title: "Meal Planner", icon: "meals" },
 ];
@@ -175,7 +186,12 @@ export default function AppShell({ user, onSignOut }) {
   const [screen, setScreen] = useState("home");
 
   // Find the current screen title for the window header.
-  const currentScreen = NAV_ITEMS.find(
+  // Sub-items (like OCR Capture) also count as screens.
+  const allScreens = NAV_ITEMS.flatMap((item) => [
+    item,
+    ...(item.children || []),
+  ]);
+  const currentScreen = allScreens.find(
     (item) => item.key === screen
   );
 
@@ -207,6 +223,12 @@ function renderScreen() {
 
     case "nutrition":
       return <Nutrition user={user} />;
+
+    case "ocr":
+      return <OcrCapture user={user} />;
+
+    case "astronaut":
+      return <ComingSoon title="Astronaut" />;
 
     case "health":
       return <ComingSoon title="Crew health" />;
@@ -267,8 +289,8 @@ function renderScreen() {
             {/* Navigation buttons */}
             <div className="sb-nav-items">
               {NAV_ITEMS.map((item) => (
+                <Fragment key={item.key}>
                 <button
-                  key={item.key}
                   type="button"
                   className={
                     screen === item.key
@@ -287,6 +309,29 @@ function renderScreen() {
                   {/* Text labels match the dashboard screenshot */}
                   <span>{item.title}</span>
                 </button>
+
+                {/* Sub-items appear under their parent when it or one of its sub-items is selected. */}
+                {item.children &&
+                  (screen === item.key ||
+                    item.children.some((child) => child.key === screen)) && (
+                    <div className="sb-sub-items">
+                      {item.children.map((child) => (
+                        <button
+                          key={child.key}
+                          type="button"
+                          className={
+                            screen === child.key
+                              ? "sb-sub-button active"
+                              : "sb-sub-button"
+                          }
+                          onClick={() => setScreen(child.key)}
+                        >
+                          {child.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </Fragment>
               ))}
             </div>
 
