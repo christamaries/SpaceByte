@@ -193,7 +193,14 @@ export default function LandingPage({
               >
                 Start planning
               </button>
-
+    {import.meta.env.DEV && (
+  <a
+    href="/manual-inventory"
+    className="lp-btn ghost"
+  >
+    📦 Manual Inventory
+  </a>
+)}
               <button
                 className="lp-btn ghost"
                 onClick={onTourGalley}

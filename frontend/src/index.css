@@ -1,4 +1,5 @@
 
+@import "tailwindcss";
 /* Global reset for SpaceByte */
 * {
   box-sizing: border-box;

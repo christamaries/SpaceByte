@@ -31,7 +31,8 @@
 // =========================================================
 //                        IMPORTS
 // =========================================================
-
+import AppShell from "./components/appShell";
+import ManualInventory from "./components/ManualInventory";
 import { useEffect, useState } from "react";
 
 import {
@@ -48,8 +49,6 @@ import {
 import { auth } from "./firebase";
 import { apiRequest } from "./api";
 
-// Existing authenticated dashboard.
-import AppShell from "./components/AppShell";
 
 // NEW: Public landing page.
 // This path matches a file at src/components/landingPage.jsx.
@@ -129,7 +128,7 @@ function EyeOffIcon() {
 // =========================================================
 
 function App() {
-
+  
   // NEW: Start at the public landing page.
   //
   // Available page values:
@@ -635,7 +634,18 @@ function App() {
     }
   }
 
+// =========================================================
+//          MANUAL INVENTORY DEVELOPMENT PREVIEW
+// =========================================================
 
+// Allow developers to preview Manual Inventory without
+// signing in, but only while running the Vite dev server.
+if (
+  import.meta.env.DEV &&
+  window.location.pathname === "/manual-inventory"
+) {
+  return <ManualInventory />;
+}
   // =======================================================
   //                  SIGNED-IN DASHBOARD
   // =======================================================
@@ -644,6 +654,8 @@ function App() {
   //
   // Exception: if the page is "reset", keep the reset form
   // available even when a Firebase user session exists.
+    // TEMPORARY DEVELOPMENT PREVIEW
+
   if (user && page !== "reset") {
     return (
       <>
@@ -1033,7 +1045,7 @@ function App() {
                 )}
 
                 <button
-                  className="primary-button"
+                  className="mt-6 w-full rounded-lg border-0 bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                   type="submit"
                   disabled={loading}
                 >

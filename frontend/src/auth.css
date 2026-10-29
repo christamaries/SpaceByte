@@ -623,3 +623,51 @@ input {
     font-size: 14px;
   }
 }
+/* ========================================
+   SPACEBYTE LOGIN - FIGMA DESIGN
+======================================== */
+
+.hero-login {
+  background-image: url("/login-hero.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Hide the old CSS planet and orbit */
+.hero-login::before,
+.hero-login::after {
+  display: none;
+}
+
+/* Hide the old logo and text if they are
+   already included in the Figma image */
+.hero-login .auth-logo,
+.hero-login .auth-tagline {
+  display: none;
+}
+
+/* ========================================
+   SPACEBYTE CREATE ACCOUNT - FIGMA DESIGN
+======================================== */
+
+/* Replace the existing Create Account artwork */
+.hero-signup {
+  background-image: url("/signup-hero.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #061428;
+}
+
+/* Hide the old CSS planet and orbit */
+.hero-signup::before,
+.hero-signup::after {
+  display: none;
+}
+
+/* Hide duplicate logo and tagline */
+.hero-signup .auth-logo,
+.hero-signup .auth-tagline {
+  display: none;
+}
