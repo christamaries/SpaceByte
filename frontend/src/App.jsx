@@ -65,7 +65,7 @@ import { apiRequest } from "./api";
 // NEW: Public landing page.
 // This path matches a file at src/components/landingPage.jsx.
 // Keep the capitalization consistent with your actual filename.
-import LandingPage from "./components/landingPage";
+import LandingPage from "./components/LandingPage";
 
 // Existing authentication styles.
 import "./auth.css";

@@ -2,7 +2,9 @@
 
 /*
 ===========================================================
- MEAL PLAN CONTROLLER
+ SPACEBYTE - MEAL PLAN CONTROLLER
+
+ File: backend/src/controllers/mealPlanController.js
 
  PURPOSE:
  1. Retrieve the authenticated user's planned meals.
@@ -79,6 +81,8 @@ exports.getMealPlan = async (req, res) => {
 
     // Authentication middleware must verify the user's
     // identity and attach the decoded token to req.user.
+    //
+    // The Firebase UID uniquely identifies the user.
     const userId = req.user.uid;
 
 
@@ -88,6 +92,9 @@ exports.getMealPlan = async (req, res) => {
 
     // Retrieve only the meal documents belonging
     // to this user.
+    //
+    // The where() condition prevents this request from
+    // returning meal plans belonging to other users.
     const snapshot = await db
       .collection(MEAL_COLLECTION)
       .where("userId", "==", userId)
@@ -117,6 +124,9 @@ exports.getMealPlan = async (req, res) => {
     // ------------------------------------------
 
     // HTTP 200 means the request succeeded.
+    //
+    // The frontend receives an array of meal objects
+    // that it can display in the Meal Planner.
     return res.status(200).json(meals);
 
   } catch (error) {
@@ -167,6 +177,9 @@ exports.createMeal = async (req, res) => {
 
     // Read the planned date, meal category, inventory
     // document ID, and number of servings.
+    //
+    // These values are sent by the React frontend
+    // in the request body.
     const { date, mealType, foodId, servings } = req.body;
 
 
@@ -176,6 +189,9 @@ exports.createMeal = async (req, res) => {
 
     // A date, meal type, and inventory food ID must
     // be supplied to create a planned meal.
+    //
+    // HTTP 400 means the request contains invalid
+    // or incomplete information.
     if (!date || !mealType || !foodId) {
       return res.status(400).json({
         error: "date, mealType, and foodId are required",
@@ -218,6 +234,9 @@ exports.createMeal = async (req, res) => {
       servings === undefined ? 1 : Number(servings);
 
     // Servings must be a finite number greater than zero.
+    //
+    // Number.isFinite() prevents invalid values such as
+    // NaN and Infinity from being accepted.
     if (!Number.isFinite(mealServings) || mealServings <= 0) {
       return res.status(400).json({
         error: "Servings must be a number greater than zero",
@@ -230,6 +249,9 @@ exports.createMeal = async (req, res) => {
     // ------------------------------------------
 
     // Retrieve the inventory document using its Firestore ID.
+    //
+    // The foodId connects the planned meal to an existing
+    // food item in the inventory collection.
     const foodDoc = await db
       .collection(INVENTORY_COLLECTION)
       .doc(foodId)
@@ -243,6 +265,10 @@ exports.createMeal = async (req, res) => {
     }
 
     // Convert the inventory document into a JavaScript object.
+    //
+    // The food object contains information such as
+    // the food name, calories, protein, carbohydrates,
+    // and fat.
     const food = foodDoc.data();
 
 
@@ -300,6 +326,9 @@ exports.createMeal = async (req, res) => {
       // Number(...) converts numeric strings to numbers.
       // || 0 provides a fallback when a value is missing
       // or evaluates to zero.
+      //
+      // Example:
+      // 150 calories per serving x 2 servings = 300 calories.
       calories: (Number(food.calories) || 0) * mealServings,
       protein: (Number(food.protein) || 0) * mealServings,
       carbs: (Number(food.carbs) || 0) * mealServings,
@@ -319,6 +348,7 @@ exports.createMeal = async (req, res) => {
     // ------------------------------------------
 
     // Add a new document to the mealPlans collection.
+    //
     // Firestore automatically generates the document ID.
     const docRef = await db
       .collection(MEAL_COLLECTION)
@@ -399,6 +429,9 @@ exports.markMealEaten = async (req, res) => {
     //
     // For a given meal ID, this produces the same log ID
     // on every request.
+    //
+    // This helps prevent duplicate consumption documents
+    // when the same meal is submitted more than once.
     const logRef = db
       .collection(CONSUMPTION_COLLECTION)
       .doc(`meal_${mealId}`);
@@ -411,6 +444,10 @@ exports.markMealEaten = async (req, res) => {
     // Use a Firestore transaction to read the meal,
     // validate ownership, read the food item, and
     // create/update the associated records.
+    //
+    // A transaction helps keep related Firestore
+    // operations consistent if another request changes
+    // the same documents at the same time.
     const result = await db.runTransaction(async (transaction) => {
 
       // Read the planned meal inside the transaction.
@@ -461,6 +498,7 @@ exports.markMealEaten = async (req, res) => {
         .collection(INVENTORY_COLLECTION)
         .doc(meal.foodId);
 
+      // Read the inventory document within the transaction.
       const foodDoc = await transaction.get(foodRef);
 
       // Stop if the inventory item no longer exists.
@@ -517,6 +555,9 @@ exports.markMealEaten = async (req, res) => {
       // The amount field records servings consumed.
       // nutritionService.js must interpret this amount
       // consistently when calculating nutrition totals.
+      //
+      // mealPlanId links this record back to the
+      // original planned meal.
       transaction.set(logRef, {
         userId,
         foodId: meal.foodId,
@@ -635,6 +676,7 @@ exports.deleteMeal = async (req, res) => {
     // STEP 1: IDENTIFY THE USER AND MEAL
     // ------------------------------------------
 
+    // Get the authenticated user's Firebase UID.
     const userId = req.user.uid;
 
     // Build a reference to the requested meal document.
@@ -647,6 +689,7 @@ exports.deleteMeal = async (req, res) => {
     // STEP 2: CHECK WHETHER THE MEAL EXISTS
     // ------------------------------------------
 
+    // Retrieve the requested meal from Firestore.
     const mealDoc = await mealRef.get();
 
     // Return 404 if the requested meal cannot be found.
@@ -662,6 +705,9 @@ exports.deleteMeal = async (req, res) => {
     // ------------------------------------------
 
     // Prevent users from deleting someone else's meal.
+    //
+    // The saved userId must match the UID from
+    // the authenticated Firebase token.
     if (mealDoc.data().userId !== userId) {
       return res.status(403).json({
         error: "Access denied",
@@ -684,6 +730,7 @@ exports.deleteMeal = async (req, res) => {
     // STEP 5: CONFIRM THE DELETION
     // ------------------------------------------
 
+    // HTTP 200 confirms that the meal was deleted.
     return res.status(200).json({
       message: "Meal deleted successfully",
     });
@@ -706,6 +753,8 @@ exports.deleteMeal = async (req, res) => {
 //             SWAP FOOD IN A PLANNED MEAL
 // ==========================================
 
+// HTTP endpoint: PATCH /meal-plan/:id/swap
+//
 // PURPOSE:
 // Replace the food associated with a planned meal.
 //
@@ -716,6 +765,9 @@ exports.deleteMeal = async (req, res) => {
 // 4. Find the replacement food in inventory.
 // 5. Recalculate the meal's nutrition values.
 // 6. Save the updated meal.
+//
+// HTTP PATCH is used because only selected fields
+// of the existing meal document are being changed.
 
 exports.swapMeal = async (req, res) => {
 
@@ -725,7 +777,10 @@ exports.swapMeal = async (req, res) => {
     // STEP 1: READ USER, MEAL, AND FOOD IDENTIFIERS
     // ------------------------------------------
 
+    // Identify the authenticated user.
     const userId = req.user.uid;
+
+    // Read the meal document ID from the URL.
     const mealId = req.params.id;
 
     // Read the replacement food ID from the request body.
@@ -737,6 +792,9 @@ exports.swapMeal = async (req, res) => {
     // ------------------------------------------
 
     // Require a nonempty string for the replacement ID.
+    //
+    // trim() removes leading and trailing spaces
+    // before checking whether the value is empty.
     if (
       !foodId ||
       typeof foodId !== "string" ||
@@ -769,6 +827,8 @@ exports.swapMeal = async (req, res) => {
 
     // Perform the reads and update within one transaction
     // so Firestore can retry if a conflicting write occurs.
+    //
+    // This helps prevent updates based on outdated meal data.
     const result = await db.runTransaction(async (transaction) => {
 
       // Read the existing planned meal and replacement food.
@@ -784,6 +844,7 @@ exports.swapMeal = async (req, res) => {
         return { error: "MEAL_NOT_FOUND" };
       }
 
+      // Convert the saved meal document into an object.
       const existingMeal = mealDoc.data();
 
 
@@ -817,6 +878,7 @@ exports.swapMeal = async (req, res) => {
         return { error: "FOOD_NOT_FOUND" };
       }
 
+      // Retrieve the replacement food information.
       const food = foodDoc.data();
 
 
@@ -836,6 +898,9 @@ exports.swapMeal = async (req, res) => {
       // ----------------------------------------
 
       // Keep the original serving amount when swapping food.
+      //
+      // If the saved serving amount is missing or evaluates
+      // to zero, use one serving as the default.
       const servings = Number(existingMeal.servings) || 1;
 
 
@@ -845,6 +910,9 @@ exports.swapMeal = async (req, res) => {
 
       // Build the updated meal properties using the
       // replacement food's nutritional information.
+      //
+      // Nutrition is recalculated using the original
+      // number of servings.
       const updatedMeal = {
 
         // Save the replacement food document ID.
@@ -872,6 +940,8 @@ exports.swapMeal = async (req, res) => {
 
       // Update the existing meal document rather than
       // creating a new planned meal.
+      //
+      // Fields not included in updatedMeal remain unchanged.
       transaction.update(mealRef, updatedMeal);
 
 
@@ -888,6 +958,9 @@ exports.swapMeal = async (req, res) => {
     // ------------------------------------------
     // STEP 5: HANDLE TRANSACTION ERRORS
     // ------------------------------------------
+
+    // Convert transaction error markers into suitable
+    // HTTP responses.
 
     if (result.error === "MEAL_NOT_FOUND") {
       return res.status(404).json({
@@ -919,6 +992,9 @@ exports.swapMeal = async (req, res) => {
     // ------------------------------------------
 
     // HTTP 200 means the meal was successfully updated.
+    //
+    // Return the updated meal information so the
+    // frontend can refresh the Meal Planner display.
     return res.status(200).json({
       message: "Meal swapped successfully",
       meal: result,

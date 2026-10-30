@@ -1,8 +1,9 @@
 
-/*
+ /*
 ===========================================================
- DASHBOARD SERVICE
- 
+ SPACEBYTE - DASHBOARD SERVICE
+ File: backend/src/services/dashboardService.js
+
  PURPOSE:
  1. Gather inventory data for the dashboard.
  2. Retrieve the user's nutrition totals for today.
@@ -25,10 +26,14 @@
 */
 
 
-// Import inventory functions.
+// ==========================================
+//          IMPORT INVENTORY SERVICE
+// ==========================================
+
+// Import functions from inventoryService.js.
 //
 // getInventory:
-// Retrieves food inventory records.
+// Retrieves food inventory records from Firestore.
 //
 // getFoodStatus:
 // Determines whether an inventory item is OK, LOW,
@@ -39,7 +44,11 @@ const {
 } = require("./inventoryService");
 
 
-// Import the nutrition service.
+// ==========================================
+//          IMPORT NUTRITION SERVICE
+// ==========================================
+
+// Import the nutrition calculation function.
 //
 // getTodayNutrition:
 // Retrieves the authenticated user's nutrition totals
@@ -53,9 +62,10 @@ const {
 //          DASHBOARD CONFIGURATION
 // ==========================================
 
-// Daily calorie target used by the dashboard.
+// Set the daily calorie target used by the dashboard.
+//
 // Keep this value consistent with nutritionController.js
-// so the dashboard and nutrition page show the same target.
+// so the dashboard and nutrition page display the same target.
 const CALORIE_TARGET = 2800;
 
 
@@ -63,47 +73,58 @@ const CALORIE_TARGET = 2800;
 //             BUILD DASHBOARD
 // ==========================================
 
-// Gather the information required by the Crew Dashboard.
+// Gather all the information required by the SpaceByte
+// Crew Dashboard.
 //
 // Parameter:
-// userId - the Firebase UID of the authenticated user.
+// userId - The Firebase UID of the authenticated user.
 //
 // Returns:
-// An object containing inventory, alerts, and nutrition.
+// A combined object containing inventory, alerts,
+// and nutrition information.
 async function getDashboard(userId) {
 
   // ----------------------------------------
-  // 1. Retrieve inventory
+  // 1. RETRIEVE INVENTORY
   // ----------------------------------------
 
-  // Request the inventory records from inventoryService.
+  // Request the inventory records from inventoryService.js.
   //
   // IMPORTANT:
-  // This currently calls getInventory() without userId.
-  // If inventory is private to each user, update the service
-  // and this call so the correct user's records are returned.
+  // getInventory() is currently called without userId.
+  // If inventory records belong to individual users,
+  // verify that the inventory service retrieves the
+  // correct user's records.
   const inventory = await getInventory();
 
 
   // ----------------------------------------
-  // 2. Retrieve today's nutrition
+  // 2. RETRIEVE TODAY'S NUTRITION
   // ----------------------------------------
 
-  // Get nutrition totals for the authenticated user.
-  // The nutrition service is responsible for calculating
-  // the user's food consumption for the current day.
+  // Call the nutrition service to retrieve the
+  // authenticated user's nutrition totals for today.
+  //
+  // Passing userId allows the nutrition service to
+  // identify which user's consumption records to retrieve.
   const nutrition = await getTodayNutrition(userId);
 
 
   // ----------------------------------------
-  // 3. Calculate inventory statuses
+  // 3. CALCULATE INVENTORY STATUSES
   // ----------------------------------------
 
-  // Create a new array containing the original food fields
-  // plus a calculated status for each food item.
+  // Create a new array containing the inventory items
+  // along with their calculated status.
   //
-  // The spread operator preserves existing item properties.
-  // getFoodStatus(food) calculates the item's current status.
+  // The spread operator (...food) preserves all existing
+  // properties of each inventory item.
+  //
+  // getFoodStatus(food) determines whether the item is:
+  // OK       - Inventory quantity is sufficient.
+  // LOW      - Inventory quantity is running low.
+  // EXPIRING - Food is approaching its expiration date.
+  // EXPIRED  - Food has passed its expiration date.
   const items = inventory.map(food => ({
     ...food,
     status: getFoodStatus(food)
@@ -111,10 +132,11 @@ async function getDashboard(userId) {
 
 
   // ----------------------------------------
-  // 4. Group inventory alerts
+  // 4. GROUP INVENTORY ALERTS
   // ----------------------------------------
 
-  // Find food items that are running low.
+  // Filter the inventory list to find items
+  // that have a LOW inventory status.
   const lowStock =
     items.filter(food => food.status === "LOW");
 
@@ -130,47 +152,56 @@ async function getDashboard(userId) {
 
 
   // ----------------------------------------
-  // 5. Calculate remaining calories
+  // 5. CALCULATE REMAINING CALORIES
   // ----------------------------------------
 
-  // Subtract today's consumed calories from the daily target.
+  // Calculate how many calories the user has remaining
+  // based on the daily calorie target.
   //
-  // Math.max(0, ...) prevents the remaining-calorie value
+  // Number(nutrition.calories) converts the calorie value
+  // into a number.
+  //
+  // The || 0 fallback prevents an undefined or invalid
+  // calorie value from causing an invalid calculation.
+  //
+  // Math.max(0, ...) prevents remaining calories
   // from becoming negative if the user exceeds the target.
-  //
-  // The fallback prevents an undefined calories value from
-  // producing NaN. Confirm that nutrition.calories is
-  // normally returned as a number by nutritionService.
   const caloriesRemaining =
     Math.max(0, CALORIE_TARGET - (Number(nutrition.calories) || 0));
 
 
   // ----------------------------------------
-  // 6. Return dashboard data
+  // 6. RETURN DASHBOARD DATA
   // ----------------------------------------
 
-  // Return a single object that the controller can send
-  // to the frontend as a JSON response.
+  // Return one combined dashboard object.
+  //
+  // The dashboard controller receives this object
+  // and sends it to the frontend as a JSON response.
   //
   // inventory:
-  // All retrieved food items with their calculated statuses.
+  // Contains all retrieved food items and their statuses.
   //
   // alerts:
-  // Separate lists for low-stock, expiring, and expired food.
+  // Contains separate lists of low-stock, expiring,
+  // and expired food items.
   //
   // nutrition:
-  // Today's nutrition totals, the calorie target, and
-  // the number of calories remaining.
+  // Contains today's nutrition totals, the daily
+  // calorie target, and the remaining calories.
   return {
 
+    // Inventory information with calculated statuses.
     inventory: items,
 
+    // Inventory alerts grouped by status.
     alerts: {
       lowStock,
       expiringSoon,
       expired
     },
 
+    // Nutrition totals and daily calorie information.
     nutrition: {
       ...nutrition,
       calorieTarget: CALORIE_TARGET,
@@ -186,7 +217,8 @@ async function getDashboard(userId) {
 //                EXPORT SERVICE
 // ==========================================
 
-// Export getDashboard so dashboardController.js can call it.
+// Export getDashboard so dashboardController.js
+// can import and use it to retrieve dashboard information.
 module.exports = {
   getDashboard
 };

@@ -1,7 +1,7 @@
-
 /*
 ===========================================================
-  RESUPPLY SERVICE
+ SPACEBYTE - RESUPPLY SERVICE
+ File: backend/src/services/resupplyService.js
 
  PURPOSE:
  1. Retrieve food inventory from Firestore.
@@ -37,27 +37,28 @@ const { db } = require("../config/firebase");
 //      CALCULATE RESUPPLY FORECAST
 // ==========================================
 
-// Calculate how much of each food item may need to be
-// replenished for a future period.
-//
-// Parameter:
-// daysRemaining - number of days to forecast.
-// Defaults to 30 days when no argument is supplied.
-//
-// Returns:
-// An array of forecast objects, one per inventory item.
+/**
+ * Calculate how much of each food item may need to be
+ * replenished for a future period.
+ *
+ * @param {number} daysRemaining - Number of days to forecast.
+ * Defaults to 30 days when no argument is supplied.
+ *
+ * Returns:
+ * An array of forecast objects, one per inventory item.
+ */
 async function calculateResupplyForecast(
   daysRemaining = 30
 ) {
 
   // ----------------------------------------
-  // 1. Retrieve inventory
+  // 1. RETRIEVE INVENTORY
   // ----------------------------------------
 
   // Read all food items from the inventory collection.
   //
-  // Each inventory document represents a food item and
-  // contains fields such as name and quantity.
+  // Each Firestore inventory document represents a food item
+  // and contains information such as its name and quantity.
   const inventorySnapshot =
     await db
       .collection("inventory")
@@ -65,7 +66,7 @@ async function calculateResupplyForecast(
 
 
   // ----------------------------------------
-  // 2. Retrieve consumption history
+  // 2. RETRIEVE CONSUMPTION HISTORY
   // ----------------------------------------
 
   // Read the consumption logs used to estimate food usage.
@@ -80,7 +81,7 @@ async function calculateResupplyForecast(
 
 
   // ----------------------------------------
-  // 3. Initialize consumption totals
+  // 3. INITIALIZE CONSUMPTION TOTALS
   // ----------------------------------------
 
   // Store the total recorded consumption for each food ID.
@@ -96,10 +97,10 @@ async function calculateResupplyForecast(
 
 
   // ----------------------------------------
-  // 4. Calculate historical consumption
+  // 4. CALCULATE HISTORICAL CONSUMPTION
   // ----------------------------------------
 
-  // Process each consumption log from Firestore.
+  // Process each consumption log retrieved from Firestore.
   consumptionSnapshot.docs.forEach(doc => {
 
     // Read the fields saved in the consumption log.
@@ -118,6 +119,7 @@ async function calculateResupplyForecast(
 
 
     // Ignore logs that do not identify a food item.
+    //
     // Without a foodId, the consumption cannot be matched
     // to a specific inventory record.
     if (!foodId) {
@@ -137,23 +139,25 @@ async function calculateResupplyForecast(
     //
     // IMPORTANT:
     // This assumes log.amount represents the same quantity
-    // unit used by inventory.quantity. If amount represents
-    // servings but inventory.quantity represents packages
-    // or grams, the forecast needs a unit conversion.
+    // unit used by inventory.quantity.
+    //
+    // For example, if amount represents servings but
+    // inventory.quantity represents packages or grams,
+    // a unit conversion will be necessary.
     consumptionTotals[foodId] += amount;
 
   });
 
 
   // ----------------------------------------
-  // 5. Calculate forecast for each food item
+  // 5. CALCULATE FORECAST FOR EACH FOOD ITEM
   // ----------------------------------------
 
   // Generate a forecast for every inventory document.
   const forecast =
     inventorySnapshot.docs.map(doc => {
 
-      // Read the saved food information.
+      // Read the saved food information from Firestore.
       const food = doc.data();
 
 
@@ -168,7 +172,7 @@ async function calculateResupplyForecast(
 
 
       // ----------------------------------------
-      // Estimate average daily usage
+      // ESTIMATE AVERAGE DAILY USAGE
       // ----------------------------------------
 
       // Sprint 1 assumption:
@@ -181,7 +185,7 @@ async function calculateResupplyForecast(
 
 
       // ----------------------------------------
-      // Estimate future consumption
+      // ESTIMATE FUTURE CONSUMPTION
       // ----------------------------------------
 
       // Project the amount of food expected to be consumed
@@ -191,17 +195,17 @@ async function calculateResupplyForecast(
 
 
       // ----------------------------------------
-      // Read current inventory quantity
+      // READ CURRENT INVENTORY QUANTITY
       // ----------------------------------------
 
-      // Convert the current quantity to a number.
+      // Convert the current inventory quantity to a number.
       // Use zero if the value is missing or invalid.
       const currentQuantity =
         Number(food.quantity) || 0;
 
 
       // ----------------------------------------
-      // Calculate recommended resupply amount
+      // CALCULATE RECOMMENDED RESUPPLY AMOUNT
       // ----------------------------------------
 
       // Subtract the current inventory from projected use.
@@ -221,7 +225,7 @@ async function calculateResupplyForecast(
 
 
       // ----------------------------------------
-      // Build the forecast result
+      // BUILD THE FORECAST RESULT
       // ----------------------------------------
 
       // Return the information needed by the controller
@@ -268,9 +272,14 @@ async function calculateResupplyForecast(
     });
 
 
+  // ----------------------------------------
+  // 6. RETURN THE FORECAST
+  // ----------------------------------------
+
   // Return the forecast array to resupplyController.js.
+  //
   // The controller filters out items that do not need
-  // additional supplies.
+  // additional supplies before returning the response.
   return forecast;
 
 }

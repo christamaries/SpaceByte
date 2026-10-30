@@ -7,25 +7,70 @@
  PURPOSE:
  1. Display the SpaceByte sidebar and navigation.
  2. Preserve the dashboard and meal planner.
- 3. Connect inventory, nutrition, and OCR pages.
- 4. Preserve the manual inventory page.
- 5. Preserve Firebase sign-out through onSignOut.
- 6. Keep the existing SpaceByte styling.
+ 3. Connect the combined inventory page.
+ 4. Connect nutrition and dietary restrictions.
+ 5. Connect OCR Capture under Inventory.
+ 6. Preserve Firebase sign-out through onSignOut.
+ 7. Keep the existing SpaceByte styling.
+
 ===========================================================
 */
 
+
+// Import Fragment to group JSX elements without adding
+// unnecessary HTML elements to the page.
+//
+// Import useState to keep track of the currently selected page.
 import { Fragment, useState } from "react";
+
+
+// ================================================
+//              IMPORT APPLICATION PAGES
+// ================================================
+
+// Main dashboard page.
 import Dashboard from "./dashboard";
+
+// Weekly meal planning page.
 import MealPlanner from "./mealPlanner";
+
+// Food inventory management page.
 import Inventory from "./Inventory";
-import ManualInventory from "./ManualInventory";
+
+// Nutrition tracking page.
 import Nutrition from "./Nutrition";
+
+// Food image recognition and OCR capture page.
 import OcrCapture from "./OcrCapture";
 
+// User dietary preferences and restrictions page.
+import DietaryRestrictions from "./dietaryRestrictions";
+
+
+// ================================================
+//                IMPORT SPACEBYTE STYLES
+// ================================================
+
+// Import the main SpaceByte stylesheet.
+// This file controls the appearance of the sidebar,
+// dashboard layout, buttons, navigation, and page content.
 import "../spacebyte-ui.css";
 
+
+/*
+===========================================================
+ SIDEBAR ICONS
+===========================================================
+*/
+
 // Reusable SVG icons for sidebar navigation.
+//
+// Instead of repeating SVG code for every navigation button,
+// this component displays the appropriate icon based on
+// the name passed through the name prop.
 function SidebarIcon({ name }) {
+
+  // Shared SVG properties used by all sidebar icons.
   const commonProps = {
     width: 22,
     height: 22,
@@ -39,7 +84,13 @@ function SidebarIcon({ name }) {
     focusable: "false",
   };
 
+
+  // Select the correct SVG icon based on its name.
   switch (name) {
+
+    // ----------------------------------------
+    // HOME ICON
+    // ----------------------------------------
     case "home":
       return (
         <svg {...commonProps}>
@@ -49,6 +100,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // ----------------------------------------
+    // INVENTORY ICON
+    // ----------------------------------------
     case "inventory":
       return (
         <svg {...commonProps}>
@@ -59,6 +114,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // ----------------------------------------
+    // NUTRITION ICON
+    // ----------------------------------------
     case "nutrition":
       return (
         <svg {...commonProps}>
@@ -70,6 +129,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // ----------------------------------------
+    // CREW HEALTH ICON
+    // ----------------------------------------
     case "health":
       return (
         <svg {...commonProps}>
@@ -78,6 +141,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // ----------------------------------------
+    // MISSIONS ICON
+    // ----------------------------------------
     case "missions":
       return (
         <svg {...commonProps}>
@@ -88,6 +155,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // ----------------------------------------
+    // MEAL PLANNER ICON
+    // ----------------------------------------
     case "meals":
       return (
         <svg {...commonProps}>
@@ -96,36 +167,115 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // Return nothing if an unsupported icon name is supplied.
     default:
       return null;
   }
 }
 
-// Sidebar navigation and its expandable sub-items.
+
+/*
+===========================================================
+ SIDEBAR NAVIGATION
+===========================================================
+*/
+
+// This array defines the navigation items displayed
+// in the SpaceByte sidebar.
+//
+// Each navigation item contains:
+// - key: Internal identifier used to select a page.
+// - title: Text displayed in the sidebar.
+// - icon: Name of the SVG icon.
+//
+// Some navigation items also contain children.
+//
+// Inventory:
+//   - OCR Capture
+//
+// Nutrition:
+//   - Dietary Restrictions
+//
+// Crew health:
+//   - Astronaut
+//
+// Keeping navigation in one array makes it easier
+// to add or reorganize pages later.
+
 const NAV_ITEMS = [
-  { key: "home", title: "Overview", icon: "home" },
+  {
+    key: "home",
+    title: "Overview",
+    icon: "home",
+  },
+
   {
     key: "inventory",
     title: "Inventory",
     icon: "inventory",
     children: [
-      { key: "manual-inventory", title: "Manual Inventory" },
-      { key: "ocr", title: "OCR Capture" },
+      {
+        key: "ocr",
+        title: "OCR Capture",
+      },
     ],
   },
-  { key: "nutrition", title: "Nutrition", icon: "nutrition" },
+
+  {
+    key: "nutrition",
+    title: "Nutrition",
+    icon: "nutrition",
+    children: [
+      {
+        key: "dietary",
+        title: "Dietary Restrictions",
+      },
+    ],
+  },
+
   {
     key: "health",
     title: "Crew health",
     icon: "health",
-    children: [{ key: "astronaut", title: "Astronaut" }],
+    children: [
+      {
+        key: "astronaut",
+        title: "Astronaut",
+      },
+    ],
   },
-  { key: "missions", title: "Missions", icon: "missions" },
-  { key: "meals", title: "Meal Planner", icon: "meals" },
+
+  {
+    key: "missions",
+    title: "Missions",
+    icon: "missions",
+  },
+
+  {
+    key: "meals",
+    title: "Meal Planner",
+    icon: "meals",
+  },
 ];
 
-// Friendly placeholder for pages not yet connected.
+
+/*
+===========================================================
+ COMING SOON PAGE
+===========================================================
+*/
+
+// Display a placeholder page for modules that have not
+// been fully connected to their application functionality.
+//
+// The title prop identifies which module is being displayed.
 function ComingSoon({ title }) {
+
+  // Search the navigation configuration for the selected item.
+  //
+  // flatMap combines parent navigation items and their
+  // children into one array so both can be searched.
   const item = NAV_ITEMS
     .flatMap((navItem) => [
       navItem,
@@ -133,40 +283,96 @@ function ComingSoon({ title }) {
     ])
     .find((navItem) => navItem.key === title);
 
+
+  // Display the placeholder content.
   return (
     <section className="sb-coming-soon">
+
+      {/* Display the navigation icon when one exists. */}
       <span className="sb-coming-icon" aria-hidden="true">
         <SidebarIcon name={item?.icon} />
       </span>
 
+      {/* Display the name of the selected module. */}
       <h2>{title}</h2>
 
+      {/* Explain that the module is not fully connected yet. */}
       <p>
         This SpaceByte module is ready for its page
         integration. Your existing dashboard and meal
         planner remain available.
       </p>
+
     </section>
   );
 }
 
-// Main signed-in application layout.
+
+/*
+===========================================================
+ MAIN SIGNED-IN APPLICATION LAYOUT
+===========================================================
+*/
+
+// AppShell displays the main application after authentication.
+//
+// PROPS:
+// user:
+//   The currently authenticated user's information.
+//
+// onSignOut:
+//   Callback provided by the parent authentication component.
+//   It handles Firebase sign-out.
 export default function AppShell({ user, onSignOut }) {
+
+  // The Overview page is the default screen.
+  //
+  // setScreen changes the selected page when a sidebar
+  // navigation button is clicked.
   const [screen, setScreen] = useState("home");
 
-  // Include both parent navigation items and sub-items.
+
+  /*
+  =========================================================
+   ALL AVAILABLE SCREENS
+  =========================================================
+  */
+
+  // Combine parent navigation items and their sub-items.
+  //
+  // This allows the application to find the title of
+  // whichever page is currently selected.
   const allScreens = NAV_ITEMS.flatMap((item) => [
     item,
     ...(item.children || []),
   ]);
 
+
+  // Find the currently selected screen.
+  //
+  // The title is displayed in the browser-style title bar.
   const currentScreen = allScreens.find(
     (item) => item.key === screen
   );
 
-  // Display the selected page.
+
+  /*
+  =========================================================
+   PAGE RENDERING
+  =========================================================
+  */
+
+  // Determine which application page should appear
+  // inside the main content area.
   function renderScreen() {
+
+    // Check the currently selected screen.
     switch (screen) {
+
+      // ----------------------------------------
+      // DASHBOARD / OVERVIEW
+      // ----------------------------------------
+
       case "home":
         return (
           <Dashboard
@@ -176,30 +382,78 @@ export default function AppShell({ user, onSignOut }) {
           />
         );
 
+
+      // ----------------------------------------
+      // INVENTORY PAGE
+      // ----------------------------------------
+
+      // Display the combined inventory page.
+      // Manual inventory entry is included inside this page.
       case "inventory":
         return <Inventory user={user} />;
 
-      case "manual-inventory":
-        return <ManualInventory user={user} />;
 
+      // ----------------------------------------
+      // MEAL PLANNER
+      // ----------------------------------------
+
+      // Display the weekly meal planner.
       case "meals":
         return <MealPlanner user={user} />;
 
+
+      // ----------------------------------------
+      // NUTRITION OVERVIEW
+      // ----------------------------------------
+
+      // Display nutrition totals and tracking information.
       case "nutrition":
         return <Nutrition user={user} />;
 
+
+      // ----------------------------------------
+      // DIETARY RESTRICTIONS
+      // ----------------------------------------
+
+      // Display dietary preferences and restrictions.
+      case "dietary":
+        return <DietaryRestrictions user={user} />;
+
+
+      // ----------------------------------------
+      // OCR CAPTURE
+      // ----------------------------------------
+
+      // Display the food image recognition page.
       case "ocr":
         return <OcrCapture user={user} />;
 
+
+      // ----------------------------------------
+      // CREW HEALTH PLACEHOLDER
+      // ----------------------------------------
+
       case "astronaut":
-        return <ComingSoon title="Astronaut" />;
+        return <ComingSoon title="astronaut" />;
 
       case "health":
         return <ComingSoon title="Crew health" />;
 
-      case "missions":
-        return <ComingSoon title="Missions" />;
 
+      // ----------------------------------------
+      // MISSIONS PLACEHOLDER
+      // ----------------------------------------
+
+      case "missions":
+        return <ComingSoon title="missions" />;
+
+
+      // ----------------------------------------
+      // DEFAULT PAGE
+      // ----------------------------------------
+
+      // If an unknown screen is selected, return the user
+      // to the dashboard instead of displaying a blank page.
       default:
         return (
           <Dashboard
@@ -211,35 +465,73 @@ export default function AppShell({ user, onSignOut }) {
     }
   }
 
+
+  /*
+  =========================================================
+   APPLICATION LAYOUT
+  =========================================================
+  */
+
+  // Render the complete signed-in SpaceByte application.
   return (
     <div className="sb-stage">
+
+      {/* Main application window. */}
       <div className="sb-window">
-        {/* Browser-style title bar */}
+
+
+        {/* =====================================
+            BROWSER-STYLE TITLE BAR
+        ===================================== */}
+
         <div className="sb-titlebar">
+
+          {/* Decorative window control indicators. */}
           <i
             style={{ background: "#ee5fa7" }}
             aria-hidden="true"
           />
+
           <i
             style={{ background: "#f9d56e" }}
             aria-hidden="true"
           />
+
           <i
             style={{ background: "#5ad1b0" }}
             aria-hidden="true"
           />
 
+          {/* Display the application name and selected page. */}
           <span>
             SpaceByte · {currentScreen?.title || "Overview"}
           </span>
+
         </div>
 
+
+        {/* =====================================
+            MAIN APPLICATION BODY
+        ===================================== */}
+
         <div className="sb-body">
-          {/* Main sidebar navigation */}
+
+
+          {/* =====================================
+              MAIN SIDEBAR NAVIGATION
+          ===================================== */}
+
           <nav
             className="sb-sidebar"
             aria-label="Main navigation"
           >
+
+            {/* ---------------------------------
+                SPACEBYTE LOGO
+            --------------------------------- */}
+
+            {/* Display the application logo.
+                The image is loaded from the frontend public folder. */}
             <div className="sb-logo">
               <img
                 src="/logo.png"
@@ -248,64 +540,135 @@ export default function AppShell({ user, onSignOut }) {
               />
             </div>
 
+
+            {/* ---------------------------------
+                NAVIGATION ITEMS
+              --------------------------------- */}
+
+            {/* Loop through the NAV_ITEMS array to build
+                the sidebar navigation dynamically. */}
             <div className="sb-nav-items">
+
               {NAV_ITEMS.map((item) => {
+
+                // Check whether one of this parent's children
+                // is currently selected.
                 const childIsActive = (
                   item.children || []
                 ).some((child) => child.key === screen);
 
+
+                // Highlight the parent when it or one
+                // of its child pages is active.
                 const isActive =
                   screen === item.key || childIsActive;
 
+
+                // Render the parent and any expanded children.
                 return (
                   <Fragment key={item.key}>
+
+
+                    {/* ---------------------------------
+                        PARENT NAVIGATION BUTTON
+                    --------------------------------- */}
+
                     <button
                       type="button"
+
+                      // Apply the active CSS class when
+                      // this navigation section is selected.
                       className={
                         isActive
                           ? "sb-nav-button active"
                           : "sb-nav-button"
                       }
+
+                      // Update the selected page when clicked.
                       onClick={() => setScreen(item.key)}
+
+                      // Provide an accessible button label.
                       aria-label={item.title}
+
+                      // Identify the currently selected page.
                       aria-current={
                         screen === item.key ? "page" : undefined
                       }
+
+                      // Display a tooltip when hovering.
                       title={item.title}
                     >
+
+                      {/* Display the icon associated with the item. */}
                       <SidebarIcon name={item.icon} />
+
+                      {/* Display the navigation label. */}
                       <span>{item.title}</span>
+
                     </button>
 
+
+                    {/* ---------------------------------
+                        CHILD NAVIGATION ITEMS
+                    --------------------------------- */}
+
+                    {/* Show child navigation buttons only
+                        when their parent section is active. */}
                     {item.children && isActive && (
+
                       <div className="sb-sub-items">
+
+                        {/* Render each child navigation item. */}
                         {item.children.map((child) => (
+
                           <button
                             key={child.key}
                             type="button"
+
+                            // Highlight the currently selected child.
                             className={
                               screen === child.key
                                 ? "sb-sub-button active"
                                 : "sb-sub-button"
                             }
+
+                            // Change the selected page.
                             onClick={() => setScreen(child.key)}
+
+                            // Identify the active child page.
                             aria-current={
                               screen === child.key
                                 ? "page"
                                 : undefined
                             }
                           >
+
+                            {/* Display the child page name. */}
                             {child.title}
+
                           </button>
+
                         ))}
+
                       </div>
                     )}
+
                   </Fragment>
                 );
               })}
+
             </div>
 
-            {/* Keep the existing Firebase sign-out callback. */}
+
+            {/* =====================================
+                FIREBASE SIGN-OUT
+            ===================================== */}
+
+            {/* Call the sign-out function supplied by the
+                parent authentication component.
+                
+                This keeps Firebase authentication handling
+                outside of the AppShell navigation component. */}
             <button
               type="button"
               className="sb-signout"
@@ -313,15 +676,31 @@ export default function AppShell({ user, onSignOut }) {
               title="Sign out"
               aria-label="Sign out"
             >
+
+              {/* Power symbol used for the sign-out button. */}
               <span aria-hidden="true">⏻</span>
+
+              {/* Visible button label. */}
               <span>Sign out</span>
+
             </button>
+
           </nav>
 
-          {/* Selected page content */}
+
+          {/* =====================================
+              SELECTED PAGE CONTENT
+          ===================================== */}
+
+          {/* The selected application page is rendered here.
+              renderScreen() determines which component appears. */}
           <main className="sb-content">
+
             {renderScreen()}
+
           </main>
+
+
         </div>
       </div>
     </div>

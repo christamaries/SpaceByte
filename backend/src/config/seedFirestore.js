@@ -1,11 +1,23 @@
-// seedFirestore.js
 
-// ---------------------------------------------------------
-// This file populates Firestore with sample data for:
-// 1. Users
-// 2. Inventory Items
-// 3. Consumption Logs
-// ---------------------------------------------------------
+/*
+===========================================================
+ SPACEBYTE - FIRESTORE DATABASE SEEDING
+ File: backend/src/seedFirestore.js
+
+ PURPOSE:
+ This file inserts sample data into the Firebase Firestore
+ database so the SpaceByte application has information
+ to display and test.
+
+ COLLECTIONS CREATED:
+ 1. Users
+ 2. Inventory
+ 3. Consumption Logs
+
+ The sample data helps test inventory tracking,
+ nutritional calculations, and food consumption.
+===========================================================
+*/
 
 
 // =====================================================
@@ -13,16 +25,21 @@
 // =====================================================
 
 // Import the Firebase Admin SDK.
-// This allows the backend to securely communicate
-// with the Firestore database.
+// This package allows the backend application to
+// communicate with and manage the Firebase database.
 const admin = require("firebase-admin");
 
 
 // =====================================================
 //                SERVICE ACCOUNT
 // =====================================================
-// Import the Firebase service account credentials.
 
+// Import the Firebase service account credentials.
+// These credentials authenticate the backend and allow
+// it to access the Firestore database.
+//
+// IMPORTANT:
+// Keep this file private and never upload it to GitHub.
 const serviceAccount = require("../../serviceAccountKey.json");
 
 
@@ -31,12 +48,16 @@ const serviceAccount = require("../../serviceAccountKey.json");
 // =====================================================
 
 // Initialize Firebase Admin using the service account.
+// This establishes a secure connection between the
+// SpaceByte backend and the Firebase project.
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 
-// Create a reference to the Firestore database.
+// Create a reference to the Cloud Firestore database.
+// The db variable will be used to create, read, and
+// update documents in Firestore.
 const db = admin.firestore();
 
 
@@ -44,59 +65,70 @@ const db = admin.firestore();
 //                MAIN SEED FUNCTION
 // =====================================================
 
-// This function creates sample data in Firestore.
+// This asynchronous function inserts sample data into
+// the Firestore database.
+//
+// The async keyword allows us to use await when performing
+// database operations that take time to complete.
 async function seedDatabase() {
   try {
 
+    // Display a message indicating that database
+    // seeding has started.
     console.log("Starting Firestore seed...");
 
 
     // =====================================================
     //                USERS COLLECTION
     // =====================================================
-    // Create a sample user document.
+
+    // Create a sample user document in the users collection.
     //
-    // Firestore collection:
+    // COLLECTION:
     // users
     //
-    // Document ID:
+    // DOCUMENT ID:
     // test-user-id
-
+    //
+    // The set() method creates the document if it does
+    // not exist or replaces its existing contents.
     await db.collection("users").doc("test-user-id").set({
 
-      // Unique ID for the user.
+      // Unique identifier assigned to the user.
       userId: "test-user-id",
 
-      // User's name.
+      // User's first and last name.
       firstName: "John",
       lastName: "Doe",
 
-      // User's email address.
+      // Email address associated with the account.
       email: "johndoe@example.com",
 
-      // List of food allergies.
+      // Array containing foods the user is allergic to.
       allergies: ["Peanuts"],
 
-      // Dietary restrictions for the user.
+      // Array containing the user's dietary restrictions.
       dietaryRestrictions: ["Vegetarian"],
 
-      // User's food preferences.
+      // Array containing the user's food preferences.
       preferences: ["Low Sugar"],
 
-      // Environment where the food recommendations
-      // will be used.
+      // Identifies the environment where food
+      // recommendations and inventory are being used.
       //
-      // This could later be changed to values such as:
-      // "Earth", "ISS", or "Moon".
+      // Possible examples include:
+      // Earth, International Space Station (ISS), or Moon.
       environment: "Earth",
 
-      // Automatically records when the user
-      // was created.
+      // Automatically records the date and time when
+      // this document is created in Firestore.
       createdAt:
         admin.firestore.FieldValue.serverTimestamp(),
     });
 
 
+    // Display confirmation that the user document
+    // was successfully added to Firestore.
     console.log("User data seeded");
 
 
@@ -104,17 +136,17 @@ async function seedDatabase() {
     //            INVENTORY COLLECTION
     // =====================================================
 
-    // Sample food inventory.
+    // Create an array containing sample food inventory.
     //
-    // Each object represents one food item.
+    // Each object represents one food item and contains
+    // information needed by the SpaceByte application.
     //
-    // These fields can be used by SpaceByte to:
-    // - Track food quantities
-    // - Display nutritional information
-    // - Detect low inventory
-    // - Track expiration dates
-    // - Identify dietary information
-
+    // This information can be used to:
+    // - Track available food quantities.
+    // - Calculate nutritional information.
+    // - Identify low-stock inventory.
+    // - Monitor food expiration dates.
+    // - Check dietary restrictions and allergens.
     const inventoryItems = [
 
       // =====================================================
@@ -122,35 +154,36 @@ async function seedDatabase() {
       // =====================================================
 
       {
+        // Unique identifier for the food item.
         id: "apple",
 
+        // Name displayed in the inventory.
         name: "Apple",
 
-        // Current quantity available.
+        // Current number of apples available.
         quantity: 100,
 
-        // Nutritional information.
+        // Nutritional information for the food item.
         calories: 95,
         protein: 0.5,
         carbs: 25,
         fat: 0.3,
 
-        // Inventory management.
-        // The app can alert the user when the quantity
-        // reaches or falls below this number.
+        // Minimum quantity allowed before the application
+        // should display a low-stock warning.
         lowStockThreshold: 10,
 
-        // Expiration date.
+        // Date when the food item is expected to expire.
         expirationDate: "2026-10-10",
 
-        // Dietary information.
+        // Identifies whether the food is vegetarian or vegan.
         isVegetarian: true,
         isVegan: true,
 
-        // Food allergy information.
+        // Empty array means no allergens are listed.
         allergens: [],
 
-        // Date the item was added to the database.
+        // Automatically records when the item is created.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
@@ -165,6 +198,7 @@ async function seedDatabase() {
 
         name: "Banana",
 
+        // Current inventory quantity.
         quantity: 75,
 
         // Nutritional information.
@@ -173,26 +207,27 @@ async function seedDatabase() {
         carbs: 27,
         fat: 0.4,
 
-        // Inventory management.
+        // Minimum quantity before a low-stock alert.
         lowStockThreshold: 10,
 
-        // Expiration date.
+        // Food expiration date.
         expirationDate: "2026-10-12",
 
-        // Dietary information.
+        // Dietary classifications.
         isVegetarian: true,
         isVegan: true,
 
-        // No common allergens.
+        // No allergens are listed.
         allergens: [],
 
+        // Automatically record the creation date.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
 
 
       // =====================================================
-      //                    RICE
+      //                      RICE
       // =====================================================
 
       {
@@ -200,6 +235,7 @@ async function seedDatabase() {
 
         name: "Rice",
 
+        // Current quantity available.
         quantity: 200,
 
         // Nutritional information.
@@ -208,26 +244,27 @@ async function seedDatabase() {
         carbs: 28,
         fat: 0.3,
 
-        // Inventory management.
+        // Minimum inventory quantity.
         lowStockThreshold: 20,
 
-        // Expiration date.
+        // Food expiration date.
         expirationDate: "2027-01-15",
 
-        // Dietary information.
+        // Dietary classifications.
         isVegetarian: true,
         isVegan: true,
 
-        // No common allergens.
+        // No allergens are listed.
         allergens: [],
 
+        // Automatically record the creation date.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
 
 
       // =====================================================
-      //                CHICKEN BREAST
+      //                  CHICKEN BREAST
       // =====================================================
 
       {
@@ -235,6 +272,7 @@ async function seedDatabase() {
 
         name: "Chicken Breast",
 
+        // Current quantity available.
         quantity: 50,
 
         // Nutritional information.
@@ -243,19 +281,20 @@ async function seedDatabase() {
         carbs: 0,
         fat: 3.6,
 
-        // Inventory management.
+        // Minimum quantity before a low-stock alert.
         lowStockThreshold: 10,
 
-        // Expiration date.
+        // Food expiration date.
         expirationDate: "2026-10-08",
 
-        // Chicken is not vegetarian or vegan.
+        // Chicken is not classified as vegetarian or vegan.
         isVegetarian: false,
         isVegan: false,
 
-        // No common allergens.
+        // No allergens are listed.
         allergens: [],
 
+        // Automatically record the creation date.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
@@ -264,8 +303,10 @@ async function seedDatabase() {
       // =====================================================
       //          NASA-INSPIRED FOOD EXAMPLES
       // =====================================================
+
+
       // =====================================================
-      //                SPACE GRANOLA
+      //                  SPACE GRANOLA
       // =====================================================
 
       {
@@ -273,6 +314,7 @@ async function seedDatabase() {
 
         name: "Space Granola",
 
+        // Current quantity available.
         quantity: 40,
 
         // Nutritional information.
@@ -281,19 +323,21 @@ async function seedDatabase() {
         carbs: 35,
         fat: 6,
 
-        // Inventory management.
+        // Minimum quantity before a low-stock alert.
         lowStockThreshold: 5,
 
-        // Expiration date.
+        // Food expiration date.
         expirationDate: "2027-03-01",
 
-        // Dietary information.
+        // Dietary classifications.
         isVegetarian: true,
         isVegan: true,
 
-        // Possible allergens.
+        // Contains nuts, which should be considered
+        // when checking the user's food allergies.
         allergens: ["Nuts"],
 
+        // Automatically record the creation date.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
@@ -308,6 +352,7 @@ async function seedDatabase() {
 
         name: "Freeze Dried Strawberries",
 
+        // Current quantity available.
         quantity: 30,
 
         // Nutritional information.
@@ -316,26 +361,27 @@ async function seedDatabase() {
         carbs: 28,
         fat: 0,
 
-        // Inventory management.
+        // Minimum quantity before a low-stock alert.
         lowStockThreshold: 5,
 
-        // Expiration date.
+        // Food expiration date.
         expirationDate: "2027-05-01",
 
-        // Dietary information.
+        // Dietary classifications.
         isVegetarian: true,
         isVegan: true,
 
-        // No common allergens.
+        // No allergens are listed.
         allergens: [],
 
+        // Automatically record the creation date.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
 
 
       // =====================================================
-      //                  PROTEIN PACK
+      //                    PROTEIN PACK
       // =====================================================
 
       {
@@ -343,6 +389,7 @@ async function seedDatabase() {
 
         name: "Protein Pack",
 
+        // Current quantity available.
         quantity: 25,
 
         // Nutritional information.
@@ -351,19 +398,21 @@ async function seedDatabase() {
         carbs: 5,
         fat: 12,
 
-        // Inventory management.
+        // Minimum quantity before a low-stock alert.
         lowStockThreshold: 5,
 
-        // Expiration date.
+        // Food expiration date.
         expirationDate: "2027-02-15",
 
-        // Dietary information.
+        // Vegetarian but not vegan because it contains
+        // an animal-derived ingredient.
         isVegetarian: true,
         isVegan: false,
 
-        // Example allergen.
+        // Contains milk, which is a possible allergen.
         allergens: ["Milk"],
 
+        // Automatically record the creation date.
         createdAt:
           admin.firestore.FieldValue.serverTimestamp(),
       },
@@ -374,45 +423,55 @@ async function seedDatabase() {
     //        ADD INVENTORY ITEMS TO FIRESTORE
     // =====================================================
 
-    // Loop through every food item in the inventory array.
+    // Loop through the inventoryItems array.
+    // Each item is processed individually and saved
+    // as its own document in the inventory collection.
     for (const item of inventoryItems) {
 
-      // Create a Firestore document using the item's ID.
+      // Create a Firestore document using the food item's
+      // unique ID as the document ID.
+      //
+      // Example:
+      // inventory/apple
+      // inventory/banana
+      // inventory/rice
+      //
+      // The set() method saves the food item's information.
       await db.collection("inventory").doc(item.id).set({
 
-        // Food name.
+        // Food name displayed in the application.
         name: item.name,
 
-        // Current inventory quantity.
+        // Current quantity available in inventory.
         quantity: item.quantity,
 
-        // Nutritional information.
+        // Nutritional information used for calculations.
         calories: item.calories,
         protein: item.protein,
         carbs: item.carbs,
         fat: item.fat,
 
-        // Minimum quantity before the app
-        // should display a low-stock warning.
+        // Minimum quantity used to determine low-stock alerts.
         lowStockThreshold: item.lowStockThreshold,
 
-        // Date the food expires.
+        // Expiration date used for expiration tracking.
         expirationDate: item.expirationDate,
 
-        // Dietary information.
+        // Dietary classifications.
         isVegetarian: item.isVegetarian,
         isVegan: item.isVegan,
 
-        // List of possible allergens.
+        // List of possible food allergens.
         allergens: item.allergens,
 
-        // Automatically record when the item
-        // was added to Firestore.
+        // Timestamp indicating when the item was added.
         createdAt: item.createdAt,
       });
     }
 
 
+    // Display confirmation that all inventory items
+    // have been added to the database.
     console.log("Inventory data seeded");
 
 
@@ -420,32 +479,41 @@ async function seedDatabase() {
     //            CONSUMPTION LOGS COLLECTION
     // =====================================================
 
-    // Consumption logs record when a user consumes food.
+    // Consumption logs keep track of food consumed by users.
     //
-    // This information can later be used to:
-    // - Track food consumption
-    // - Calculate nutritional totals
-    // - Update inventory
-    // - Generate reports
-    // - Make food recommendations
+    // This information can later help SpaceByte:
+    // - Track how much food users consume.
+    // - Calculate daily nutritional totals.
+    // - Monitor remaining food inventory.
+    // - Generate consumption reports.
+    // - Provide personalized food recommendations.
 
 
     // =====================================================
     //              FIRST CONSUMPTION LOG
     // =====================================================
 
+    // Create a consumption record for the first food item.
+    //
+    // COLLECTION:
+    // consumptionLogs
+    //
+    // DOCUMENT ID:
+    // log1
     await db.collection("consumptionLogs").doc("log1").set({
 
-      // User who consumed the food.
+      // Identifies the user who consumed the food.
       userId: "test-user-id",
 
-      // ID of the food that was consumed.
+      // Identifies the food item that was consumed.
+      // This ID connects the log to the apple inventory item.
       foodId: "apple",
 
-      // Amount consumed.
+      // Amount of food consumed.
       amount: 2,
 
-      // Automatically record the time of consumption.
+      // Automatically records the date and time
+      // when this consumption record is created.
       timestamp:
         admin.firestore.FieldValue.serverTimestamp(),
     });
@@ -455,23 +523,33 @@ async function seedDatabase() {
     //              SECOND CONSUMPTION LOG
     // =====================================================
 
+    // Create a consumption record for the second food item.
+    //
+    // COLLECTION:
+    // consumptionLogs
+    //
+    // DOCUMENT ID:
+    // log2
     await db.collection("consumptionLogs").doc("log2").set({
 
-      // User who consumed the food.
+      // Identifies the user who consumed the food.
       userId: "test-user-id",
 
-      // ID of the food that was consumed.
+      // Identifies the food item that was consumed.
+      // This ID connects the log to the banana inventory item.
       foodId: "banana",
 
-      // Amount consumed.
+      // Amount of food consumed.
       amount: 1,
 
-      // Automatically record the time of consumption.
+      // Automatically records the consumption date and time.
       timestamp:
         admin.firestore.FieldValue.serverTimestamp(),
     });
 
 
+    // Display confirmation that both consumption
+    // records have been added successfully.
     console.log("Consumption logs seeded");
 
 
@@ -479,10 +557,13 @@ async function seedDatabase() {
     //                  SEED COMPLETE
     // =====================================================
 
+    // Display a success message after all sample data
+    // has been written to Firestore.
     console.log("Firestore seeded successfully!");
 
 
-    // Exit the Node.js process with a success code.
+    // Exit the Node.js process with status code 0.
+    // A status code of 0 indicates successful execution.
     process.exit(0);
 
 
@@ -492,15 +573,16 @@ async function seedDatabase() {
     //                ERROR HANDLING
     // =====================================================
 
-    // Display the error in the terminal if something
-    // goes wrong while seeding Firestore.
+    // Catch and display any errors that occur while
+    // connecting to Firestore or inserting sample data.
     console.error(
       "Error seeding Firestore:",
       error
     );
 
 
-    // Exit the Node.js process with an error code.
+    // Exit the Node.js process with status code 1.
+    // A status code of 1 indicates that an error occurred.
     process.exit(1);
   }
 }
@@ -510,5 +592,6 @@ async function seedDatabase() {
 //                RUN THE SEED FUNCTION
 // =====================================================
 
-// Execute the database seeding function.
+// Call the seedDatabase() function to begin inserting
+// the sample user, inventory items, and consumption logs.
 seedDatabase();
