@@ -1,11 +1,11 @@
 
-
 /*
 ===========================================================
  SPACEBYTE AUTHENTICATION STYLES
+ File: frontend/src/auth.css
 ===========================================================
 
- Includes:
+ This stylesheet controls:
  1. Login and sign-up screens
  2. Space-themed branding
  3. Desktop and mobile layouts
@@ -13,18 +13,31 @@
  5. Password requirement checklist
  6. Backend connection messages
  7. Terms of Service and Privacy Policy pages
+ 8. Figma login and create-account background artwork
+
+ The styles are shared by the authentication screens
+ rendered inside App.jsx.
+===========================================================
 */
 
+
+/* =====================================================
+                  GLOBAL PAGE SETTINGS
+   ===================================================== */
+
+/* Apply consistent sizing to all elements. */
 * {
   box-sizing: border-box;
 }
 
+/* Make the document fill the available browser width. */
 html {
   width: 100%;
   min-height: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
+/* Set the default font and remove the browser's body margin. */
 body {
   margin: 0;
   min-width: 320px;
@@ -32,16 +45,21 @@ body {
   font-family: Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
 }
 
+/* Keep buttons and form fields consistent with the page font.
+   Improve touch interaction on mobile devices. */
 button,
 input {
   font: inherit;
   touch-action: manipulation;
 }
 
+
 /* =====================================================
             MAIN PAGE AND STAR-FIELD BACKGROUND
    ===================================================== */
 
+/* Main container for the login, sign-up, verification,
+   and password-reset screens. */
 .auth-page {
   min-height: 100vh;
   min-height: 100dvh;
@@ -50,6 +68,8 @@ input {
   justify-content: center;
   padding: 32px 20px;
   color: #fff;
+
+  /* Layered radial gradients create a space/star effect. */
   background:
     radial-gradient(1px 1px at 12% 18%, #fff9, transparent),
     radial-gradient(1px 1px at 78% 12%, #fff8, transparent),
@@ -60,6 +80,9 @@ input {
     #070b1c;
 }
 
+/* Two-column container:
+   - Left side: SpaceByte branding or background artwork.
+   - Right side: Login, sign-up, or other authentication content. */
 .auth-shell {
   width: 100%;
   max-width: 980px;
@@ -72,10 +95,12 @@ input {
   box-shadow: 0 24px 70px #000a;
 }
 
+
 /* =====================================================
                 LEFT HERO / BRANDING PANEL
    ===================================================== */
 
+/* Shared styling for the left side of authentication screens. */
 .auth-hero {
   position: relative;
   padding: 28px;
@@ -88,7 +113,8 @@ input {
   background-position: center;
 }
 
-/* Optional artwork files in frontend/public. */
+/* Original optional background artwork.
+   The Figma image rules at the bottom override these paths. */
 .hero-login {
   background-image: url("/login-hero.jpg");
 }
@@ -97,7 +123,7 @@ input {
   background-image: url("/signup-hero.jpg");
 }
 
-/* CSS planet fallback beneath optional artwork. */
+/* Create a CSS planet as a fallback if artwork is not used. */
 .auth-hero::before {
   content: "";
   position: absolute;
@@ -116,6 +142,7 @@ input {
     inset -30px -20px 60px #00000099;
 }
 
+/* Position and size the planet on the login screen. */
 .hero-login::before {
   width: 300px;
   height: 300px;
@@ -123,6 +150,7 @@ input {
   top: 22%;
 }
 
+/* Position and size the planet on the sign-up screen. */
 .hero-signup::before {
   width: 620px;
   height: 620px;
@@ -130,7 +158,7 @@ input {
   bottom: -380px;
 }
 
-/* Planet orbit rings. */
+/* Add decorative orbit rings around the CSS planets. */
 .auth-hero::after {
   content: "";
   position: absolute;
@@ -140,6 +168,7 @@ input {
   pointer-events: none;
 }
 
+/* Login screen orbit ring. */
 .hero-login::after {
   width: 380px;
   height: 300px;
@@ -148,6 +177,7 @@ input {
   transform: rotate(-12deg);
 }
 
+/* Sign-up screen orbit ring. */
 .hero-signup::after {
   width: 560px;
   height: 300px;
@@ -156,46 +186,54 @@ input {
   transform: rotate(-18deg);
 }
 
+/* Keep the logo and tagline above the decorative planet. */
 .auth-logo,
 .auth-tagline {
   position: relative;
   z-index: 1;
 }
 
+/* Arrange the SpaceByte logo horizontally. */
 .auth-logo {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* Original sign-up logo arrangement. */
 .hero-signup .auth-logo {
   flex-direction: column;
   margin-top: 48px;
   gap: 4px;
 }
 
+/* SpaceByte logo symbol. */
 .auth-logo-mark {
   font-size: 34px;
   color: #5ad1b0;
   line-height: 1;
 }
 
+/* SpaceByte logo text. */
 .auth-logo-text {
   font-size: 30px;
   font-weight: 800;
   letter-spacing: 0.3px;
 }
 
+/* Highlight the Byte portion of the logo. */
 .auth-logo-text b {
   color: #5fd3ff;
 }
 
+/* Main tagline heading. */
 .auth-tagline h2 {
   margin: 0 0 10px;
   font-size: 40px;
   line-height: 1.05;
 }
 
+/* Supporting tagline text. */
 .auth-tagline p {
   margin: 0 0 18px;
   color: #aab8d6;
@@ -203,16 +241,19 @@ input {
   line-height: 1.4;
 }
 
+/* Earth, ISS, and Moon text beneath the tagline. */
 .auth-tagline small {
   letter-spacing: 0.25em;
   color: #5fd3ff;
   font-size: 12px;
 }
 
+
 /* =====================================================
                     RIGHT FORM PANEL
    ===================================================== */
 
+/* Container for login, sign-up, and verification forms. */
 .auth-panel {
   min-width: 0;
   padding: 56px 56px 40px;
@@ -222,6 +263,7 @@ input {
   background: #0b1424;
 }
 
+/* Shared heading style for authentication screens. */
 .auth-title {
   margin: 0 0 26px;
   text-align: center;
@@ -229,6 +271,7 @@ input {
   color: #fff;
 }
 
+/* Small descriptive text beneath authentication headings. */
 .auth-caption {
   margin: 0 0 24px;
   text-align: center;
@@ -237,11 +280,13 @@ input {
   line-height: 1.6;
 }
 
+/* Stack form fields vertically. */
 .auth-panel form {
   display: flex;
   flex-direction: column;
 }
 
+/* Labels above email and password fields. */
 .auth-panel label {
   margin: 14px 0 6px;
   font-size: 13px;
@@ -249,6 +294,7 @@ input {
   color: #e8edf8;
 }
 
+/* Shared styling for text, email, and password inputs. */
 .auth-panel input[type="email"],
 .auth-panel input[type="password"],
 .auth-panel input[type="text"] {
@@ -261,19 +307,23 @@ input {
   font-size: 13px;
 }
 
+/* Placeholder text inside form fields. */
 .auth-panel input::placeholder {
   color: #8892a6;
 }
 
+/* Highlight an input when the user clicks or tabs into it. */
 .auth-panel input:focus {
   outline: 2px solid #4a85f0;
   outline-offset: 1px;
 }
 
+
 /* =====================================================
                     PRIMARY BUTTON
    ===================================================== */
 
+/* Main action buttons such as Sign In and Create Account. */
 .primary-button {
   margin-top: 22px;
   padding: 12px;
@@ -286,24 +336,29 @@ input {
   cursor: pointer;
 }
 
+/* Change button color when the user hovers over it. */
 .primary-button:hover:not(:disabled) {
   background: #5a8ff0;
 }
 
+/* Visually indicate when a button cannot be clicked. */
 .primary-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+
 /* =====================================================
             TEXT BUTTONS AND SCREEN LINKS
    ===================================================== */
 
+/* Position the Forgot Password link. */
 .forgot-row {
   margin-top: 16px;
   text-align: right;
 }
 
+/* Reusable button style for links that change screens. */
 .text-button {
   background: none;
   border: 0;
@@ -313,14 +368,17 @@ input {
   cursor: pointer;
 }
 
+/* Underline text links when hovered. */
 .text-button:hover {
   text-decoration: underline;
 }
 
+/* Muted version of a text button. */
 .text-button.muted {
   color: #7f8aa6;
 }
 
+/* Text beneath forms, such as the Create Account link. */
 .switch-page {
   margin: 24px 0 0;
   text-align: center;
@@ -328,10 +386,13 @@ input {
   font-size: 12px;
 }
 
+
 /* =====================================================
             TERMS AND PRIVACY AGREEMENT ROW
    ===================================================== */
 
+/* Align the checkbox and agreement text horizontally.
+   !important overrides the general label styling above. */
 .terms-row {
   display: flex !important;
   align-items: flex-start;
@@ -343,6 +404,7 @@ input {
   color: #aab4cc !important;
 }
 
+/* Size and position the agreement checkbox. */
 .terms-row input {
   flex: 0 0 auto;
   width: 14px;
@@ -351,23 +413,28 @@ input {
   cursor: pointer;
 }
 
+/* Allow agreement text to wrap without overflowing. */
 .terms-row span {
   min-width: 0;
 }
 
+/* Style the Terms and Privacy Policy links. */
 .terms-row a {
   color: #5fb4ff;
   text-decoration: none;
 }
 
+/* Underline legal links on hover. */
 .terms-row a:hover {
   text-decoration: underline;
 }
+
 
 /* =====================================================
                 ERROR AND SUCCESS MESSAGES
    ===================================================== */
 
+/* Display Firebase or form-validation errors. */
 .error-message {
   margin: 14px 0 0;
   color: #ff8fa3;
@@ -375,6 +442,7 @@ input {
   line-height: 1.5;
 }
 
+/* Display successful actions, such as sending a reset email. */
 .success-message {
   margin: 14px 0 0;
   color: #5ad1b0;
@@ -382,10 +450,12 @@ input {
   line-height: 1.5;
 }
 
+
 /* =====================================================
             PASSWORD INPUTS AND GREY EYE BUTTONS
    ===================================================== */
 
+/* Wrap a password input and its visibility button together. */
 .password-input-wrapper {
   position: relative;
   display: flex;
@@ -393,6 +463,7 @@ input {
   width: 100%;
 }
 
+/* Reserve space on the right for the eye icon. */
 .password-input-wrapper input {
   width: 100%;
   min-width: 0;
@@ -400,6 +471,7 @@ input {
   padding-right: 48px;
 }
 
+/* Position the show/hide password button inside the input. */
 .password-toggle {
   position: absolute;
   right: 8px;
@@ -418,26 +490,31 @@ input {
   line-height: 1;
 }
 
+/* Darken the eye icon when hovered. */
 .password-toggle:hover {
   color: #555;
 }
 
+/* Set consistent dimensions for the eye SVG icons. */
 .password-toggle svg {
   display: block;
   width: 20px;
   height: 20px;
 }
 
+/* Show a visible outline when navigating with a keyboard. */
 .password-toggle:focus-visible {
   outline: 2px solid #6478e8;
   outline-offset: 2px;
   border-radius: 4px;
 }
 
+
 /* =====================================================
             LIVE PASSWORD REQUIREMENTS CHECKLIST
    ===================================================== */
 
+/* Light background makes the password checklist stand out. */
 .password-requirements {
   margin: 10px 0 16px;
   padding: 12px 14px;
@@ -447,10 +524,12 @@ input {
   line-height: 1.5;
 }
 
+/* Space the individual password requirements. */
 .password-requirements p {
   margin: 5px 0;
 }
 
+/* Heading above the password requirements. */
 .password-requirements .password-requirements-title {
   margin-top: 0;
   margin-bottom: 8px;
@@ -458,18 +537,22 @@ input {
   color: #333846;
 }
 
+/* Green text means a password requirement has been satisfied. */
 .password-requirements .rule-valid {
   color: #187344;
 }
 
+/* Red text means a password requirement has not been satisfied. */
 .password-requirements .rule-invalid {
   color: #a33a3a;
 }
+
 
 /* =====================================================
                 BACKEND CONNECTION STATUS
    ===================================================== */
 
+/* Display a message while the frontend contacts the backend. */
 .backend-status {
   margin: 0;
   padding: 8px 12px;
@@ -478,17 +561,19 @@ input {
   font-size: 12px;
 }
 
+/* Display backend profile errors above the dashboard. */
 .backend-error {
   margin: 0;
   padding: 8px 12px;
   background: #0b1424;
 }
 
+
 /* =====================================================
         TERMS OF SERVICE AND PRIVACY POLICY PAGES
    ===================================================== */
 
-/* Let legal pages scroll independently if their text is long. */
+/* Allow long legal documents to scroll within the panel. */
 .legal-panel {
   display: block;
   min-height: 540px;
@@ -500,7 +585,7 @@ input {
   scrollbar-color: #344665 #0b1424;
 }
 
-/* Keep the legal text readable within the right-hand panel. */
+/* Keep legal text readable and centered. */
 .legal-content {
   width: 100%;
   max-width: 620px;
@@ -510,6 +595,7 @@ input {
   line-height: 1.75;
 }
 
+/* Align the legal page title to the left. */
 .legal-content .auth-title {
   margin: 0 0 8px;
   text-align: left;
@@ -517,16 +603,19 @@ input {
   line-height: 1.25;
 }
 
+/* Style the last-updated date. */
 .legal-updated {
   margin: 0 0 22px;
   color: #8e9bb6;
   font-size: 11px;
 }
 
+/* Add spacing between paragraphs. */
 .legal-content p {
   margin: 0 0 16px;
 }
 
+/* Style section headings in the legal documents. */
 .legal-content h2 {
   margin: 24px 0 8px;
   color: #5fd3ff;
@@ -534,6 +623,7 @@ input {
   line-height: 1.4;
 }
 
+/* Highlight the student-project privacy note. */
 .legal-content .legal-note {
   margin-top: 22px;
   padding: 12px;
@@ -543,22 +633,28 @@ input {
   font-size: 12px;
 }
 
+/* Make the legal page's return button fill the panel width. */
 .legal-content .primary-button {
   width: 100%;
   margin-top: 12px;
   margin-bottom: 4px;
 }
 
+
 /* =====================================================
                 MOBILE AND TABLET SUPPORT
    ===================================================== */
 
+/* Adjust the authentication layout for tablets and phones. */
 @media (max-width: 760px) {
+
+  /* Remove outer padding so the layout fills the screen. */
   .auth-page {
     padding: 0;
     align-items: stretch;
   }
 
+  /* Stack the branding and form panels vertically. */
   .auth-shell {
     grid-template-columns: 1fr;
     border: 0;
@@ -566,29 +662,34 @@ input {
     min-height: 100dvh;
   }
 
+  /* Reduce the height of the branding panel. */
   .auth-hero {
     min-height: 220px;
     padding: 20px;
   }
 
+  /* Reduce the tagline heading size. */
   .auth-tagline h2 {
     font-size: 28px;
   }
 
+  /* Hide supporting tagline text on smaller screens. */
   .auth-tagline p,
   .auth-tagline small {
     display: none;
   }
 
+  /* Remove the extra top margin from the original sign-up logo. */
   .hero-signup .auth-logo {
     margin-top: 0;
   }
 
+  /* Reduce padding around the authentication form. */
   .auth-panel {
     padding: 32px 24px;
   }
 
-  /* Legal pages need room to scroll on smaller screens. */
+  /* Allow legal pages to use the full mobile screen height. */
   .legal-panel {
     min-height: auto;
     max-height: none;
@@ -596,25 +697,32 @@ input {
     padding: 28px 24px 36px;
   }
 
+  /* Slightly reduce the legal page title size. */
   .legal-content .auth-title {
     font-size: 24px;
   }
 }
 
+/* Additional adjustments for narrow mobile screens. */
 @media (max-width: 600px) {
+
+  /* Keep password inputs and buttons within the screen. */
   .password-input-wrapper {
     width: 100%;
   }
 
+  /* Preserve a usable touch target for the eye button. */
   .password-toggle {
     min-width: 36px;
     min-height: 36px;
   }
 
+  /* Reduce checklist text size slightly. */
   .password-requirements {
     font-size: 12px;
   }
 
+  /* Keep legal text readable on narrow screens. */
   .legal-content {
     font-size: 13px;
   }
@@ -622,4 +730,59 @@ input {
   .legal-content h2 {
     font-size: 14px;
   }
+}
+
+
+/* =====================================================
+        SPACEBYTE LOGIN - FIGMA DESIGN OVERRIDES
+   ===================================================== */
+
+/* Use the Figma login artwork instead of the original JPG.
+   This rule overrides the earlier .hero-login background. */
+.hero-login {
+  background-image: url("/login-hero.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Hide the CSS planet and orbit because the Figma artwork
+   already provides the visual background. */
+.hero-login::before,
+.hero-login::after {
+  display: none;
+}
+
+/* Hide the original logo and tagline if they are already
+   included in the Figma background image. */
+.hero-login .auth-logo,
+.hero-login .auth-tagline {
+  display: none;
+}
+
+
+/* =====================================================
+      SPACEBYTE CREATE ACCOUNT - FIGMA DESIGN OVERRIDES
+   ===================================================== */
+
+/* Replace the original sign-up artwork with the Figma image.
+   This rule overrides the earlier .hero-signup background. */
+.hero-signup {
+  background-image: url("/signup-hero.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #061428;
+}
+
+/* Hide the original CSS planet and orbit on the sign-up screen. */
+.hero-signup::before,
+.hero-signup::after {
+  display: none;
+}
+
+/* Hide duplicate branding if the Figma artwork includes it. */
+.hero-signup .auth-logo,
+.hero-signup .auth-tagline {
+  display: none;
 }

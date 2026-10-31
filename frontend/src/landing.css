@@ -1,30 +1,41 @@
 
+
 /*
 ===========================================================
- SPACEBYTE LANDING PAGE STYLES
+ SPACEBYTE - LANDING PAGE STYLESHEET
+ File: frontend/src/landing.css
+
+ PURPOSE:
+ Controls the appearance and responsive layout of the
+ public SpaceByte landing page.
+
+ INCLUDES:
+ 1. Star-field background.
+ 2. Sticky navigation bar.
+ 3. Hero section and space illustrations.
+ 4. Buttons, labels, and accent colors.
+ 5. Feature and mission cards.
+ 6. Meal planner preview.
+ 7. How-it-works section.
+ 8. Footer and team information.
+ 9. Desktop, tablet, and mobile layouts.
+
+ All landing page class names use the lp- prefix to help
+ prevent conflicts with auth.css and spacebyte-ui.css.
 ===========================================================
-
- Includes:
- 1. Star-field page background
- 2. Sticky navigation bar
- 3. Hero section with orbit visual
- 4. Buttons, labels and shared pieces
- 5. Features, missions and how-it-works cards
- 6. Meal planner preview
- 7. Footer
- 8. Desktop, tablet and mobile layouts
-
- All landing page class names use the lp- prefix to avoid
- conflicts with auth.css and spacebyte-ui.css.
 */
 
 /* =====================================================
-          MAIN PAGE AND STAR-FIELD BACKGROUND
-   ===================================================== */
+   MAIN PAGE AND STAR-FIELD BACKGROUND
+===================================================== */
 
 /* Main landing page container.
-Keeps the page at least as tall as the browser window. */
 
+   Ensures the landing page fills at least the height
+   of the browser window.
+
+   The layered radial gradients create the star-field
+   effect behind the SpaceByte content. */
 .lp {
   min-height: 100vh;
   min-height: 100dvh;
@@ -52,43 +63,52 @@ Keeps the page at least as tall as the browser window. */
     #070b1c;
 }
 
-/* Inherit the page's text color and remove default link underlines. */
+/* Makes landing page links inherit the page's white text color.
+   Removes the browser's default underline from links. */
 .lp a {
   color: inherit;
   text-decoration: none;
 }
 
-/* Prevent images from extending beyond their parent containers. */
+/* Prevents images from becoming wider than their containers. */
 .lp img {
   max-width: 100%;
 }
 
-/* Makes keyboard focus visible for accessibility. */
+/* Displays a visible outline when a keyboard user focuses
+   on an interactive element. This improves accessibility. */
 .lp :focus-visible {
   outline: 2px solid #5ad1b0;
   outline-offset: 3px;
 }
 
 /* =====================================================
-                    NAVIGATION BAR
-   ===================================================== */
+   NAVIGATION BAR
+===================================================== */
 
-/* Main navigation bar */  
+/* Main landing page navigation bar.
+
+   position: sticky keeps the navigation visible while
+   the visitor scrolls down the page.
+
+   z-index keeps it above the other page content. */
 .lp-nav {
   position: sticky;
   top: 0;
-  z-index: 5; /* Keeps the navigation above the page content. */
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
   padding: 18px clamp(20px, 5vw, 72px);
-/* Semi-transparent background allows the blur effect to show. */
+
+  /* Semi-transparent background allows the blur effect to show. */
   background: #070b1ce6;
   border-bottom: 1px solid #1b2a4a;
   backdrop-filter: blur(8px);
 }
 
+/* Styles the SpaceByte logo and brand name in the navigation. */
 .lp-brand {
   display: flex;
   align-items: center;
@@ -99,10 +119,12 @@ Keeps the page at least as tall as the browser window. */
   letter-spacing: 0.3px;
 }
 
+/* Controls the size of the logo image. */
 .lp-brand img {
   height: 85px;
 }
 
+/* Arranges the navigation links horizontally. */
 .lp-nav nav {
   display: flex;
   gap: 28px;
@@ -110,10 +132,12 @@ Keeps the page at least as tall as the browser window. */
   font-size: 13px;
 }
 
+/* Changes navigation link text to white on hover. */
 .lp-nav nav a:hover {
   color: #fff;
 }
 
+/* Groups the login and account creation controls together. */
 .lp-auth {
   display: flex;
   align-items: center;
@@ -121,10 +145,13 @@ Keeps the page at least as tall as the browser window. */
 }
 
 /* =====================================================
-          BUTTONS, LABELS AND ACCENT COLORS
-   ===================================================== */
+   BUTTONS, LABELS AND ACCENT COLORS
+===================================================== */
 
-/* Shared styles for landing page buttons. */
+/* Shared styles for landing page buttons.
+
+   These styles provide consistent padding, rounded corners,
+   typography, and pointer behavior. */
 .lp-btn {
   padding: 11px 22px;
   border: 0;
@@ -132,10 +159,10 @@ Keeps the page at least as tall as the browser window. */
   color: #fff;
   font-weight: 700;
   font-size: 13px;
-  cursor: pointer; /* Shows a pointer when hovering over a button. */
+  cursor: pointer;
 }
 
-/* Primary buttons: Create Account and Start Planning.
+/* Primary buttons, including Create Account and Start Planning.
    Uses the SpaceByte purple accent color. */
 .lp-btn.primary {
   background: #6c63ff;
@@ -150,14 +177,16 @@ Keeps the page at least as tall as the browser window. */
   color: #ffffff;
 }
 
-/* Adds a visible outline when a keyboard user focuses on a button. */
+/* Adds a visible outline when a keyboard user focuses
+   on a primary button. */
 .lp-btn.primary:focus-visible {
   outline: 2px solid #a9a3ff;
   outline-offset: 3px;
 }
 
+/* Tour Gallery button.
 
-/* Tour Gallery Button */
+   Uses the same purple appearance as the primary button. */
 .lp-btn.ghost {
   background: #6c63ff;
   border: 1px solid #6c63ff;
@@ -171,7 +200,7 @@ Keeps the page at least as tall as the browser window. */
   color: #ffffff;
 }
 
-
+/* Styles text-based buttons that do not need a filled background. */
 .lp-link {
   background: none;
   border: 0;
@@ -181,10 +210,12 @@ Keeps the page at least as tall as the browser window. */
   cursor: pointer;
 }
 
+/* Underlines text links when the visitor hovers over them. */
 .lp-link:hover {
   text-decoration: underline;
 }
 
+/* Small uppercase labels used above section headings. */
 .lp-eyebrow {
   margin: 0 0 12px;
   font-size: 12px;
@@ -193,6 +224,7 @@ Keeps the page at least as tall as the browser window. */
   text-transform: uppercase;
 }
 
+/* Shared accent colors used throughout the landing page. */
 .green {
   color: #5ad1b0;
 }
@@ -201,12 +233,19 @@ Keeps the page at least as tall as the browser window. */
   color: #ee6fa8;
 }
 
+.yellow {
+  color: #f6c85f;
+}
+
+.blue {
+  color: #5fd3ff;
+}
 
 /* =====================================================
-            HERO: INTRO COPY AND ORBIT VISUAL
-   ===================================================== */
+   HERO SECTION: INTRODUCTION AND ORBIT VISUAL
+===================================================== */
 
-   /* Creates a two-column hero layout:
+/* Creates a two-column hero layout:
    introduction on the left and space artwork on the right. */
 .lp-hero {
   display: grid;
@@ -216,7 +255,10 @@ Keeps the page at least as tall as the browser window. */
   padding: 56px clamp(20px, 5vw, 72px) 80px;
 }
 
-/* Makes the main heading responsive to different screen sizes. */
+/* Styles the main landing page heading.
+
+   clamp() allows the heading to resize based on screen width
+   while maintaining minimum and maximum font sizes. */
 .lp-hero h1 {
   margin: 0 0 28px;
   font-size: clamp(44px, 7vw, 80px);
@@ -242,19 +284,22 @@ Keeps the page at least as tall as the browser window. */
   margin-bottom: 28px;
 }
 
-/* Provides a positioning area for Earth, Moon, and stat cards. */
+/* Provides a positioning area for Earth, Moon, and floating
+   information cards in the hero section. */
 .lp-orbit {
   position: relative;
   min-height: 440px;
 }
 
-/* Positions the Earth illustration within the orbit area. */
+/* Positions and styles the Earth illustration. */
 .lp-earth {
   position: absolute;
   left: 18%;
   top: 20%;
   width: 46%;
   border-radius: 50%;
+
+  /* Creates a blue gradient to give Earth a spherical appearance. */
   background: radial-gradient(
     circle at 35% 30%,
     #4aa0ff 0%,
@@ -262,26 +307,31 @@ Keeps the page at least as tall as the browser window. */
     #0a1f4d 70%,
     #050b22 100%
   );
+
   /* Creates a blue glow around Earth. */
   box-shadow: 0 0 60px 10px #2f7bff55;
 }
 
+/* Positions the Moon image in the upper-right part of the orbit. */
 .lp-moon {
   position: absolute;
   right: 6%;
   top: 0;
   width: 70px;
-  height: 70px; 
+  height: 70px;
   object-fit: cover;
   border-radius: 50%;
   background: none;
 }
 
 /* =====================================================
-            FLOATING STAT CARDS IN THE HERO
-   ===================================================== */
+   FLOATING STAT CARDS IN THE HERO
+===================================================== */
 
-   /* Styles the floating information cards in the hero area. */
+/* Shared styling for floating information cards.
+
+   These cards display sample information such as calories,
+   nutrition progress, and inventory alerts. */
 .lp-float {
   position: absolute;
   display: flex;
@@ -292,25 +342,30 @@ Keeps the page at least as tall as the browser window. */
   border-radius: 10px;
   background: #0b1424;
   font-size: 13px;
-   /* Adds depth against the dark background. */
+
+  /* Adds depth against the dark background. */
   box-shadow: 0 24px 70px #000a;
 }
 
+/* Styles the smaller supporting text inside floating cards. */
 .lp-float small {
   display: block;
   color: #7f8aa6;
   font-size: 11px;
 }
 
+/* Positions and styles the calorie information card. */
 .lp-float.kcal {
   left: 0;
   top: 12%;
 }
 
+/* Makes the calorie number larger and easier to read. */
 .lp-float.kcal b {
   font-size: 22px;
 }
 
+/* Styles the smaller calorie unit or supporting information. */
 .lp-float.kcal em {
   color: #7f8aa6;
   font-size: 12px;
@@ -326,6 +381,7 @@ Keeps the page at least as tall as the browser window. */
   width: 190px;
 }
 
+/* Arranges nutrition labels and their associated values. */
 .lp-float.nutrition label {
   display: grid;
   gap: 4px;
@@ -333,14 +389,15 @@ Keeps the page at least as tall as the browser window. */
   font-size: 11px;
 }
 
+/* Positions the inventory alert card near the bottom. */
 .lp-float.alert {
   left: 6%;
   bottom: 2%;
 }
 
 /* =====================================================
-            ICON CHIPS AND PROGRESS BARS
-   ===================================================== */
+   ICON CHIPS AND ACCENT BACKGROUNDS
+===================================================== */
 
 /* Creates consistent square backgrounds for dashboard icons. */
 .chip {
@@ -351,33 +408,36 @@ Keeps the page at least as tall as the browser window. */
   border-radius: 10px;
 }
 
-/* Existing chip colors. */
+/* Green icon background. */
 .chip.green {
   background: #5ad1b0;
 }
 
+/* Purple icon background. */
 .chip.purple {
   background: #6c63ff;
 }
 
+/* Yellow icon background. */
 .chip.yellow {
   background: #f6c85f;
 }
 
+/* Pink icon background. */
 .chip.pink {
   background: #ee6fa8;
 }
 
+/* Blue icon background. */
 .chip.blue {
   background: #6bb9ff;
 }
 
 /* =====================================================
-              FEATURE ICON BLOCKS
-   These styles center the icons inside colored squares.
-   ===================================================== */
+   FEATURE ICON BLOCKS
+===================================================== */
 
-   /* Centers the feature icons inside their colored backgrounds. */
+/* Centers feature icons inside their colored backgrounds. */
 .lp-feature-icon {
   display: inline-flex;
   align-items: center;
@@ -390,7 +450,8 @@ Keeps the page at least as tall as the browser window. */
   vertical-align: top;
 }
 
-/* Dark icons provide contrast on these backgrounds. */
+/* Dark icons provide contrast on the green, yellow,
+   and pink backgrounds. */
 .lp-feature-icon.green,
 .lp-feature-icon.yellow,
 .lp-feature-icon.pink {
@@ -402,23 +463,21 @@ Keeps the page at least as tall as the browser window. */
   color: #ffffff;
 }
 
-/* Prevent the SVG icon from shrinking or displaying inline gaps. */
+/* Prevents SVG icons from shrinking or displaying inline gaps. */
 .lp-feature-icon svg {
   display: block;
   flex-shrink: 0;
 }
 
-
-/* =========================================================
+/* =====================================================
    SHRIMP COCKTAIL EXPIRY ALERT BELL
-   ========================================================= */
+===================================================== */
 
-/* Center the bell inside the pink notification square. */
+/* Centers the bell inside the pink notification square. */
 .lp-alert-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
   width: 36px;
   height: 36px;
@@ -428,23 +487,25 @@ Keeps the page at least as tall as the browser window. */
   color: #24152b;
 }
 
-/* Keep the SVG bell centered and prevent it from shrinking. */
+/* Keeps the SVG bell centered and prevents it from shrinking. */
 .lp-alert-icon svg {
   display: block;
   flex-shrink: 0;
 }
 
 /* =====================================================
-                      PROGRESS BARS
-   ===================================================== */
+   PROGRESS BARS
+===================================================== */
 
-   /* Progress bar track: the dark background behind the progress. */
+/* Progress bar track: the dark background behind the progress. */
 .bar {
   display: block;
   height: 6px;
   border-radius: 9px;
   background: #1b2a4a;
-  overflow: hidden; /* Keeps the progress fill inside rounded edges. */
+  overflow: hidden;
+
+  /* Keeps the progress fill inside the rounded edges. */
 }
 
 /* Progress fill: stretches across the track to show a value. */
@@ -454,30 +515,36 @@ Keeps the page at least as tall as the browser window. */
   border-radius: 9px;
 }
 
+/* Purple progress indicator. */
 .bar i.purple {
   background: #6c63ff;
 }
 
+/* Yellow progress indicator. */
 .bar i.yellow {
   background: #f6c85f;
 }
 
+/* Pink progress indicator. */
 .bar i.pink {
   background: #ee6fa8;
 }
 
+/* Green progress indicator. */
 .bar i.green {
   background: #5ad1b0;
 }
 
 /* =====================================================
-        SECTION LAYOUT, HEADINGS AND CARD GRIDS
-   ===================================================== */
+   SECTION LAYOUT, HEADINGS AND CARD GRIDS
+===================================================== */
 
+/* Shared spacing for the landing page sections. */
 .lp-section {
   padding: 56px clamp(20px, 5vw, 72px);
 }
 
+/* Styles section headings. */
 .lp-section h2 {
   max-width: 18ch;
   margin: 0 0 12px;
@@ -486,6 +553,7 @@ Keeps the page at least as tall as the browser window. */
   letter-spacing: -0.02em;
 }
 
+/* Styles the descriptive paragraph beneath section headings. */
 .lp-sub {
   max-width: 56ch;
   margin: 0 0 28px;
@@ -493,22 +561,24 @@ Keeps the page at least as tall as the browser window. */
   font-size: 15px;
 }
 
-/* Creates the card grid used to display SpaceByte features. */
+/* Creates the reusable grid used to display feature cards. */
 .lp-grid {
   display: grid;
   gap: 18px;
   margin-top: 28px;
 }
 
+/* Displays four cards across the available space. */
 .lp-grid.four {
   grid-template-columns: repeat(4, 1fr);
 }
 
+/* Displays three cards across the available space. */
 .lp-grid.three {
   grid-template-columns: repeat(3, 1fr);
 }
 
-/* Individual feature card with a dark background and subtle border. */
+/* Individual feature or mission card styling. */
 .lp-card {
   padding: 22px;
   border: 1px solid #1b2a4a;
@@ -516,11 +586,13 @@ Keeps the page at least as tall as the browser window. */
   background: #0b1424;
 }
 
+/* Styles the heading inside each card. */
 .lp-card h3 {
   margin: 16px 0 6px;
   font-size: 16px;
 }
 
+/* Styles the descriptive text inside each card. */
 .lp-card p {
   margin: 0;
   color: #7f8aa6;
@@ -528,6 +600,7 @@ Keeps the page at least as tall as the browser window. */
   line-height: 1.6;
 }
 
+/* Controls the height of Earth, ISS, and Moon mission images. */
 .lp-card.mission img {
   width: auto;
   height: 72px;
@@ -535,10 +608,11 @@ Keeps the page at least as tall as the browser window. */
 }
 
 /* =====================================================
-                  MEAL PLANNER PREVIEW
-   ===================================================== */
+   MEAL PLANNER PREVIEW
+===================================================== */
 
-   /* Arranges the meal planner description and preview side by side. */
+/* Arranges the meal planner description and preview
+   side by side on larger screens. */
 .planner {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
@@ -557,7 +631,7 @@ Keeps the page at least as tall as the browser window. */
   font-size: 13px;
 }
 
-/* Adds a mint checkmark before each checklist item. */
+/* Adds a mint-colored checkmark before each checklist item. */
 .lp-checks li::before {
   content: "\2713";
   margin-right: 10px;
@@ -573,6 +647,7 @@ Keeps the page at least as tall as the browser window. */
   box-shadow: 0 24px 70px #000a;
 }
 
+/* Arranges the meal planner preview heading and date information. */
 .lp-mock-head {
   display: flex;
   flex-wrap: wrap;
@@ -581,16 +656,19 @@ Keeps the page at least as tall as the browser window. */
   margin-bottom: 16px;
 }
 
+/* Styles smaller text inside the meal planner heading. */
 .lp-mock-head small {
   color: #7f8aa6;
 }
 
+/* Places the meal planner navigation tabs horizontally. */
 .tabs {
   display: flex;
   gap: 6px;
   margin-left: auto;
 }
 
+/* Styles each meal planner tab. */
 .tabs i {
   padding: 5px 12px;
   border-radius: 999px;
@@ -599,11 +677,12 @@ Keeps the page at least as tall as the browser window. */
   font-style: normal;
 }
 
+/* Highlights the currently selected tab. */
 .tabs i.on {
   background: #6c63ff;
 }
 
-/* Displays the days and meal categories in a grid. */
+/* Displays the sample days and meal categories in a grid. */
 .lp-table {
   display: grid;
   grid-template-columns: 80px repeat(4, 1fr);
@@ -611,6 +690,7 @@ Keeps the page at least as tall as the browser window. */
   font-size: 12px;
 }
 
+/* Creates each row of the meal planner preview. */
 .lp-table .row {
   display: grid;
   grid-column: 1 / -1;
@@ -618,6 +698,7 @@ Keeps the page at least as tall as the browser window. */
   gap: 8px;
 }
 
+/* Styles the day labels in the meal planner preview. */
 .lp-table strong {
   align-self: center;
   color: #7f8aa6;
@@ -625,21 +706,25 @@ Keeps the page at least as tall as the browser window. */
   text-align: center;
 }
 
+/* Styles the breakfast meal category label. */
 .row strong.breakfast {
   color: #f6c85f;
   text-align: left;
 }
 
+/* Styles the lunch meal category label. */
 .row strong.lunch {
   color: #5ad1b0;
   text-align: left;
 }
 
+/* Styles the dinner meal category label. */
 .row strong.dinner {
   color: #8f88ff;
   text-align: left;
 }
 
+/* Styles an individual meal planner cell. */
 .cell {
   padding: 9px 6px;
   border-radius: 6px;
@@ -647,11 +732,12 @@ Keeps the page at least as tall as the browser window. */
   text-align: center;
 }
 
-/* Today's meals are outlined in green. */
+/* Adds a green outline around the currently highlighted meal. */
 .cell.on {
   border: 1.5px solid #5ad1b0;
 }
 
+/* Arranges the nutrition meters into two columns. */
 .lp-meters {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -661,17 +747,19 @@ Keeps the page at least as tall as the browser window. */
   font-size: 12px;
 }
 
+/* Groups each nutrition label with its progress bar. */
 .lp-meters label {
   display: grid;
   gap: 6px;
 }
 
+/* Positions the nutrition values on the right side. */
 .lp-meters em {
   float: right;
   font-style: normal;
 }
 
-/* Shows a suggested food substitution with a pink accent. */
+/* Styles the suggested food substitution message. */
 .lp-swap {
   margin: 0;
   padding: 10px 14px;
@@ -681,14 +769,16 @@ Keeps the page at least as tall as the browser window. */
   font-size: 12px;
 }
 
+/* Highlights the suggested replacement food. */
 .lp-swap b {
   color: #ee6fa8;
 }
 
 /* =====================================================
-                    HOW IT WORKS
-   ===================================================== */
+   HOW IT WORKS
+===================================================== */
 
+/* Displays the three instructional steps in equal columns. */
 .lp-steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -698,11 +788,13 @@ Keeps the page at least as tall as the browser window. */
   list-style: none;
 }
 
+/* Styles each instructional step heading. */
 .lp-steps h3 {
   margin: 14px 0 6px;
   font-size: 16px;
 }
 
+/* Styles the description beneath each step heading. */
 .lp-steps p {
   margin: 0;
   color: #7f8aa6;
@@ -710,6 +802,7 @@ Keeps the page at least as tall as the browser window. */
   line-height: 1.6;
 }
 
+/* Creates a circular number indicator for each step. */
 .num {
   display: grid;
   place-items: center;
@@ -720,64 +813,56 @@ Keeps the page at least as tall as the browser window. */
   font-weight: 800;
 }
 
+/* Green step number background. */
 .num.green {
   background: #5ad1b0;
 }
 
+/* Yellow step number background. */
 .num.yellow {
   background: #f6c85f;
 }
 
+/* Pink step number background. */
 .num.pink {
   background: #ee6fa8;
 }
 
 /* =====================================================
-                        FOOTER
-   ===================================================== */
+   FOOTER
+===================================================== */
 
-/* Footer: separates future plans and team information into columns. */
+/* Footer: separates future plans and team information
+   into two columns on larger screens. */
 .lp-foot {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 28px;
   padding: 48px clamp(20px, 5vw, 72px);
   border-top: 1px solid #1b2a4a;
   color: #7f8aa6;
   font-size: 13px;
+  text-align: center;
 }
 
-.lp-foot h3 {
-  margin: 0 0 6px;
-  color: #5fd3ff;
-  font-size: 15px;
-}
-
+/* Removes default paragraph spacing in the footer. */
 .lp-foot p {
   margin: 0;
 }
-
 
 /* Gives the capstone attribution its SpaceByte mint accent. */
 .lp-capstone {
   color: #5ad1b0;
 }
 
-/* Centers and styles the JACE team name. */
+/* Highlights the JACE team name in the team section. */
 .lp-team-name {
-  margin: 0 0 10px;
-  color: #5fd3ff; /* Matches the footer headings */
-  font-size: 14px;
-  font-weight: 800; /* Bold */
-  letter-spacing: 0.2em;
-  text-align: center;
+  color: #5ad1b0;
+  font-weight: 800;
+  letter-spacing: 0.1em;
 }
 
-/* Centers the team heading, JACE, and team description. */
-.lp-foot #contact {
-  text-align: center;
-}
-
+/* Styles the copyright section at the bottom of the page. */
 .lp-copyright {
   width: 100%;
   padding: 16px 24px 24px;
@@ -787,19 +872,25 @@ Keeps the page at least as tall as the browser window. */
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Removes default paragraph spacing in the copyright area. */
 .lp-copyright p {
   margin: 0;
 }
 
 /* =====================================================
-              MOBILE AND TABLET SUPPORT
-   ===================================================== */
+   MOBILE AND TABLET SUPPORT
+===================================================== */
 
-   /* Tablet layout: switches the hero and planner to one column
-   and reduces the number of cards per row. */
+/* TABLET LAYOUT
+
+   At screen widths of 960px or less:
+   - Hide the desktop navigation links.
+   - Stack the hero and meal planner sections.
+   - Display feature cards in two columns.
+   - Stack mission cards and instructional steps. */
 @media (max-width: 960px) {
   .lp-nav nav {
-    display: none; /* Hides the main navigation links on smaller screens. */
+    display: none;
   }
 
   .lp-hero,
@@ -817,8 +908,13 @@ Keeps the page at least as tall as the browser window. */
   }
 }
 
-/* Mobile layout: stacks footer sections and simplifies the
-   meal planner grid to fit narrower screens. */
+/* MOBILE LAYOUT
+
+   At screen widths of 560px or less:
+   - Stack feature cards and footer sections.
+   - Reduce the hero illustration height.
+   - Reduce meal planner column widths and spacing
+     to fit smaller phone screens. */
 @media (max-width: 560px) {
   .lp-grid.four,
   .lp-foot {
@@ -829,7 +925,7 @@ Keeps the page at least as tall as the browser window. */
     min-height: 380px;
   }
 
-   /* Reduces cell spacing so the meal planner fits on phones. */
+  /* Reduces cell spacing so the meal planner fits on phones. */
   .lp-table,
   .lp-table .row {
     grid-template-columns: 60px repeat(4, 1fr);
@@ -1160,4 +1256,16 @@ Keeps the page at least as tall as the browser window. */
     opacity: 1;
     translate: none;
   }
+}
+
+/* Stops nav links from scrolling section headings
+   underneath the sticky navigation bar. */
+.lp section[id] {
+  scroll-margin-top: 90px;
+}
+
+/* The last section is tall enough that the Contact Us link can
+   scroll it up to just below the navigation bar. */
+.lp section#contact {
+  min-height: calc(100vh - 90px);
 }

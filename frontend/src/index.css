@@ -1,20 +1,82 @@
 
-/* Global reset for SpaceByte */
+/*
+===========================================================
+ SPACEBYTE - GLOBAL STYLESHEET
+ File: frontend/src/index.css
+
+ PURPOSE:
+ This file establishes the global styling foundation
+ for the SpaceByte React application.
+
+ It handles:
+ 1. Loading Tailwind CSS.
+ 2. Applying consistent box sizing.
+ 3. Setting minimum page dimensions.
+ 4. Removing default body margins.
+ 5. Ensuring the React root fills the screen.
+===========================================================
+*/
+
+/* Import Tailwind CSS so its utility classes are available
+   throughout the frontend application. */
+/*import "tailwindcss";*/
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+
+/* ---------------------------------------------------------
+   GLOBAL BOX SIZING
+--------------------------------------------------------- */
+
+/* Apply border-box sizing to every element.
+
+   This makes an element's declared width and height include
+   its padding and border, making layouts easier to manage. */
 * {
   box-sizing: border-box;
 }
 
+/* ---------------------------------------------------------
+   HTML DOCUMENT
+--------------------------------------------------------- */
+
+/* Set the minimum width and height of the HTML document.
+
+   min-width: 320px prevents the layout from becoming
+   narrower than a small mobile screen.
+
+   min-height: 100% allows the document to fill the
+   available vertical space. */
 html {
   min-width: 320px;
   min-height: 100%;
 }
 
+/* ---------------------------------------------------------
+   BODY
+--------------------------------------------------------- */
+
+/* Remove the browser's default body margin.
+
+   Ensure the page:
+   - Is at least 320 pixels wide.
+   - Fills at least the full height of the browser window. */
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
 }
 
+/* ---------------------------------------------------------
+   REACT ROOT CONTAINER
+--------------------------------------------------------- */
+
+/* The React application renders inside the element with
+   the ID "root" in the frontend's index.html file.
+
+   Setting min-height to 100vh ensures the application
+   can fill the full browser window. */
 #root {
   min-height: 100vh;
 }

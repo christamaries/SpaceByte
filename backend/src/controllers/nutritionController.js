@@ -1,8 +1,9 @@
 
+
 /*
 ===========================================================
- NUTRITION CONTROLLER
- 
+ SPACEBYTE - NUTRITION CONTROLLER
+ File: backend/src/controllers/nutritionController.js
 
  PURPOSE:
  1. Retrieve nutrition information for a specific food item.
@@ -48,8 +49,8 @@ const {
 
 // Import the initialized Firestore database connection.
 //
-// db is used to retrieve individual food items from
-// the inventory collection.
+// db allows this controller to retrieve individual food
+// items from the inventory collection.
 const { db } = require("../config/firebase");
 
 
@@ -77,9 +78,10 @@ const { db } = require("../config/firebase");
 //
 // NOTE:
 // Authentication middleware should protect this route.
-// If inventory records belong to individual users, this
-// controller should also verify that the requested food
-// belongs to the authenticated user.
+//
+// If inventory records belong to individual users,
+// this controller should also verify that the requested
+// food item belongs to the authenticated user.
 
 exports.getNutrition = async (req, res) => {
 
@@ -91,7 +93,8 @@ exports.getNutrition = async (req, res) => {
 
     // Read the foodId parameter from the request URL.
     //
-    // For /nutrition/abc123, foodId will be "abc123".
+    // For example, in /nutrition/abc123,
+    // foodId will contain "abc123".
     const { foodId } = req.params;
 
 
@@ -99,9 +102,12 @@ exports.getNutrition = async (req, res) => {
     // STEP 2: FIND THE FOOD IN FIRESTORE
     // ------------------------------------------
 
-    // Open the inventory collection.
-    // Select the document matching the requested food ID.
-    // Retrieve the document from Firestore.
+    // Access the inventory collection in Firestore.
+    //
+    // .doc(foodId) selects the document with the
+    // matching food ID.
+    //
+    // .get() retrieves the document from Firestore.
     const foodDoc = await db
       .collection("inventory")
       .doc(foodId)
@@ -112,8 +118,12 @@ exports.getNutrition = async (req, res) => {
     // STEP 3: CHECK WHETHER THE FOOD EXISTS
     // ------------------------------------------
 
-    // If Firestore cannot find the document, return
-    // HTTP 404 instead of attempting to read its data.
+    // Check whether Firestore found the requested document.
+    //
+    // If the document does not exist, return HTTP 404.
+    //
+    // This prevents the controller from trying to read
+    // information from a food item that cannot be found.
     if (!foodDoc.exists) {
       return res.status(404).json({
         error: "Food item not found"
@@ -134,13 +144,14 @@ exports.getNutrition = async (req, res) => {
     // STEP 5: RETURN THE NUTRITION INFORMATION
     // ------------------------------------------
 
-    // Return the food ID, name, and nutritional values.
+    // Send the food ID, name, and nutritional values
+    // back to the React frontend.
     //
-    // The nullish coalescing operator (??) supplies zero
+    // The nullish coalescing operator (??) returns zero
     // if a nutrition field is null or undefined.
     //
-    // This prevents missing nutrition fields from being
-    // returned as null or undefined.
+    // This helps prevent missing nutrition fields from
+    // being returned as null or undefined.
     //
     // IMPORTANT:
     // These values are returned as stored in inventory.
@@ -160,11 +171,16 @@ exports.getNutrition = async (req, res) => {
     // STEP 6: HANDLE FOOD NUTRITION ERRORS
     // ------------------------------------------
 
-    // Log the complete error in the backend terminal.
-    // This helps troubleshoot Firestore or server issues.
+    // Display the complete error in the backend terminal.
+    //
+    // This helps identify Firestore or server problems
+    // during development and troubleshooting.
     console.error("Error retrieving food nutrition:", error);
 
-    // Return a generic error message to the frontend.
+    // Return HTTP 500 with a generic error message.
+    //
+    // The frontend can use this response to notify
+    // the user that nutrition information could not load.
     return res.status(500).json({
       error: "Unable to retrieve food nutrition"
     });
@@ -199,7 +215,7 @@ exports.getNutrition = async (req, res) => {
 //
 // IMPORTANT:
 // nutritionService.js determines which consumption
-// records count toward today's totals.
+// records count toward today's nutrition totals.
 
 exports.getTodayNutrition = async (req, res) => {
 
@@ -209,10 +225,14 @@ exports.getTodayNutrition = async (req, res) => {
     // STEP 1: IDENTIFY THE AUTHENTICATED USER
     // ------------------------------------------
 
-    // Read the Firebase UID from the verified request.
+    // Retrieve the Firebase user ID (UID) from the request.
     //
-    // Authentication middleware must attach the user
-    // information to req.user before this controller runs.
+    // The authentication middleware verifies the user's
+    // Firebase token and attaches the decoded user
+    // information to req.user.
+    //
+    // req.user.uid identifies which user's nutrition
+    // records should be calculated.
     const userId = req.user.uid;
 
 
@@ -220,12 +240,16 @@ exports.getTodayNutrition = async (req, res) => {
     // STEP 2: CALCULATE TODAY'S NUTRITION
     // ------------------------------------------
 
-    // Call the nutrition service to calculate the
-    // authenticated user's nutrition for today.
+    // Call the nutrition service and pass the authenticated
+    // user's ID.
     //
-    // The service is responsible for retrieving the
-    // appropriate consumption records and totaling
-    // their nutritional values.
+    // nutritionService.js is responsible for:
+    // 1. Retrieving the user's consumption records.
+    // 2. Determining which records belong to today.
+    // 3. Calculating calories, protein, carbohydrates,
+    //    and fat.
+    //
+    // The returned object contains the nutrition totals.
     const nutrition = await calculateTodayNutrition(userId);
 
 
@@ -233,10 +257,10 @@ exports.getTodayNutrition = async (req, res) => {
     // STEP 3: DEFINE THE DAILY CALORIE TARGET
     // ------------------------------------------
 
-    // SpaceByte's current daily calorie target.
+    // Set SpaceByte's current daily calorie target.
     //
-    // The dashboard uses this value to show the user's
-    // calorie progress for the day.
+    // This value is used by the dashboard to calculate
+    // how close the user is to reaching the daily goal.
     const calorieTarget = 2800;
 
 
@@ -244,18 +268,20 @@ exports.getTodayNutrition = async (req, res) => {
     // STEP 4: CALCULATE CALORIE PROGRESS
     // ------------------------------------------
 
-    // Divide calories consumed by the daily target.
-    // Multiply by 100 to convert the result to a percentage.
+    // Calculate the percentage of the daily calorie
+    // target that the user has consumed.
+    //
+    // Formula:
+    // (Calories consumed / Daily calorie target) * 100
     //
     // Math.round() rounds the percentage to a whole number.
     //
-    // Math.min(100, ...) caps the displayed progress at
-    // 100 percent so the progress indicator does not exceed
-    // its target.
+    // Math.min(100, ...) prevents the displayed progress
+    // percentage from exceeding 100%.
     //
-    // NOTE:
-    // This caps the displayed percentage only.
-    // The actual calorie total is not capped.
+    // IMPORTANT:
+    // This only limits the progress percentage.
+    // It does not limit or change the actual calorie total.
     const caloriePercentage = Math.min(
       100,
       Math.round(
@@ -268,8 +294,12 @@ exports.getTodayNutrition = async (req, res) => {
     // STEP 5: RETURN TODAY'S NUTRITION SUMMARY
     // ------------------------------------------
 
-    // Send the nutrition data and calorie progress
-    // to the React frontend as a JSON response.
+    // Send the nutrition summary to the React frontend.
+    //
+    // RESPONSE FIELDS:
+    //
+    // userId:
+    // Firebase ID of the authenticated user.
     //
     // calories:
     // Total calories consumed today.
@@ -284,10 +314,12 @@ exports.getTodayNutrition = async (req, res) => {
     // Total fat consumed today.
     //
     // calorieTarget:
-    // The daily target of 2800 calories.
+    // The daily calorie goal of 2800 calories.
     //
     // caloriePercentage:
-    // The percentage of the daily calorie target reached.
+    // Percentage of the daily calorie goal reached.
+    //
+    // HTTP 200 indicates that the request was successful.
     return res.status(200).json({
       userId,
       calories: nutrition.calories,
@@ -304,11 +336,19 @@ exports.getTodayNutrition = async (req, res) => {
     // STEP 6: HANDLE NUTRITION CALCULATION ERRORS
     // ------------------------------------------
 
-    // Log the error to help diagnose problems with
-    // Firestore, the nutrition service, or calculations.
+    // Display the error in the backend terminal.
+    //
+    // This can help identify problems with:
+    // - Firestore database requests.
+    // - The nutrition service.
+    // - Missing or incorrectly formatted data.
+    // - Nutrition calculations.
     console.error("Error calculating nutrition:", error);
 
-    // Return a generic error response to the frontend.
+    // Return HTTP 500 to indicate that the server
+    // could not complete the nutrition calculation.
+    //
+    // The frontend receives a generic error message.
     return res.status(500).json({
       error: "Unable to calculate nutrition"
     });

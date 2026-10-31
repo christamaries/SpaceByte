@@ -2,9 +2,14 @@
 /*
 ===========================================================
  SPACEBYTE LANDING PAGE
+ File: frontend/src/components/LandingPage.jsx
 ===========================================================
 
- Includes:
+ PURPOSE:
+ This component displays the public SpaceByte landing page
+ before a user signs in or creates an account.
+
+ INCLUDES:
  1. Navigation bar
  2. Hero section with Earth and Moon visuals
  3. Feature cards with colored icons
@@ -17,18 +22,22 @@
 ===========================================================
 */
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 // Import React page styles.
 import "../landing.css";
 
 // Import the existing SpaceByte image assets.
+// These images are used in the logo, hero section,
+// and mission cards.
 import logo from "../assets/logo.png";
 import earth from "../assets/earth.png";
 import moon from "../assets/moon.png";
 import iss from "../assets/iss.png";
 
-// Import icons for the four feature cards.
+// Import icons from lucide-react.
+// These icons visually represent the four main
+// SpaceByte features.
 import {
   Package,
   CalendarDays,
@@ -36,18 +45,41 @@ import {
   Bell,
 } from "lucide-react";
 
-// Navigation links and their matching section IDs.
+// ==========================================
+//             NAVIGATION LINKS
+// ==========================================
+
+// Stores the navigation labels and the section IDs
+// they should link to when clicked.
+//
+// For example:
+// "Features" links to the section with id="features".
+//
+// This array allows the navigation menu to be generated
+// automatically instead of writing every link separately.
+// The third value is the link's color while selected,
+// matching the accent color of its section.
+// Colors cycle pink, green, yellow, blue.
 const NAV = [
-  ["About Us", "#about"],
-  ["Features", "#features"],
-  ["Missions", "#missions"],
-  ["Future Plans", "#future-plans"],
-  ["Contact Us", "#contact"],
+  ["About Us", "#about", "#ee6fa8"],
+  ["Features", "#features", "#5ad1b0"],
+  ["Missions", "#missions", "#f6c85f"],
+  ["How It Works", "#how-it-works", "#5fd3ff"],
+  ["Future Plans", "#future-plans", "#ee6fa8"],
+  ["Contact Us", "#contact", "#5ad1b0"],
 ];
 
-// Feature cards.
-// Each tone matches an existing colored chip in landing.css.
-// Each icon identifies the feature visually.
+// ==========================================
+//               FEATURE CARDS
+// ==========================================
+
+// Defines the four main features displayed
+// on the SpaceByte landing page.
+//
+// tone: Determines the colored background style.
+// title: Displays the feature name.
+// text: Explains what the feature does.
+// icon: Identifies the Lucide icon component to display.
 const FEATURES = [
   {
     tone: "green",
@@ -75,7 +107,17 @@ const FEATURES = [
   },
 ];
 
-// Mission cards and their image assets.
+// ==========================================
+//                MISSION CARDS
+// ==========================================
+
+// Defines the mission environments supported
+// by the SpaceByte concept.
+//
+// Each mission has:
+// name: The mission environment's title.
+// img: The imported image used for the card.
+// text: A short explanation of the environment.
 const MISSIONS = [
   {
     name: "Earth",
@@ -94,7 +136,65 @@ const MISSIONS = [
   },
 ];
 
-// Steps shown in the How It Works section.
+// ==========================================
+//                FUTURE PLANS
+// ==========================================
+
+// One card is displayed for each entry.
+// Edit the titles and text, or add/remove entries.
+const FUTURE_PLANS = [
+  {
+    title: "Crew health tracking",
+    text: "Placeholder: describe this planned feature.",
+  },
+  {
+    title: "Mission planning",
+    text: "Placeholder: describe this planned feature.",
+  },
+  {
+    title: "Smarter recommendations",
+    text: "Placeholder: describe this planned feature.",
+  },
+];
+
+// ==========================================
+//          THE TEAM BEHIND SPACEBYTE
+// ==========================================
+
+// One card is displayed for each team member.
+// Replace the placeholder names, roles, and contact details.
+const TEAM = [
+  {
+    name: "Team member",
+    role: "Role",
+    contact: "email@example.com",
+  },
+  {
+    name: "Team member",
+    role: "Role",
+    contact: "email@example.com",
+  },
+  {
+    name: "Team member",
+    role: "Role",
+    contact: "email@example.com",
+  },
+  {
+    name: "Team member",
+    role: "Role",
+    contact: "email@example.com",
+  },
+];
+
+// ==========================================
+//                HOW IT WORKS
+// ==========================================
+
+// Defines the three steps displayed in the
+// How It Works section.
+//
+// Each step has a color, heading, and description.
+// The array is used to generate the numbered steps.
 const STEPS = [
   {
     tone: "green",
@@ -113,9 +213,19 @@ const STEPS = [
   },
 ];
 
-// Sample data for the static meal planner preview.
+// ==========================================
+//            MEAL PLANNER PREVIEW
+// ==========================================
+
+// These weekday labels are used in the static
+// meal planner preview.
 const DAYS = ["Mon", "Tue", "Wed", "Thu"];
 
+// Sample meal information displayed in the landing page.
+//
+// This is demonstration data for the preview.
+// It is not loaded from the user's actual inventory
+// or saved meal plan.
 const PLAN = {
   Breakfast: ["Eggs", "Granola", "Fruit cup", "Omelette"],
   Lunch: ["Tortilla wrap", "Shrimp", "Noodles", "Sandwich"],
@@ -137,10 +247,12 @@ export default function LandingPage({
   onSignIn,
   onCreateAccount,
   onStartPlanning,
-  onTourGalley,
 }) {
   const pageRef = useRef(null);
   const titleRef = useRef(null);
+
+  // The nav link the visitor last clicked, such as "#features".
+  const [activeLink, setActiveLink] = useState(null);
 
   // Times each headline letter to appear just as the ship's exhaust
   // passes over it. Runs before the first paint so nothing flickers.
@@ -194,43 +306,76 @@ export default function LandingPage({
   return (
     <div className="lp" ref={pageRef}>
 
-      {
-      /* =========================================
-                      NAVIGATION BAR
-         ========================================= */  
-        }
-        <header className="lp-nav">
-          <a href="#top" className="lp-brand" aria-label="SpaceByte home">
-            <img src={logo} alt="" />
-            </a>
+      {/* =========================================
+                    NAVIGATION BAR
+         ========================================= */}
 
+      {/* The header contains the SpaceByte logo,
+          section navigation, and account buttons. */}
+      <header className="lp-nav">
+
+        {/* Clicking the logo returns the visitor
+            to the top of the landing page. */}
+        <a
+          href="#top"
+          className="lp-brand"
+          aria-label="SpaceByte home"
+          onClick={(event) => {
+            event.preventDefault();
+            setActiveLink(null);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
+          <img src={logo} alt="" />
+        </a>
+
+        {/* Generate the navigation links from the NAV array.
+            Each link points to its matching page section. */}
         <nav aria-label="Primary">
-          {NAV.map(([label, href]) => (
-            <a key={label} href={href}>
+          {NAV.map(([label, href, color]) => (
+            <a
+              key={label}
+              href={href}
+              onClick={() => setActiveLink(href)}
+              style={activeLink === href ? { color } : undefined}
+            >
               {label}
             </a>
           ))}
         </nav>
 
+        {/* Account actions connect to the parent component.
+            The parent determines which authentication screen
+            should open when a button is clicked. */}
         <div className="lp-auth">
+
+          {/* Open the existing sign-in screen. */}
           <button className="lp-link" onClick={onSignIn}>
             Sign in
           </button>
 
+          {/* Open the existing account registration screen. */}
           <button className="lp-btn primary" onClick={onCreateAccount}>
             Create account
           </button>
         </div>
       </header>
 
+      {/* Main content contains all landing page sections. */}
       <main id="top">
-        {
-        /* =========================================
-                        HERO SECTION
-           ========================================= */
-        }
+
+        {/* =========================================
+                      HERO SECTION
+           ========================================= */}
+
+        {/* Introduces SpaceByte and explains its purpose.
+            The section ID allows the About Us navigation
+            link to scroll to this location. */}
         <section className="lp-hero" id="about">
+
+          {/* Text content and primary landing page actions. */}
           <div className="lp-hero-copy">
+
             <p className="lp-eyebrow pink">About us</p>
 
             {/* Each letter is its own span so it can condense out of
@@ -279,6 +424,9 @@ export default function LandingPage({
               </span>
             </h1>
 
+            {/* Explains the purpose of SpaceByte and
+                the problems the application is designed
+                to address. */}
             <p className="lp-lede">
               SpaceByte helps people who live or train in space-like
               environments manage what they eat. It combines real-time
@@ -289,33 +437,42 @@ export default function LandingPage({
               in space enjoyable as well as nutritious.
             </p>
 
+            {/* Primary actions available to landing page visitors. */}
             <div className="lp-cta">
+
+              {/* Start the meal-planning workflow. */}
               <button
                 className="lp-btn primary"
                 onClick={onStartPlanning}
               >
                 Start planning
               </button>
-
-              <button
-                className="lp-btn ghost"
-                onClick={onTourGalley}
-              >
-                Tour the galley
-              </button>
             </div>
 
-            <p className="lp-eyebrow green">
+            {/* Displays the three environments
+                supported by the SpaceByte concept. */}
+            <p className="lp-eyebrow pink">
               Earth • ISS • Moon
             </p>
           </div>
 
-          {/* Decorative Earth and Moon illustration. */}
+          {/* =========================================
+                 HERO EARTH AND MOON VISUALS
+             ========================================= */}
+
+          {/* Decorative illustration area containing Earth,
+              the Moon, and floating example dashboard cards.
+              aria-hidden hides this decorative artwork
+              from screen readers. */}
           <div className="lp-orbit" aria-hidden="true">
+
+            {/* Moon and Earth images imported above. */}
             <img className="lp-moon" src={moon} alt="" />
             <img className="lp-earth" src={earth} alt="" />
 
-            {/* Calories summary card. */}
+            {/* Example calories summary card.
+                These are static demonstration values,
+                not live nutrition data from the backend. */}
             <div className="lp-float kcal">
               <span className="chip blue" />
 
@@ -327,10 +484,15 @@ export default function LandingPage({
               </div>
             </div>
 
-            {/* Sample nutrient progress bars. */}
+            {/* Example nutrition progress card.
+                The percentages are sample values used
+                to demonstrate the nutrition interface. */}
             <div className="lp-float nutrition">
               <b>Today's nutrition</b>
 
+              {/* Generate the nutrition progress bars
+                  using sample nutrient names, percentages,
+                  and color classes. */}
               {[
                 ["Protein", 88, "purple"],
                 ["Carbs", 78, "yellow"],
@@ -340,6 +502,8 @@ export default function LandingPage({
                   {name}
 
                   <span className="bar">
+                    {/* The inline width determines how much
+                        of the progress bar is filled. */}
                     <i
                       className={color}
                       style={{ width: `${value}%` }}
@@ -349,11 +513,17 @@ export default function LandingPage({
               ))}
             </div>
 
-            {/* Sample food expiry alert. */}
+            {/* Example food expiration alert.
+                This demonstrates how SpaceByte can display
+                a warning about food approaching expiration. */}
             <div className="lp-float alert">
+
+              {/* Bell icon inside a colored notification chip. */}
               <span className="chip pink lp-alert-icon" aria-hidden="true">
                 <Bell size={20} strokeWidth={2} />
-              </span>  
+              </span>
+
+              {/* Sample food item and expiration information. */}
               <div>
                 <b>Shrimp cocktail</b>
                 <small>Expires in 5 days · 12 left</small>
@@ -362,12 +532,13 @@ export default function LandingPage({
           </div>
         </section>
 
-        {
-        /* =========================================
-                      FEATURES SECTION
-            Each colored block now contains an icon.
-           ========================================= */
-           }
+        {/* =========================================
+                     FEATURES SECTION
+           ========================================= */}
+
+        {/* Explains the major features of SpaceByte.
+            Each card is generated from the FEATURES array.
+            Each colored block contains its matching icon. */}
         <section className="lp-section" id="features">
           <p className="lp-eyebrow green" data-reveal>Features</p>
 
@@ -379,6 +550,7 @@ export default function LandingPage({
             One mission control for food stores, meal plans and crew nutrition.
           </p>
 
+          {/* Four-column feature card layout. */}
           <div className="lp-grid four">
             {FEATURES.map((feature, index) => {
               // Select the icon component for this feature.
@@ -392,7 +564,8 @@ export default function LandingPage({
                   style={{ "--d": `${index * 0.12}s` }}
                 >
 
-                  {/* Colored square containing the icon. */}
+                  {/* Colored square containing the feature icon.
+                      The tone class determines the icon background. */}
                   <span
                     className={`chip ${feature.tone} lp-feature-icon`}
                     aria-hidden="true"
@@ -403,7 +576,7 @@ export default function LandingPage({
                     />
                   </span>
 
-                  {/* Feature title and description. */}
+                  {/* Display the feature name and description. */}
                   <h3>{feature.title}</h3>
                   <p>{feature.text}</p>
                 </article>
@@ -412,11 +585,12 @@ export default function LandingPage({
           </div>
         </section>
 
-        {
-        /* =========================================
-                    MEAL PLANNER PREVIEW
-           ========================================= */
-        }
+        {/* =========================================
+                   MEAL PLANNER PREVIEW
+           ========================================= */}
+
+        {/* Introduces the meal planner and shows visitors
+            an example of how meals can be organized. */}
         <section className="lp-section planner" id="meal-planner">
           <div data-reveal="left">
             <p className="lp-eyebrow green">Meal planner</p>
@@ -428,6 +602,7 @@ export default function LandingPage({
               SpaceByte balances every day against your crew's calorie target.
             </p>
 
+            {/* Lists the meal planner's advertised capabilities. */}
             <ul className="lp-checks">
               <li>Week, month and full-mission views</li>
               <li>
@@ -448,6 +623,8 @@ export default function LandingPage({
               <b>Week 16</b>
               <small>Crew of 4 · 2,800 kcal target</small>
 
+              {/* Example view tabs.
+                  These are visual preview elements. */}
               <span className="tabs">
                 <i className="on">Week</i>
                 <i>Month</i>
@@ -455,19 +632,33 @@ export default function LandingPage({
               </span>
             </div>
 
+            {/* Meal planner table.
+                The first row displays weekdays.
+                The remaining rows display breakfast, lunch,
+                and dinner selections. */}
             <div className="lp-table">
+
+              {/* Empty first cell aligns the weekday headings
+                  with the meal category column. */}
               <span />
 
+              {/* Generate weekday headings from the DAYS array. */}
               {DAYS.map((day) => (
                 <strong key={day}>{day}</strong>
               ))}
 
               {Object.entries(PLAN).map(([meal, items], row) => (
                 <div className="row" key={meal}>
+
+                  {/* Display the meal category.
+                      The lowercase class allows CSS to style
+                      breakfast, lunch, and dinner separately. */}
                   <strong className={meal.toLowerCase()}>
                     {meal}
                   </strong>
 
+                  {/* Display the sample meal assigned
+                      to each weekday. */}
                   {items.map((item, index) => (
                     <span
                       key={item}
@@ -481,8 +672,11 @@ export default function LandingPage({
               ))}
             </div>
 
-            {/* Sample nutrition meters. */}
+            {/* Sample nutrition progress meters.
+                These values are for demonstration only. */}
             <div className="lp-meters">
+
+              {/* Example calorie progress. */}
               <label>
                 Calories <em>98%</em>
                 <span className="bar">
@@ -490,6 +684,7 @@ export default function LandingPage({
                 </span>
               </label>
 
+              {/* Example vitamin D progress. */}
               <label>
                 Vitamin D <em>86%</em>
                 <span className="bar">
@@ -498,6 +693,9 @@ export default function LandingPage({
               </label>
             </div>
 
+            {/* Example smart food swap recommendation.
+                Demonstrates how the application could suggest
+                an alternative when inventory runs low. */}
             <p className="lp-swap">
               <b>Suggested swap</b> · Mac &amp; cheese running low.
               Try rice bowl on Tue.
@@ -505,16 +703,19 @@ export default function LandingPage({
           </div>
         </section>
 
-        {
-        /* =========================================
+        {/* =========================================
                       MISSIONS SECTION
-           ========================================= */
-        }
+           ========================================= */}
+
+        {/* Shows the different environments for which
+            SpaceByte is designed. */}
         <section className="lp-section" id="missions">
-          <p className="lp-eyebrow pink" data-reveal>Missions</p>
+          <p className="lp-eyebrow yellow" data-reveal>Missions</p>
 
           <h2 data-reveal style={{ "--d": "0.1s" }}>Built for every orbit.</h2>
 
+          {/* Generate one mission card for each entry
+              in the MISSIONS array. */}
           <div className="lp-grid three">
             {MISSIONS.map((mission, index) => (
               <article
@@ -525,6 +726,7 @@ export default function LandingPage({
               >
                 <img src={mission.img} alt="" />
 
+                {/* Display the mission name and description. */}
                 <h3>{mission.name}</h3>
                 <p>{mission.text}</p>
               </article>
@@ -532,17 +734,20 @@ export default function LandingPage({
           </div>
         </section>
 
-        {
-        /* =========================================
-                      HOW IT WORKS SECTION
-           ========================================= */
-        }
+        {/* =========================================
+                    HOW IT WORKS SECTION
+           ========================================= */}
+
+        {/* Explains the basic workflow for using SpaceByte. */}
         <section className="lp-section" id="how-it-works">
-          <p className="lp-eyebrow pink" data-reveal>How it works</p>
+          <p className="lp-eyebrow blue" data-reveal>How it works</p>
 
           <h2 data-reveal style={{ "--d": "0.1s" }}>Three steps to liftoff.</h2>
 
+          {/* Ordered list displays the three workflow steps. */}
           <ol className="lp-steps">
+
+            {/* Generate each numbered step from the STEPS array. */}
             {STEPS.map((step, index) => (
               <li
                 key={step.title}
@@ -553,38 +758,95 @@ export default function LandingPage({
                   {index + 1}
                 </span>
 
+                {/* Display the step title and explanation. */}
                 <h3>{step.title}</h3>
                 <p>{step.text}</p>
               </li>
             ))}
           </ol>
         </section>
+
+        {/* Future plans for SpaceByte.
+            Replace the heading and text below with your own content. */}
+        <section className="lp-section" id="future-plans">
+          <p className="lp-eyebrow pink" data-reveal>Future plans</p>
+
+          <h2 data-reveal style={{ "--d": "0.1s" }}>What's next for SpaceByte.</h2>
+
+          <p className="lp-sub" data-reveal style={{ "--d": "0.2s" }}>
+            Coming soon.
+          </p>
+
+          {/* One card for each entry in the FUTURE_PLANS array. */}
+          <div className="lp-grid three">
+            {FUTURE_PLANS.map((plan, index) => (
+              <article
+                className="lp-card"
+                key={plan.title}
+                data-reveal
+                style={{ "--d": `${index * 0.15}s` }}
+              >
+                <h3>{plan.title}</h3>
+                <p>{plan.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* The team behind SpaceByte and how to reach them.
+            Edit the team members in the TEAM array above. */}
+        <section className="lp-section" id="contact">
+          <p className="lp-eyebrow green" data-reveal>Contact us</p>
+
+          <h2 data-reveal style={{ "--d": "0.1s" }}>The team behind SpaceByte.</h2>
+
+          <p className="lp-sub" data-reveal style={{ "--d": "0.2s" }}>
+            We are team <span className="lp-team-name">"JACE"</span>. SpaceByte
+            brings together software development, nutrition tracking, and
+            mission planning to explore better food management for space
+            environments.
+          </p>
+
+          {/* One card for each entry in the TEAM array.
+              The index is part of the key because the
+              placeholder names are all the same. */}
+          <div className="lp-grid four">
+            {TEAM.map((member, index) => (
+              <article
+                className="lp-card"
+                key={`${member.name}-${index}`}
+                data-reveal
+                style={{ "--d": `${index * 0.15}s` }}
+              >
+                <h3>{member.name}</h3>
+                <p>{member.role}</p>
+                <p>{member.contact}</p>
+              </article>
+            ))}
+          </div>
+        </section>
       </main>
 
-      {
-      /* =========================================
-                          FOOTER
-         ========================================= */
-      }
-      <footer className="lp-foot">
-        <section id="future-plans" data-reveal>
-          <h3>Future plans</h3>
-          <p>Coming soon.</p>
-        </section>
+      {/* =========================================
+                         FOOTER
+         ========================================= */}
 
-        <section id="contact" data-reveal style={{ "--d": "0.15s" }}>
-          <h3>THE TEAM BEHIND SPACEBYTE</h3>
-          <p className="lp-team-name">"JACE"</p>
-          <p>SpaceByte brings together software development,
-             nutrition tracking, and mission planning to explore
-             better food management for space environments. </p>
-          <p className="lp-capstone">Senior Capstone · University of Tampa</p>
-        </section>
+      {/* Footer contains the capstone attribution. */}
+      <footer className="lp-foot">
+        {/* University capstone identification. */}
+        <p className="lp-capstone">Senior Capstone · University of Tampa</p>
       </footer>
 
+      {/* =========================================
+                     COPYRIGHT
+         ========================================= */}
+
+      {/* Automatically displays the current year
+          so the copyright year does not need to be
+          manually updated every January. */}
       <div className="lp-copyright">
         <p>© {new Date().getFullYear()} SpaceByte. All rights reserved.</p>
       </div>
-    </div>   
+    </div>
   );
 }

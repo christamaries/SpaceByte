@@ -2,7 +2,8 @@
 
 /*
 ===========================================================
- NUTRITION SERVICE
+ SPACEBYTE - NUTRITION SERVICE
+ File: backend/src/services/nutritionService.js
 
  PURPOSE:
  1. Calculate today's nutrition totals for one user.
@@ -63,6 +64,7 @@ function toDate(value) {
   // Firestore Timestamp objects provide a toDate() method.
   if (typeof value.toDate === "function") {
 
+    // Convert the Firestore Timestamp into a JavaScript Date.
     const result = value.toDate();
 
     // Reject invalid Date objects.
@@ -113,6 +115,7 @@ function getStartOfToday() {
   // Reset the time to 12:00 AM.
   start.setHours(0, 0, 0, 0);
 
+  // Return today's starting time.
   return start;
 }
 
@@ -139,9 +142,8 @@ async function getTodayNutrition(userId) {
 
   // Retrieve only consumption logs belonging to this user.
   //
-  // IMPORTANT:
-  // Each log must contain a userId field matching the
-  // authenticated user's Firebase UID.
+  // Each consumption log must contain a userId field
+  // matching the authenticated user's Firebase UID.
   const snapshot = await db
     .collection("consumptionLogs")
     .where("userId", "==", userId)
@@ -167,6 +169,8 @@ async function getTodayNutrition(userId) {
   // Establish the start of tomorrow.
   // This allows the calculation to exclude future-dated logs.
   const startOfTomorrow = new Date(startOfToday);
+
+  // Move the date forward by one calendar day.
   startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
 
 
@@ -212,8 +216,7 @@ async function getTodayNutrition(userId) {
     // This service currently requires a foodId so it can
     // find the corresponding inventory record.
     //
-    // Logs without foodId are skipped. See the important
-    // compatibility note following this code.
+    // Logs without foodId are skipped.
     if (!log.foodId) {
       continue;
     }
@@ -227,6 +230,7 @@ async function getTodayNutrition(userId) {
     // the inventory collection using its document ID.
     if (food === undefined) {
 
+      // Retrieve the matching inventory document.
       const foodDoc = await db
         .collection("inventory")
         .doc(log.foodId)
@@ -261,7 +265,7 @@ async function getTodayNutrition(userId) {
 
 
     // ----------------------------------------
-    // Calculate nutrient totals
+    // CALCULATE NUTRIENT TOTALS
     // ----------------------------------------
 
     // Process each nutrient tracked by the totals object.
@@ -283,6 +287,10 @@ async function getTodayNutrition(userId) {
     }
   }
 
+
+  // ----------------------------------------
+  // FORMAT THE FINAL NUTRITION TOTALS
+  // ----------------------------------------
 
   // Round each total to two decimal places and ensure
   // the returned values are numbers rather than strings.

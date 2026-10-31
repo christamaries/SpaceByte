@@ -1,43 +1,76 @@
+
 /*
 ===========================================================
  SPACEBYTE - APP SHELL
- AppShell.jsx
+ File: frontend/src/components/appShell.jsx
 
  PURPOSE:
- 1. Display the SpaceByte sidebar.
- 2. Show the correct icon for each navigation item.
- 3. Preserve the existing Dashboard and Meal Planner.
- 4. Keep the existing Firebase sign-out handler.
- 5. Provide navigation placeholders for pages that have
-    not yet been connected to their real components.
+ 1. Display the SpaceByte sidebar and navigation.
+ 2. Preserve the dashboard and meal planner.
+ 3. Connect the combined inventory page.
+ 4. Connect nutrition and dietary restrictions.
+ 5. Connect OCR Capture under Inventory.
+ 6. Preserve Firebase sign-out through onSignOut.
+ 7. Keep the existing SpaceByte styling.
 
- ICONS:
- Overview    = House
- Inventory   = Package
- Nutrition   = Fork and knife
- Crew health = Heart with heartbeat
- Missions    = Rocket
- Meal Planner = Calendar
 ===========================================================
 */
 
+
+// Import Fragment to group JSX elements without adding
+// unnecessary HTML elements to the page.
+//
+// Import useState to keep track of the currently selected page.
 import { Fragment, useState } from "react";
+
+
+// ================================================
+//              IMPORT APPLICATION PAGES
+// ================================================
+
+// Main dashboard page.
 import Dashboard from "./dashboard";
+
+// Weekly meal planning page.
 import MealPlanner from "./mealPlanner";
+
+// Food inventory management page.
 import Inventory from "./Inventory";
+
+// Nutrition tracking page.
 import Nutrition from "./Nutrition";
+
+// Food image recognition and OCR capture page.
 import OcrCapture from "./OcrCapture";
+
+// User dietary preferences and restrictions page.
+import DietaryRestrictions from "./dietaryRestrictions";
+
+
+// ================================================
+//                IMPORT SPACEBYTE STYLES
+// ================================================
+
+// Import the main SpaceByte stylesheet.
+// This file controls the appearance of the sidebar,
+// dashboard layout, buttons, navigation, and page content.
 import "../spacebyte-ui.css";
 
+
 /*
- * Reusable SVG icon component.
- *
- * Inline SVG means you do not need to install lucide-react
- * or another icon library.
- *
- * All icons use the same size and stroke style.
- */
+===========================================================
+ SIDEBAR ICONS
+===========================================================
+*/
+
+// Reusable SVG icons for sidebar navigation.
+//
+// Instead of repeating SVG code for every navigation button,
+// this component displays the appropriate icon based on
+// the name passed through the name prop.
 function SidebarIcon({ name }) {
+
+  // Shared SVG properties used by all sidebar icons.
   const commonProps = {
     width: 22,
     height: 22,
@@ -51,8 +84,13 @@ function SidebarIcon({ name }) {
     focusable: "false",
   };
 
+
+  // Select the correct SVG icon based on its name.
   switch (name) {
-    // Overview: house icon
+
+    // ----------------------------------------
+    // HOME ICON
+    // ----------------------------------------
     case "home":
       return (
         <svg {...commonProps}>
@@ -62,7 +100,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
-    // Inventory: package / box icon
+
+    // ----------------------------------------
+    // INVENTORY ICON
+    // ----------------------------------------
     case "inventory":
       return (
         <svg {...commonProps}>
@@ -73,7 +114,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
-    // Nutrition: fork and knife icon
+
+    // ----------------------------------------
+    // NUTRITION ICON
+    // ----------------------------------------
     case "nutrition":
       return (
         <svg {...commonProps}>
@@ -85,7 +129,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
-    // Crew health: heart with heartbeat line
+
+    // ----------------------------------------
+    // CREW HEALTH ICON
+    // ----------------------------------------
     case "health":
       return (
         <svg {...commonProps}>
@@ -94,7 +141,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
-    // Missions: rocket icon
+
+    // ----------------------------------------
+    // MISSIONS ICON
+    // ----------------------------------------
     case "missions":
       return (
         <svg {...commonProps}>
@@ -105,7 +155,10 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
-    // Meal Planner: calendar icon
+
+    // ----------------------------------------
+    // MEAL PLANNER ICON
+    // ----------------------------------------
     case "meals":
       return (
         <svg {...commonProps}>
@@ -114,198 +167,447 @@ function SidebarIcon({ name }) {
         </svg>
       );
 
+
+    // Return nothing if an unsupported icon name is supplied.
     default:
       return null;
   }
 }
 
+
 /*
- * Sidebar navigation configuration.
- *
- * The five primary items match your requested screenshot.
- * Meal Planner is retained as an additional item so your
- * existing MealPlanner component remains accessible.
- */
+===========================================================
+ SIDEBAR NAVIGATION
+===========================================================
+*/
+
+// This array defines the navigation items displayed
+// in the SpaceByte sidebar.
+//
+// Each navigation item contains:
+// - key: Internal identifier used to select a page.
+// - title: Text displayed in the sidebar.
+// - icon: Name of the SVG icon.
+//
+// Some navigation items also contain children.
+//
+// Inventory:
+//   - OCR Capture
+//
+// Nutrition:
+//   - Dietary Restrictions
+//
+// Crew health:
+//   - Astronaut
+//
+// Keeping navigation in one array makes it easier
+// to add or reorganize pages later.
+
 const NAV_ITEMS = [
-  { key: "home", title: "Overview", icon: "home" },
+  {
+    key: "home",
+    title: "Overview",
+    icon: "home",
+  },
+
   {
     key: "inventory",
     title: "Inventory",
     icon: "inventory",
-    children: [{ key: "ocr", title: "OCR Capture" }],
+    children: [
+      {
+        key: "ocr",
+        title: "OCR Capture",
+      },
+    ],
   },
-  { key: "nutrition", title: "Nutrition", icon: "nutrition" },
+
+  {
+    key: "nutrition",
+    title: "Nutrition",
+    icon: "nutrition",
+    children: [
+      {
+        key: "dietary",
+        title: "Dietary Restrictions",
+      },
+    ],
+  },
+
   {
     key: "health",
     title: "Crew health",
     icon: "health",
-    children: [{ key: "astronaut", title: "Astronaut" }],
+    children: [
+      {
+        key: "astronaut",
+        title: "Astronaut",
+      },
+    ],
   },
-  { key: "missions", title: "Missions", icon: "missions" },
-  { key: "meals", title: "Meal Planner", icon: "meals" },
+
+  {
+    key: "missions",
+    title: "Missions",
+    icon: "missions",
+  },
+
+  {
+    key: "meals",
+    title: "Meal Planner",
+    icon: "meals",
+  },
 ];
 
+
 /*
- * Placeholder for pages that do not yet have a connected
- * page component.
- *
- * This prevents clicking a navigation item from displaying
- * a blank page. Replace these placeholders with the actual
- * page components as those features are implemented.
- */
+===========================================================
+ COMING SOON PAGE
+===========================================================
+*/
+
+// Display a placeholder page for modules that have not
+// been fully connected to their application functionality.
+//
+// The title prop identifies which module is being displayed.
 function ComingSoon({ title }) {
+
+  // Search the navigation configuration for the selected item.
+  //
+  // flatMap combines parent navigation items and their
+  // children into one array so both can be searched.
+  const item = NAV_ITEMS
+    .flatMap((navItem) => [
+      navItem,
+      ...(navItem.children || []),
+    ])
+    .find((navItem) => navItem.key === title);
+
+
+  // Display the placeholder content.
   return (
     <section className="sb-coming-soon">
+
+      {/* Display the navigation icon when one exists. */}
       <span className="sb-coming-icon" aria-hidden="true">
-        <SidebarIcon
-          name={
-            NAV_ITEMS.find((item) => item.title === title)?.icon
-          }
-        />
+        <SidebarIcon name={item?.icon} />
       </span>
 
+      {/* Display the name of the selected module. */}
       <h2>{title}</h2>
 
+      {/* Explain that the module is not fully connected yet. */}
       <p>
         This SpaceByte module is ready for its page
         integration. Your existing dashboard and meal
         planner remain available.
       </p>
+
     </section>
   );
 }
 
+
 /*
- * Main application shell.
- *
- * The user and onSignOut props are supplied by your
- * existing authentication/application code.
- */
+===========================================================
+ MAIN SIGNED-IN APPLICATION LAYOUT
+===========================================================
+*/
+
+// AppShell displays the main application after authentication.
+//
+// PROPS:
+// user:
+//   The currently authenticated user's information.
+//
+// onSignOut:
+//   Callback provided by the parent authentication component.
+//   It handles Firebase sign-out.
 export default function AppShell({ user, onSignOut }) {
-  // Track which navigation item is currently selected.
+
+  // The Overview page is the default screen.
+  //
+  // setScreen changes the selected page when a sidebar
+  // navigation button is clicked.
   const [screen, setScreen] = useState("home");
 
   /*
-   * Render the appropriate screen.
-   *
-   * Dashboard and Meal Planner use your existing components.
-   * The other screens show placeholders until their real
-   * components are connected.
-   */
-  
+  =========================================================
+   PAGE RENDERING
+  =========================================================
+  */
 
-function renderScreen() {
-  switch (screen) {
-    case "home":
-      return (
-        <Dashboard
-          user={user}
-          activeScreen="home"
-          onNavigate={setScreen}
-        />
-      );
+  // Determine which application page should appear
+  // inside the main content area.
+  function renderScreen() {
 
-    case "inventory":
-      return <Inventory user={user} />;
+    // Check the currently selected screen.
+    switch (screen) {
 
-    case "meals":
-      return <MealPlanner user={user} />;
+      // ----------------------------------------
+      // DASHBOARD / OVERVIEW
+      // ----------------------------------------
 
-    case "nutrition":
-      return <Nutrition user={user} />;
+      case "home":
+        return (
+          <Dashboard
+            user={user}
+            activeScreen="home"
+            onNavigate={setScreen}
+          />
+        );
 
-    case "ocr":
-      return <OcrCapture user={user} />;
 
-    case "astronaut":
-      return <ComingSoon title="Astronaut" />;
+      // ----------------------------------------
+      // INVENTORY PAGE
+      // ----------------------------------------
 
-    case "health":
-      return <ComingSoon title="Crew health" />;
+      // Display the combined inventory page.
+      // Manual inventory entry is included inside this page.
+      case "inventory":
+        return <Inventory user={user} />;
 
-    case "missions":
-      return <ComingSoon title="Missions" />;
 
-    default:
-      return (
-        <Dashboard
-          user={user}
-          activeScreen="home"
-          onNavigate={setScreen}
-        />
-      );
+      // ----------------------------------------
+      // MEAL PLANNER
+      // ----------------------------------------
+
+      // Display the weekly meal planner.
+      case "meals":
+        return <MealPlanner user={user} />;
+
+
+      // ----------------------------------------
+      // NUTRITION OVERVIEW
+      // ----------------------------------------
+
+      // Display nutrition totals and tracking information.
+      case "nutrition":
+        return <Nutrition user={user} />;
+
+
+      // ----------------------------------------
+      // DIETARY RESTRICTIONS
+      // ----------------------------------------
+
+      // Display dietary preferences and restrictions.
+      case "dietary":
+        return <DietaryRestrictions user={user} />;
+
+
+      // ----------------------------------------
+      // OCR CAPTURE
+      // ----------------------------------------
+
+      // Display the food image recognition page.
+      case "ocr":
+        return <OcrCapture user={user} />;
+
+
+      // ----------------------------------------
+      // CREW HEALTH PLACEHOLDER
+      // ----------------------------------------
+
+      case "astronaut":
+        return <ComingSoon title="astronaut" />;
+
+      case "health":
+        return <ComingSoon title="Crew health" />;
+
+
+      // ----------------------------------------
+      // MISSIONS PLACEHOLDER
+      // ----------------------------------------
+
+      case "missions":
+        return <ComingSoon title="missions" />;
+
+
+      // ----------------------------------------
+      // DEFAULT PAGE
+      // ----------------------------------------
+
+      // If an unknown screen is selected, return the user
+      // to the dashboard instead of displaying a blank page.
+      default:
+        return (
+          <Dashboard
+            user={user}
+            activeScreen="home"
+            onNavigate={setScreen}
+          />
+        );
+    }
   }
-}
 
 
+  /*
+  =========================================================
+   APPLICATION LAYOUT
+  =========================================================
+  */
+
+  // Render the complete signed-in SpaceByte application.
   return (
     <div className="sb-stage">
+
+      {/* Main application window. */}
       <div className="sb-window">
         <div className="sb-body">
-          {/* Sidebar navigation */}
-          <nav className="sb-sidebar" aria-label="Main navigation">
-            {/* SpaceByte logo mark */}
-            
-          {/* SpaceByte dashboard logo */}
-          <div className="sb-logo">
-          <img
-          src="/logo.png"
-          alt="SpaceByte logo"
-          className="sb-logo-image"
-          />
-        </div>
 
 
-            {/* Navigation buttons */}
-            <div className="sb-nav-items">
-              {NAV_ITEMS.map((item) => (
-                <Fragment key={item.key}>
-                <button
-                  type="button"
-                  className={
-                    screen === item.key
-                      ? "sb-nav-button active"
-                      : "sb-nav-button"
-                  }
-                  onClick={() => setScreen(item.key)}
-                  aria-label={item.title}
-                  aria-current={
-                    screen === item.key ? "page" : undefined
-                  }
-                  title={item.title}
-                >
-                  <SidebarIcon name={item.icon} />
+          {/* =====================================
+              MAIN SIDEBAR NAVIGATION
+          ===================================== */}
 
-                  {/* Text labels match the dashboard screenshot */}
-                  <span>{item.title}</span>
-                </button>
+          <nav
+            className="sb-sidebar"
+            aria-label="Main navigation"
+          >
 
-                {/* Sub-items appear under their parent when it or one of its sub-items is selected. */}
-                {item.children &&
-                  (screen === item.key ||
-                    item.children.some((child) => child.key === screen)) && (
-                    <div className="sb-sub-items">
-                      {item.children.map((child) => (
-                        <button
-                          key={child.key}
-                          type="button"
-                          className={
-                            screen === child.key
-                              ? "sb-sub-button active"
-                              : "sb-sub-button"
-                          }
-                          onClick={() => setScreen(child.key)}
-                        >
-                          {child.title}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </Fragment>
-              ))}
+            {/* ---------------------------------
+                SPACEBYTE LOGO
+            --------------------------------- */}
+
+            {/* Display the application logo.
+                The image is loaded from the frontend public folder. */}
+            <div className="sb-logo">
+              <img
+                src="/logo.png"
+                alt="SpaceByte logo"
+                className="sb-logo-image"
+              />
             </div>
 
-            {/* Sign out remains connected to Firebase auth */}
+
+            {/* ---------------------------------
+                NAVIGATION ITEMS
+              --------------------------------- */}
+
+            {/* Loop through the NAV_ITEMS array to build
+                the sidebar navigation dynamically. */}
+            <div className="sb-nav-items">
+
+              {NAV_ITEMS.map((item) => {
+
+                // Check whether one of this parent's children
+                // is currently selected.
+                const childIsActive = (
+                  item.children || []
+                ).some((child) => child.key === screen);
+
+
+                // Highlight the parent when it or one
+                // of its child pages is active.
+                const isActive =
+                  screen === item.key || childIsActive;
+
+
+                // Render the parent and any expanded children.
+                return (
+                  <Fragment key={item.key}>
+
+
+                    {/* ---------------------------------
+                        PARENT NAVIGATION BUTTON
+                    --------------------------------- */}
+
+                    <button
+                      type="button"
+
+                      // Apply the active CSS class when
+                      // this navigation section is selected.
+                      className={
+                        isActive
+                          ? "sb-nav-button active"
+                          : "sb-nav-button"
+                      }
+
+                      // Update the selected page when clicked.
+                      onClick={() => setScreen(item.key)}
+
+                      // Provide an accessible button label.
+                      aria-label={item.title}
+
+                      // Identify the currently selected page.
+                      aria-current={
+                        screen === item.key ? "page" : undefined
+                      }
+
+                      // Display a tooltip when hovering.
+                      title={item.title}
+                    >
+
+                      {/* Display the icon associated with the item. */}
+                      <SidebarIcon name={item.icon} />
+
+                      {/* Display the navigation label. */}
+                      <span>{item.title}</span>
+
+                    </button>
+
+
+                    {/* ---------------------------------
+                        CHILD NAVIGATION ITEMS
+                    --------------------------------- */}
+
+                    {/* Show child navigation buttons only
+                        when their parent section is active. */}
+                    {item.children && isActive && (
+
+                      <div className="sb-sub-items">
+
+                        {/* Render each child navigation item. */}
+                        {item.children.map((child) => (
+
+                          <button
+                            key={child.key}
+                            type="button"
+
+                            // Highlight the currently selected child.
+                            className={
+                              screen === child.key
+                                ? "sb-sub-button active"
+                                : "sb-sub-button"
+                            }
+
+                            // Change the selected page.
+                            onClick={() => setScreen(child.key)}
+
+                            // Identify the active child page.
+                            aria-current={
+                              screen === child.key
+                                ? "page"
+                                : undefined
+                            }
+                          >
+
+                            {/* Display the child page name. */}
+                            {child.title}
+
+                          </button>
+
+                        ))}
+
+                      </div>
+                    )}
+
+                  </Fragment>
+                );
+              })}
+
+            </div>
+
+
+            {/* =====================================
+                FIREBASE SIGN-OUT
+            ===================================== */}
+
+            {/* Call the sign-out function supplied by the
+                parent authentication component.
+                
+                This keeps Firebase authentication handling
+                outside of the AppShell navigation component. */}
             <button
               type="button"
               className="sb-signout"
@@ -313,15 +615,31 @@ function renderScreen() {
               title="Sign out"
               aria-label="Sign out"
             >
+
+              {/* Power symbol used for the sign-out button. */}
               <span aria-hidden="true">⏻</span>
+
+              {/* Visible button label. */}
               <span>Sign out</span>
+
             </button>
+
           </nav>
 
-          {/* Selected page content */}
+
+          {/* =====================================
+              SELECTED PAGE CONTENT
+          ===================================== */}
+
+          {/* The selected application page is rendered here.
+              renderScreen() determines which component appears. */}
           <main className="sb-content">
+
             {renderScreen()}
+
           </main>
+
+
         </div>
       </div>
     </div>

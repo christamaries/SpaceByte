@@ -1,131 +1,174 @@
 
+
 /*
 ===========================================================
- INVENTORY CONTROLLER
- 
+ SPACEBYTE - INVENTORY CONTROLLER
+ File: backend/src/controllers/inventoryController.js
+
  PURPOSE:
  1. Retrieve all food inventory items.
  2. Calculate the status of each food item.
- 3. Find food items that are expiring soon.
+ 3. Identify food items approaching their expiration dates.
  4. Add new food items to the inventory.
- 5. Return JSON responses to the React frontend.
- 6. Handle errors when inventory operations fail.
+ 5. Return inventory information to the React frontend.
+ 6. Handle errors during inventory operations.
 
- NOTE:
- The controller handles HTTP requests and responses.
- The inventory service handles the inventory data logic.
+ HOW IT WORKS:
+ The inventory controller handles HTTP requests and responses.
+ The inventory service handles the actual inventory data
+ retrieval, calculations, and database operations.
+
 ===========================================================
 */
 
 
-// ==========================================
+// =====================================================
 //       IMPORT INVENTORY SERVICE FUNCTIONS
-// ==========================================
+// =====================================================
 
-// Import functions from inventoryService.js.
+// Import the required functions from inventoryService.js.
 //
 // getInventory:
-// Retrieves inventory items.
+// Retrieves food items stored in the inventory collection.
 //
 // getFoodStatus:
-// Calculates the status of an individual food item.
+// Calculates the current status of an individual food item.
 //
 // getExpiringFood:
-// Finds food items approaching their expiration date.
+// Identifies food items approaching their expiration dates.
 //
 // addFoodItem:
-// Saves a new food item to the inventory.
+// Creates and saves a new food item in the inventory.
+//
+// Keeping these functions in a separate service file
+// helps organize the backend and avoid repeating database logic.
 const {
   getInventory,
   getFoodStatus,
   getExpiringFood,
-  addFoodItem
+  addFoodItem,
+  deleteFoodItem
 } = require("../services/inventoryService");
 
 
-// ==========================================
-//              GET ALL FOOD
-// ==========================================
+// =====================================================
+//                  GET ALL FOOD
+// =====================================================
 
-// HTTP endpoint: GET /inventory
+// HTTP METHOD: GET
+// API ENDPOINT: /inventory
 //
 // PURPOSE:
-// Retrieve all inventory items and calculate the status
-// of each item before returning the results to the frontend.
+// Retrieve all food inventory items and calculate
+// the status of each item before sending the results
+// to the React frontend.
 //
 // EXPECTED RESPONSE:
-// An array of food items, including each item's status.
+// An array containing food items and their calculated
+// inventory statuses.
 //
 // IMPORTANT:
 // This function currently calls getInventory() without
-// a user ID. If inventory is supposed to be user-specific,
-// check whether your service filters items by the authenticated
-// user's ID.
-
+// passing a user ID.
+//
+// If inventory is supposed to be user-specific, verify
+// that inventoryService.js filters the results using
+// the authenticated user's Firebase UID.
 exports.getAllFood = async (req, res) => {
 
   try {
 
-    // ------------------------------------------
-    // STEP 1: RETRIEVE INVENTORY ITEMS
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 1: RETRIEVE INVENTORY ITEMS
+    // =====================================================
 
-    // Ask the inventory service to retrieve the food items.
-    // The returned value is expected to be an array.
+    // Call the inventory service to retrieve all food items
+    // stored in the Firestore inventory collection.
+    //
+    // The returned foods variable is expected to contain
+    // an array of food inventory objects.
     const foods = await getInventory();
 
 
-    // ------------------------------------------
-    // STEP 2: CALCULATE FOOD STATUS
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 2: CALCULATE FOOD STATUS
+    // =====================================================
 
-    // Loop through every food item using map().
+    // Use the map() method to loop through each food item.
     //
-    // The spread operator (...food) preserves the existing
+    // map() creates a new array without changing the
+    // original foods array.
+    //
+    // The spread operator (...food) preserves all existing
     // properties of each food item.
     //
-    // The status property adds a calculated status.
-    // Examples may include:
-    // OK       - Food is available and not near expiration.
-    // LOW      - Food quantity is running low.
-    // EXPIRING - Food is approaching its expiration date.
-    // EXPIRED  - Food has passed its expiration date.
+    // The status property adds a calculated inventory
+    // status to each food item.
     //
-    // The exact status rules are defined in the service.
+    // Possible statuses include:
+    //
+    // OK:
+    // Food is available and not approaching expiration.
+    //
+    // LOW:
+    // Food quantity has reached the low-stock threshold.
+    //
+    // EXPIRING:
+    // Food is approaching its expiration date.
+    //
+    // EXPIRED:
+    // Food has passed its expiration date.
+    //
+    // The actual rules for these statuses are defined
+    // inside inventoryService.js.
     const inventory = foods.map(food => ({
 
-      // Preserve the existing food item's properties.
+      // Preserve the existing properties of the food item.
       ...food,
 
-      // Calculate and attach the item's current status.
+      // Calculate and attach the current inventory status.
       status: getFoodStatus(food)
 
     }));
 
 
-    // ------------------------------------------
-    // STEP 3: RETURN INVENTORY TO THE FRONTEND
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 3: RETURN INVENTORY TO FRONTEND
+    // =====================================================
 
-    // HTTP 200 indicates that the request succeeded.
+    // Return an HTTP 200 OK response to indicate that
+    // the inventory request was successful.
+    //
     // Send the complete inventory array as JSON.
+    //
+    // The React frontend can use this information to
+    // display food names, quantities, nutrition data,
+    // expiration dates, and inventory statuses.
     res.status(200).json(inventory);
 
 
   } catch (error) {
 
-    // ------------------------------------------
-    // STEP 4: HANDLE INVENTORY ERRORS
-    // ------------------------------------------
+    // =====================================================
+    //              STEP 4: HANDLE ERRORS
+    // =====================================================
 
-    // Log the full error in the backend terminal.
-    // This helps diagnose database or service problems.
+    // Display the full error in the backend terminal.
+    //
+    // This helps developers troubleshoot issues such as:
+    // - Firestore connection problems.
+    // - Inventory service errors.
+    // - Database query failures.
+    // - Unexpected inventory data.
     console.error(
       "Error getting inventory:",
       error
     );
 
-    // Send an error response to the frontend.
+
+    // Return an HTTP 500 Internal Server Error response.
+    // The frontend receives a general error message
+    // without exposing internal backend information.
     res.status(500).json({
       error: "Unable to retrieve inventory"
     });
@@ -135,69 +178,86 @@ exports.getAllFood = async (req, res) => {
 };
 
 
-// ==========================================
-//            GET EXPIRING FOOD
-// ==========================================
+// =====================================================
+//                GET EXPIRING FOOD
+// =====================================================
 
-// HTTP endpoint: GET /inventory/expiring
+// HTTP METHOD: GET
+// API ENDPOINT: /inventory/expiring
 //
 // OPTIONAL QUERY PARAMETER:
-// days - Number of days to look ahead.
+// days - Number of days to look ahead for expiration.
 //
-// EXAMPLE:
+// EXAMPLE REQUEST:
 // GET /inventory/expiring?days=7
 //
 // PURPOSE:
-// Return food items that are expiring within the
-// requested number of days.
+// Retrieve food items that are expected to expire
+// within the requested number of days.
 //
 // EXPECTED RESPONSE:
 // {
 //   "days": 7,
 //   "count": 2,
 //   "items": [...]
-//
 // }
-
+//
+// This endpoint allows the dashboard to display
+// upcoming expiration alerts.
 exports.getExpiringFood = async (req, res) => {
 
   try {
 
-    // ------------------------------------------
-    // STEP 1: READ THE QUERY PARAMETER
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 1: READ QUERY PARAMETER
+    // =====================================================
 
-    // Read the "days" value from the URL.
+    // Retrieve the "days" query parameter from the URL.
     //
     // Example:
     // /inventory/expiring?days=7
     //
-    // Convert the value to a number.
-    // If the value is missing or evaluates to zero,
-    // use 7 days as the default.
+    // req.query.days reads the value supplied by the frontend.
+    //
+    // Number() converts the value into a JavaScript number.
+    //
+    // If the parameter is missing or evaluates to zero,
+    // the application uses 7 days as the default.
     const days =
       Number(req.query.days) || 7;
 
 
-    // ------------------------------------------
-    // STEP 2: FIND EXPIRING FOOD
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 2: FIND EXPIRING FOOD
+    // =====================================================
 
-    // Call the service to retrieve food items that
-    // meet the expiration criteria for this period.
+    // Call getExpiringFood() from inventoryService.js.
+    //
+    // Pass the number of days so the service knows
+    // how far ahead to check expiration dates.
+    //
+    // The returned foods variable contains the matching
+    // food items that meet the expiration criteria.
     const foods =
       await getExpiringFood(days);
 
 
-    // ------------------------------------------
-    // STEP 3: RETURN THE RESULTS
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 3: RETURN EXPIRATION RESULTS
+    // =====================================================
 
-    // Return the requested time period, the number
-    // of matching items, and the items themselves.
+    // Return an HTTP 200 OK response to the frontend.
     //
-    // foods.length tells the frontend how many items
-    // were returned.
+    // days:
+    // The requested expiration search period.
+    //
+    // count:
+    // The number of food items returned.
+    //
+    // items:
+    // The actual food items approaching expiration.
+    //
+    // foods.length determines how many items were found.
     res.status(200).json({
       days,
       count: foods.length,
@@ -207,14 +267,20 @@ exports.getExpiringFood = async (req, res) => {
 
   } catch (error) {
 
-    // Log the error for backend troubleshooting.
+    // =====================================================
+    //              HANDLE EXPIRATION ERRORS
+    // =====================================================
+
+    // Display the error in the backend terminal
+    // to help troubleshoot expiration-related problems.
     console.error(
       "Error getting expiring food:",
       error
     );
 
-    // Tell the frontend that expiration information
-    // could not be retrieved.
+
+    // Return an HTTP 500 response if the application
+    // cannot retrieve the expiration information.
     res.status(500).json({
       error: "Unable to retrieve expiration information"
     });
@@ -224,48 +290,57 @@ exports.getExpiringFood = async (req, res) => {
 };
 
 
-// ==========================================
-//              ADD FOOD ITEM
-// ==========================================
+// =====================================================
+//                    ADD FOOD ITEM
+// =====================================================
 
-// HTTP endpoint: POST /inventory
+// HTTP METHOD: POST
+// API ENDPOINT: /inventory
 //
 // PURPOSE:
-// Validate incoming food information, save the new
-// inventory item, and return the created item.
+// Receive food information from the React frontend,
+// validate the required fields, save the new food item,
+// and return the created inventory record.
 //
-// EXPECTED REQUEST BODY EXAMPLE:
+// EXAMPLE REQUEST BODY:
 // {
 //   "name": "Rice",
 //   "quantity": 10
 // }
 //
-// The exact accepted fields depend on inventoryService.js
-// and the inventory data model.
-
+// The complete accepted fields are determined by
+// inventoryService.js and the inventory data structure.
 exports.addFood = async (req, res) => {
 
   try {
 
-    // ------------------------------------------
-    // STEP 1: READ THE REQUEST BODY
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 1: READ REQUEST BODY
+    // =====================================================
 
     // Extract the food name and quantity from the
-    // JSON data sent by the React frontend.
+    // JSON request body sent by the React frontend.
+    //
+    // req.body contains the information submitted
+    // through the inventory form.
     const { name, quantity } = req.body;
 
 
-    // ------------------------------------------
-    // STEP 2: VALIDATE THE FOOD NAME
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 2: VALIDATE FOOD NAME
+    // =====================================================
 
-    // A food name must:
+    // Make sure the food name is valid.
+    //
+    // The name must:
     // 1. Be provided.
     // 2. Be a string.
     // 3. Contain at least one non-whitespace character.
     //
-    // Return HTTP 400 if the name is invalid.
+    // trim() removes extra spaces from the beginning
+    // and end of the submitted food name.
+    //
+    // If the name is invalid, return HTTP 400 Bad Request.
     if (!name || typeof name !== "string" || !name.trim()) {
       return res.status(400).json({
         error: "Food name is required"
@@ -273,19 +348,27 @@ exports.addFood = async (req, res) => {
     }
 
 
-    // ------------------------------------------
-    // STEP 3: VALIDATE THE QUANTITY
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 3: VALIDATE FOOD QUANTITY
+    // =====================================================
 
-    // Convert the supplied quantity to a number.
-    // This allows numeric strings such as "10".
+    // Convert the submitted quantity into a number.
+    //
+    // Number() also allows numeric strings such as "10"
+    // to be converted into the number 10.
     const qty = Number(quantity);
 
-    // Reject missing, empty, non-numeric, or negative
-    // quantities.
+
+    // Check whether the quantity is valid.
     //
-    // Zero is allowed because a food item can have
-    // zero units remaining in the inventory.
+    // Reject the request if:
+    // - Quantity was not provided.
+    // - Quantity is an empty string.
+    // - Quantity is not a valid number.
+    // - Quantity is negative.
+    //
+    // Zero is allowed because a food item may have
+    // no remaining units in the inventory.
     if (
       quantity === undefined ||
       quantity === "" ||
@@ -298,27 +381,37 @@ exports.addFood = async (req, res) => {
     }
 
 
-    // ------------------------------------------
-    // STEP 4: SAVE THE FOOD ITEM
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 4: SAVE FOOD ITEM
+    // =====================================================
 
-    // Send the request body to the inventory service.
-    // The service is responsible for creating and saving
-    // the new inventory record.
+    // Call addFoodItem() from inventoryService.js.
     //
-    // The returned newItem should contain the saved
-    // food item's information.
+    // Pass the submitted food information to the service.
+    //
+    // The service handles creating and saving the new
+    // inventory document in Firestore.
+    //
+    // The returned newItem variable contains the
+    // information for the newly created food item.
     const newItem = await addFoodItem(req.body);
 
 
-    // ------------------------------------------
-    // STEP 5: RETURN THE CREATED ITEM
-    // ------------------------------------------
+    // =====================================================
+    //          STEP 5: RETURN CREATED FOOD ITEM
+    // =====================================================
 
-    // HTTP 201 indicates that a new resource was created.
+    // Return HTTP 201 Created to indicate that the
+    // new inventory item was successfully created.
     //
-    // Return a confirmation message and the saved item
-    // so the frontend can update its inventory display.
+    // message:
+    // Confirms that the food item was added.
+    //
+    // item:
+    // Contains the newly created food item's information.
+    //
+    // The React frontend can use this response to
+    // update the inventory display.
     return res.status(201).json({
       message: "Food item added",
       item: newItem
@@ -327,17 +420,69 @@ exports.addFood = async (req, res) => {
 
   } catch (error) {
 
-    // ------------------------------------------
-    // STEP 6: HANDLE SAVE ERRORS
-    // ------------------------------------------
+    // =====================================================
+    //              STEP 6: HANDLE SAVE ERRORS
+    // =====================================================
 
-    // Log the full error to help identify problems
-    // with the inventory service or database.
+    // Display the full error in the backend terminal.
+    //
+    // This helps identify issues involving:
+    // - Invalid Firestore data.
+    // - Database connection problems.
+    // - Inventory service errors.
+    // - Failed document creation.
     console.error("Error adding food:", error);
 
-    // Return a generic error response to the frontend.
+
+    // Return an HTTP 500 Internal Server Error response.
+    // Do not expose internal database information
+    // to the frontend.
     return res.status(500).json({
       error: "Unable to add food item"
+    });
+
+  }
+
+};
+
+
+
+
+// =====================================================
+//                  DELETE FOOD
+// =====================================================
+
+// HTTP METHOD: DELETE
+// API ENDPOINT: /inventory/:id
+//
+// PURPOSE:
+// Permanently remove one food item from the inventory.
+//
+// EXPECTED RESPONSE:
+// A confirmation message, or HTTP 404 if the item
+// does not exist.
+exports.deleteFood = async (req, res) => {
+
+  try {
+
+    const deleted = await deleteFoodItem(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        error: "Food item not found"
+      });
+    }
+
+    return res.json({
+      message: "Food item removed"
+    });
+
+  } catch (error) {
+
+    console.error("Error deleting food:", error);
+
+    return res.status(500).json({
+      error: "Unable to remove food item"
     });
 
   }

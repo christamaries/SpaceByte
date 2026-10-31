@@ -1,7 +1,9 @@
 
+
 /*
 ===========================================================
- RECOMMENDATION CONTROLLER
+ SPACEBYTE - RECOMMENDATION CONTROLLER
+ File: backend/src/controllers/recommendationController.js
 
  PURPOSE:
  1. Handle requests for food recommendations.
@@ -16,13 +18,24 @@
  DEPENDENCIES:
  - recommendationService.js
  - Authentication middleware that sets req.user.uid
+
 ===========================================================
 */
 
 
-// Import the recommendation service function.
-// The service contains the logic used to generate recommendations.
-// This controller handles the HTTP request and response.
+// ==========================================
+//       IMPORT RECOMMENDATION SERVICE
+// ==========================================
+
+// Import the getRecommendations function from
+// recommendationService.js.
+//
+// The recommendation service contains the logic for
+// selecting or generating food recommendations.
+//
+// This controller does not perform the recommendation
+// calculations itself. It sends the request to the
+// service and returns the results to the frontend.
 const {
   getRecommendations
 } = require("../services/recommendationService");
@@ -32,36 +45,91 @@ const {
 //          GET RECOMMENDATIONS
 // ==========================================
 
-// Handle GET requests to /recommendations.
+// HTTP endpoint: GET /recommendations
 //
-// Expected behavior:
-// 1. Read the authenticated user's Firebase UID.
-// 2. Ask the recommendation service for that user's recommendations.
-// 3. Return the results as JSON.
+// PURPOSE:
+// Retrieve food recommendations for the authenticated user.
+//
+// EXPECTED RESPONSE:
+// {
+//   "count": 2,
+//   "recommendations": [
+//     {
+//       "name": "Rice",
+//       "calories": 200
+//     },
+//     {
+//       "name": "Chicken",
+//       "calories": 250
+//     }
+//   ]
+// }
+//
+// The response above is an example.
+// Actual recommendations depend on the recommendation service.
+//
+// AUTHENTICATION:
+// This route should use authentication middleware
+// before calling this controller.
+//
+// The middleware verifies the Firebase token and
+// attaches the authenticated user's information to req.user.
+
 exports.getRecommendations = async (req, res) => {
 
   try {
 
-    // Get the unique ID of the currently authenticated user.
-    // Authentication middleware must set req.user before this
-    // controller runs.
+    // ------------------------------------------
+    // STEP 1: IDENTIFY THE AUTHENTICATED USER
+    // ------------------------------------------
+
+    // Retrieve the Firebase UID of the currently
+    // authenticated user.
+    //
+    // req.user is populated by the authentication middleware.
+    //
+    // The UID identifies which user's information should
+    // be used when generating recommendations.
     const userId = req.user.uid;
 
 
-    // Generate or retrieve recommendations for this user.
-    // The recommendation service determines how recommendations
-    // are selected and whether inventory or nutrition data is used.
+    // ------------------------------------------
+    // STEP 2: GENERATE RECOMMENDATIONS
+    // ------------------------------------------
+
+    // Call the recommendation service and pass the
+    // authenticated user's ID.
+    //
+    // The recommendation service is responsible for
+    // determining which foods or meals to recommend.
+    //
+    // Depending on its implementation, it may use:
+    // - Available food inventory.
+    // - Food expiration dates.
+    // - Nutrition information.
+    // - Consumption history.
+    //
+    // The returned value should be an array of recommendations.
     const recommendations =
       await getRecommendations(userId);
 
 
-    // Return HTTP 200 (OK) when the request succeeds.
+    // ------------------------------------------
+    // STEP 3: RETURN THE RECOMMENDATIONS
+    // ------------------------------------------
+
+    // Send HTTP 200 (OK) when the request succeeds.
     //
     // count:
-    // The number of recommendations returned.
+    // The total number of recommendations returned.
     //
     // recommendations:
-    // The actual list of recommended foods or meals.
+    // The array containing the recommended foods or meals.
+    //
+    // .length counts how many items are in the array.
+    //
+    // The React frontend can use this information
+    // to display the recommendations to the user.
     res.status(200).json({
 
       count:
@@ -73,9 +141,20 @@ exports.getRecommendations = async (req, res) => {
 
   } catch (error) {
 
-    // Log the detailed error in the backend terminal.
-    // This helps with debugging while keeping internal error
-    // details out of the response sent to the frontend.
+    // ------------------------------------------
+    // STEP 4: HANDLE RECOMMENDATION ERRORS
+    // ------------------------------------------
+
+    // Display the detailed error in the backend terminal.
+    //
+    // This helps troubleshoot problems involving:
+    // - Firestore database requests.
+    // - The recommendation service.
+    // - Missing user information.
+    // - Recommendation calculations.
+    //
+    // Internal error details are logged on the server
+    // instead of being exposed to the frontend.
     console.error(
       "Error getting recommendations:",
       error
@@ -83,8 +162,11 @@ exports.getRecommendations = async (req, res) => {
 
 
     // Return HTTP 500 (Internal Server Error).
-    // The frontend can use this response to display an error
-    // message if recommendations cannot be generated.
+    //
+    // This response tells the frontend that the server
+    // could not generate the requested recommendations.
+    //
+    // The frontend can display an appropriate error message.
     res.status(500).json({
       error:
         "Unable to generate recommendations"

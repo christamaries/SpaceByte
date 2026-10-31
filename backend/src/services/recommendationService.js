@@ -1,7 +1,9 @@
 
+
 /*
 ===========================================================
- RECOMMENDATION SERVICE
+ SPACEBYTE - RECOMMENDATION SERVICE
+ File: backend/src/services/recommendationService.js
 
  PURPOSE:
  1. Retrieve the user's profile and food preferences.
@@ -34,22 +36,24 @@ const { db } = require("../config/firebase");
 //        GET FOOD RECOMMENDATIONS
 // ==========================================
 
-// Generate food recommendations based on the user's profile
-// and the food currently available in inventory.
-//
-// Parameter:
-// userId - the authenticated user's Firebase UID.
-//
-// Returns:
-// An array of food items that pass the availability and
-// supported dietary preference checks.
+/**
+ * Generate food recommendations based on the user's
+ * profile, dietary preferences, allergies, and inventory.
+ *
+ * @param {string} userId - Authenticated user's Firebase UID.
+ *
+ * Returns:
+ * An array of food items that pass the availability and
+ * supported dietary preference checks.
+ */
 async function getRecommendations(userId) {
 
   // ----------------------------------------
-  // 1. Retrieve the user's profile
+  // 1. RETRIEVE THE USER'S PROFILE
   // ----------------------------------------
 
-  // Find the profile document using the user's Firebase UID.
+  // Find the user's profile document using their Firebase UID.
+  // The UID identifies the user's document in the users collection.
   const userDoc =
     await db
       .collection("users")
@@ -58,15 +62,18 @@ async function getRecommendations(userId) {
 
 
   // ----------------------------------------
-  // 2. Retrieve inventory
+  // 2. RETRIEVE FOOD INVENTORY
   // ----------------------------------------
 
   // Read all documents in the inventory collection.
   //
   // IMPORTANT:
-  // This does not currently filter by userId. If inventory
-  // belongs to individual users, this query must be updated
-  // to retrieve only the correct user's inventory.
+  // This query currently retrieves inventory belonging to
+  // every user because it does not filter by userId.
+  //
+  // If inventory belongs to individual users, this query
+  // must be updated to retrieve only the authenticated
+  // user's inventory.
   const inventorySnapshot =
     await db
       .collection("inventory")
@@ -74,12 +81,12 @@ async function getRecommendations(userId) {
 
 
   // ----------------------------------------
-  // 3. Read user preferences
+  // 3. READ USER PREFERENCES
   // ----------------------------------------
 
   // Use the saved profile if it exists.
-  // Otherwise, use an empty object so missing profiles
-  // do not cause an immediate error.
+  // Otherwise, use an empty object so a missing profile
+  // does not cause an immediate error.
   const user =
     userDoc.exists
       ? userDoc.data()
@@ -87,7 +94,11 @@ async function getRecommendations(userId) {
 
 
   // Read the user's allergy list.
-  // Example: ["peanuts", "shellfish"].
+  //
+  // Example:
+  // allergies = ["peanuts", "shellfish"]
+  //
+  // Use an empty array if no allergies are saved.
   const allergies =
     Array.isArray(user.allergies)
       ? user.allergies
@@ -95,7 +106,11 @@ async function getRecommendations(userId) {
 
 
   // Read the user's dietary restrictions.
-  // Example: ["vegetarian"].
+  //
+  // Example:
+  // restrictions = ["vegetarian"]
+  //
+  // Use an empty array if no restrictions are saved.
   const restrictions =
     Array.isArray(user.dietaryRestrictions)
       ? user.dietaryRestrictions
@@ -103,11 +118,14 @@ async function getRecommendations(userId) {
 
 
   // ----------------------------------------
-  // 4. Convert Firestore documents to objects
+  // 4. CONVERT FIRESTORE DOCUMENTS TO OBJECTS
   // ----------------------------------------
 
-  // Convert each Firestore document into a JavaScript object.
+  // Convert each Firestore inventory document into
+  // a regular JavaScript object.
+  //
   // Include the Firestore document ID as the food's id.
+  // The frontend can use this ID to identify individual foods.
   const foods =
     inventorySnapshot.docs.map(
       doc => ({
@@ -118,10 +136,11 @@ async function getRecommendations(userId) {
 
 
   // ----------------------------------------
-  // 5. Remove unavailable foods
+  // 5. REMOVE UNAVAILABLE FOODS
   // ----------------------------------------
 
   // Keep foods whose quantity is greater than zero.
+  //
   // Items with zero, negative, or nonnumeric quantities
   // will not be recommended.
   const availableFoods =
@@ -132,13 +151,18 @@ async function getRecommendations(userId) {
 
 
   // ----------------------------------------
-  // 6. Apply dietary preference filters
+  // 6. APPLY DIETARY PREFERENCE FILTERS
   // ----------------------------------------
 
-  // Examine each available food item and keep it only if
-  // it passes the supported allergy and vegetarian checks.
+  // Examine each available food item.
+  // Keep it only if it passes the supported allergy
+  // and vegetarian restriction checks.
   const recommendations =
     availableFoods.filter(food => {
+
+      // ----------------------------------------
+      // CHECK FOOD ALLERGENS
+      // ----------------------------------------
 
       // Read the allergens associated with this food.
       // Use an empty array if the field is missing.
@@ -148,8 +172,10 @@ async function getRecommendations(userId) {
           : [];
 
 
-      // Normalize food allergen names to lowercase strings.
+      // Normalize allergen names to lowercase strings.
+      //
       // This makes comparisons case-insensitive.
+      // For example, "Peanuts" and "peanuts" will match.
       const normalizedFoodAllergens =
         foodAllergens.map(
           item => String(item).toLowerCase().trim()
@@ -174,7 +200,7 @@ async function getRecommendations(userId) {
 
 
       // ----------------------------------------
-      // Vegetarian restriction
+      // CHECK VEGETARIAN RESTRICTION
       // ----------------------------------------
 
       // Normalize dietary restriction names so the
@@ -188,13 +214,14 @@ async function getRecommendations(userId) {
       // If the user follows a vegetarian diet, exclude foods
       // explicitly marked as non-vegetarian.
       //
-      // This preserves the existing behavior:
+      // Existing behavior is preserved:
       // a food with isVegetarian missing or null is not
       // automatically excluded.
       if (
         normalizedRestrictions.includes("vegetarian")
       ) {
 
+        // Exclude foods explicitly identified as non-vegetarian.
         if (food.isVegetarian === false) {
           return false;
         }
@@ -203,17 +230,18 @@ async function getRecommendations(userId) {
 
 
       // The food passed all currently implemented filters.
+      // Keep it in the recommendations array.
       return true;
 
     });
 
 
   // ----------------------------------------
-  // 7. Return recommendations
+  // 7. RETURN FOOD RECOMMENDATIONS
   // ----------------------------------------
 
   // Return the recommended foods to recommendationController.
-  // The controller sends them to the frontend as JSON.
+  // The controller sends these results to the frontend as JSON.
   return recommendations;
 
 }
