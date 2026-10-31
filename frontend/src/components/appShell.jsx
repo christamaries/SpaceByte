@@ -185,16 +185,6 @@ export default function AppShell({ user, onSignOut }) {
   // Track which navigation item is currently selected.
   const [screen, setScreen] = useState("home");
 
-  // Find the current screen title for the window header.
-  // Sub-items (like OCR Capture) also count as screens.
-  const allScreens = NAV_ITEMS.flatMap((item) => [
-    item,
-    ...(item.children || []),
-  ]);
-  const currentScreen = allScreens.find(
-    (item) => item.key === screen
-  );
-
   /*
    * Render the appropriate screen.
    *
@@ -251,26 +241,6 @@ function renderScreen() {
   return (
     <div className="sb-stage">
       <div className="sb-window">
-        {/* Browser-style title bar */}
-        <div className="sb-titlebar">
-          <i
-            style={{ background: "#ee5fa7" }}
-            aria-hidden="true"
-          />
-          <i
-            style={{ background: "#f9d56e" }}
-            aria-hidden="true"
-          />
-          <i
-            style={{ background: "#5ad1b0" }}
-            aria-hidden="true"
-          />
-
-          <span>
-            SpaceByte · {currentScreen?.title || "Overview"}
-          </span>
-        </div>
-
         <div className="sb-body">
           {/* Sidebar navigation */}
           <nav className="sb-sidebar" aria-label="Main navigation">
