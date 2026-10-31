@@ -331,31 +331,6 @@ export default function AppShell({ user, onSignOut }) {
   // navigation button is clicked.
   const [screen, setScreen] = useState("home");
 
-
-  /*
-  =========================================================
-   ALL AVAILABLE SCREENS
-  =========================================================
-  */
-
-  // Combine parent navigation items and their sub-items.
-  //
-  // This allows the application to find the title of
-  // whichever page is currently selected.
-  const allScreens = NAV_ITEMS.flatMap((item) => [
-    item,
-    ...(item.children || []),
-  ]);
-
-
-  // Find the currently selected screen.
-  //
-  // The title is displayed in the browser-style title bar.
-  const currentScreen = allScreens.find(
-    (item) => item.key === screen
-  );
-
-
   /*
   =========================================================
    PAGE RENDERING
@@ -478,42 +453,6 @@ export default function AppShell({ user, onSignOut }) {
 
       {/* Main application window. */}
       <div className="sb-window">
-
-
-        {/* =====================================
-            BROWSER-STYLE TITLE BAR
-        ===================================== */}
-
-        <div className="sb-titlebar">
-
-          {/* Decorative window control indicators. */}
-          <i
-            style={{ background: "#ee5fa7" }}
-            aria-hidden="true"
-          />
-
-          <i
-            style={{ background: "#f9d56e" }}
-            aria-hidden="true"
-          />
-
-          <i
-            style={{ background: "#5ad1b0" }}
-            aria-hidden="true"
-          />
-
-          {/* Display the application name and selected page. */}
-          <span>
-            SpaceByte · {currentScreen?.title || "Overview"}
-          </span>
-
-        </div>
-
-
-        {/* =====================================
-            MAIN APPLICATION BODY
-        ===================================== */}
-
         <div className="sb-body">
 
 

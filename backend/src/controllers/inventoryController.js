@@ -46,7 +46,8 @@ const {
   getInventory,
   getFoodStatus,
   getExpiringFood,
-  addFoodItem
+  addFoodItem,
+  deleteFoodItem
 } = require("../services/inventoryService");
 
 
@@ -445,3 +446,45 @@ exports.addFood = async (req, res) => {
 };
 
 
+
+
+// =====================================================
+//                  DELETE FOOD
+// =====================================================
+
+// HTTP METHOD: DELETE
+// API ENDPOINT: /inventory/:id
+//
+// PURPOSE:
+// Permanently remove one food item from the inventory.
+//
+// EXPECTED RESPONSE:
+// A confirmation message, or HTTP 404 if the item
+// does not exist.
+exports.deleteFood = async (req, res) => {
+
+  try {
+
+    const deleted = await deleteFoodItem(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        error: "Food item not found"
+      });
+    }
+
+    return res.json({
+      message: "Food item removed"
+    });
+
+  } catch (error) {
+
+    console.error("Error deleting food:", error);
+
+    return res.status(500).json({
+      error: "Unable to remove food item"
+    });
+
+  }
+
+};

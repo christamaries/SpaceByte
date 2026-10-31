@@ -90,6 +90,28 @@ const initialForm = {
 
 
 // ===========================================================
+// SEVERITY BADGE COLORS
+// ===========================================================
+
+// Choose the badge style for a severity level 
+function getSeverityClass(severity) {
+  if (severity === "Severe" || severity === "Life-threatening") {
+    return "sb-status-expired";
+  }
+
+  if (severity === "Moderate") {
+    return "sb-status-low";
+  }
+
+  if (severity === "Mild") {
+    return "sb-status-ok";
+  }
+
+  return "sb-status-expiring";
+}
+
+
+// ===========================================================
 // MAIN DIETARY RESTRICTIONS COMPONENT
 // ===========================================================
 
@@ -119,6 +141,22 @@ export default function DietaryRestrictions({ user }) {
   // Stores the ID of the restriction currently being deleted.
   // This allows the correct Remove button to display a loading state.
   const [deletingId, setDeletingId] = useState(null);
+
+  // Restriction waiting for the user to confirm removal.
+  // While set, the confirmation dialog is shown.
+  const [pendingDelete, setPendingDelete] = useState(null);
+
+  // Close the confirmation dialog when Escape is pressed.
+  useEffect(() => {
+    if (!pendingDelete) return;
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setPendingDelete(null);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pendingDelete]);
 
 
   // =========================================================
@@ -394,6 +432,9 @@ export default function DietaryRestrictions({ user }) {
   // the request applies to that user's restriction record.
   async function handleDelete(id) {
 
+    // Close the confirmation dialog.
+    setPendingDelete(null);
+
     // Clear previous success and error messages.
     setMessage("");
     setError("");
@@ -453,70 +494,50 @@ export default function DietaryRestrictions({ user }) {
   }
 
 
-  // =========================================================
-  // DIETARY RESTRICTIONS PAGE USER INTERFACE
-  // =========================================================
-
   return (
-    <div className="sb-inventory-page space-y-6">
+    <div className="sb-nutrition-page sb-inventory-page">
 
 
       {/* =====================================================
           PAGE HEADER
 
-          Displays the page title and a short explanation
-          of the dietary restrictions feature.
+          Displays the page title, a short explanation of the
+          dietary restrictions feature, and the saved count.
       ===================================================== */}
 
-      <div>
-        <div className="flex items-center gap-3">
+      <header className="sb-inventory-header">
+        <div>
+          <p className="sb-inventory-eyebrow">CREW SAFETY</p>
 
-          {/* Shield icon represents dietary safety. */}
-          <ShieldCheck size={28} />
+          <h1>Dietary Restrictions</h1>
 
-          <h1 className="text-2xl font-bold">
-            Dietary Restrictions
-          </h1>
+          <p className="sb-inventory-subtitle">
+            Manage crew food allergies, dietary needs,
+            and food preferences.
+          </p>
         </div>
 
-        <p className="mt-2 text-sm text-gray-500">
-          Manage crew food allergies, dietary needs,
-          and food preferences.
-        </p>
-      </div>
+        <div className="sb-inventory-count">
+          <span>Saved</span>
+          <strong>{restrictions.length}</strong>
+        </div>
+      </header>
 
 
       {/* =====================================================
-          SUCCESS MESSAGE
-
-          Displayed after a restriction is successfully
-          added or deleted.
+          SUCCESS AND ERROR MESSAGES
       ===================================================== */}
 
       {message && (
-        <div
-          role="status"
-          className="rounded-lg bg-purple-100 p-3 text-purple-800"
-        >
+        <p role="status" className="sb-inventory-message sb-inventory-success">
           {message}
-        </div>
+        </p>
       )}
 
-
-      {/* =====================================================
-          ERROR MESSAGE
-
-          Displayed when loading, adding, or deleting
-          a dietary restriction fails.
-      ===================================================== */}
-
       {error && (
-        <div
-          role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-700"
-        >
+        <p role="alert" className="sb-inventory-message sb-inventory-error">
           {error}
-        </div>
+        </p>
       )}
 
 
@@ -527,181 +548,99 @@ export default function DietaryRestrictions({ user }) {
           and save it to their account.
       ===================================================== */}
 
-      <section className="rounded-xl border p-5">
+      <section className="sb-inventory-card">
 
-        <div className="mb-4 flex items-center gap-2">
+        <div className="sb-inventory-section-heading">
+          <div>
+            <h2>Add Dietary Restriction</h2>
+            <p>Fields marked * are required.</p>
+          </div>
 
-          {/* Plus icon indicates adding a new record. */}
-          <Plus size={20} />
-
-          <h2 className="text-xl font-semibold">
-            Add Dietary Restriction
-          </h2>
+          {/* Shield icon represents dietary safety. */}
+          <ShieldCheck color="#b7a0ff" size={24} aria-hidden="true" />
         </div>
 
 
         {/* When submitted, the form calls handleAddRestriction. */}
-        <form
-          onSubmit={handleAddRestriction}
-          className="grid grid-cols-1 gap-4 md:grid-cols-2"
-        >
+        <form onSubmit={handleAddRestriction} className="sb-inventory-form">
 
-
-          {/* =================================================
-              FOOD OR RESTRICTION NAME
-
-              Examples:
-              Peanuts, Dairy, Gluten.
-          ================================================= */}
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Food or Restriction Name *
-            </label>
-
+          {/* Food or restriction name, e.g. Peanuts, Dairy, Gluten. */}
+          <label className="sb-inventory-field">
+            <span>Food or Restriction Name *</span>
             <input
               type="text"
-
-              // The name identifies which formData property
-              // this input updates.
               name="name"
-
-              // Connect the input to React state.
               value={formData.name}
-
-              // Update the form when the user types.
               onChange={handleChange}
-
               placeholder="Example: Peanuts, Dairy, Gluten"
-
-              // Limit the name to 100 characters.
               maxLength={100}
-
-              // Require the user to enter a restriction name.
               required
-
-              className="w-full rounded-lg border p-3"
             />
-          </div>
+          </label>
 
-
-          {/* =================================================
-              RESTRICTION CATEGORY
-
-              Allows users to select the type of restriction.
-          ================================================= */}
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Restriction Category
-            </label>
-
+          {/* Restriction category. */}
+          <label className="sb-inventory-field">
+            <span>Restriction Category</span>
             <select
               name="type"
               value={formData.type}
               onChange={handleChange}
-              className="w-full rounded-lg border p-3"
             >
-
-              {/* Create one option for each restriction category. */}
               {restrictionTypes.map((type) => (
                 <option key={type} value={type}>
                   {type}
                 </option>
               ))}
-
             </select>
-          </div>
+          </label>
 
-
-          {/* =================================================
-              SEVERITY
-
-              Allows the user to indicate how serious
-              the dietary restriction is.
-          ================================================= */}
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Severity
-            </label>
-
+          {/* How serious the restriction is. */}
+          <label className="sb-inventory-field">
+            <span>Severity</span>
             <select
               name="severity"
               value={formData.severity}
               onChange={handleChange}
-              className="w-full rounded-lg border p-3"
             >
               <option value="Not specified">Not specified</option>
               <option value="Mild">Mild</option>
               <option value="Moderate">Moderate</option>
               <option value="Severe">Severe</option>
-              <option value="Life-threatening">
-                Life-threatening
-              </option>
+              <option value="Life-threatening">Life-threatening</option>
             </select>
-          </div>
+          </label>
 
-
-          {/* =================================================
-              ADDITIONAL NOTES
-
-              Provides space for extra information about
-              the restriction or food preparation.
-          ================================================= */}
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">
-              Additional Notes
-            </label>
-
+          {/* Extra preparation or avoidance information. */}
+          <label className="sb-inventory-field">
+            <span>Additional Notes</span>
             <textarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
               placeholder="Add relevant food preparation or avoidance notes..."
               rows={3}
-
-              // Limit additional notes to 1,000 characters.
               maxLength={1000}
-
-              className="w-full rounded-lg border p-3"
             />
-          </div>
+          </label>
 
-
-          {/* =================================================
-              SUBMIT BUTTON
-
-              Saves the new dietary restriction.
-          ================================================= */}
-
-          <div className="md:col-span-2">
+          {/* Saves the new dietary restriction. */}
+          <div className="sb-inventory-form-actions">
             <button
               type="submit"
-
-              // Prevent another submission while saving.
               disabled={saving}
-
-              className="flex items-center gap-2 rounded-lg px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-
-              // Uses the existing SpaceByte purple button color.
-              style={{ backgroundColor: "#7650B8" }}
+              className="sb-inventory-submit sb-button-with-icon"
             >
-
-              {/* Show a loading animation while saving. */}
               {saving ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2 size={16} className="animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Plus size={18} />
+                  <Plus size={16} />
                   Add Restriction
                 </>
               )}
-
             </button>
           </div>
 
@@ -716,154 +655,81 @@ export default function DietaryRestrictions({ user }) {
           with the currently signed-in user.
       ===================================================== */}
 
-      <section className="rounded-xl border p-5">
+      <section className="sb-inventory-card">
 
-        <div className="mb-4 flex items-center gap-2">
+        <div className="sb-inventory-section-heading">
+          <div>
+            <h2>Saved Dietary Restrictions</h2>
+            <p>Restrictions saved to your account.</p>
+          </div>
 
           {/* Utensils icon represents food information. */}
-          <Utensils size={21} />
-
-          <h2 className="text-xl font-semibold">
-            Saved Dietary Restrictions
-          </h2>
+          <Utensils color="#b7a0ff" size={22} aria-hidden="true" />
         </div>
 
 
-        {/* ===================================================
-            LOADING STATE
-
-            Displayed while restrictions are being retrieved
-            from the backend.
-        =================================================== */}
-
         {loading ? (
-          <div className="flex items-center justify-center gap-2 p-8">
 
-            {/* Animated loading icon. */}
-            <Loader2 size={22} className="animate-spin" />
-
+          /* Loading state while restrictions are retrieved. */
+          <div className="sb-inventory-empty sb-button-with-icon sb-centered">
+            <Loader2 size={20} className="animate-spin" />
             <span>Loading your saved restrictions...</span>
           </div>
 
-
         ) : restrictions.length === 0 ? (
 
-          /* =================================================
-             EMPTY STATE
-
-             Displayed when the user has not added any
-             dietary restrictions.
-          ================================================= */
-
-          <div className="rounded-lg border border-dashed p-8 text-center">
-
-            <ShieldCheck
-              size={35}
-              className="mx-auto mb-3 text-gray-400"
-            />
-
-            <p className="font-semibold">
-              No Dietary Restrictions Added
-            </p>
-
-            <p className="mt-1 text-sm text-gray-500">
+          /* Empty state when no restrictions have been added. */
+          <div className="sb-inventory-empty">
+            <ShieldCheck size={32} aria-hidden="true" />
+            <h3>No Dietary Restrictions Added</h3>
+            <p>
               Add a food allergy, intolerance, or dietary
               preference above.
             </p>
-
           </div>
-
 
         ) : (
 
-          /* =================================================
-             SAVED RESTRICTIONS LIST
-
-             Creates a card for each saved dietary restriction.
-          ================================================= */
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          /* One card for each saved dietary restriction. */
+          <div className="sb-diet-list">
 
             {restrictions.map((item) => (
+              <article key={item.id} className="sb-diet-item">
 
-              // Each restriction card uses its Firestore ID
-              // as its unique React key.
-              <article
-                key={item.id}
-                className="rounded-xl border p-4"
-              >
-
-                <div className="flex items-start justify-between gap-3">
-
+                <div className="sb-diet-item-head">
                   <div>
-
-                    {/* Display the restriction or food name. */}
-                    <h3 className="font-semibold">
-                      {item.name}
-                    </h3>
-
-                    {/* Display the restriction category. */}
-                    <p className="mt-1 text-sm text-gray-500">
-                      {item.type}
-                    </p>
-
+                    <h3>{item.name}</h3>
+                    <p>{item.type}</p>
                   </div>
 
                   {/* Warning icon highlights the restriction. */}
-                  <AlertTriangle
-                    size={20}
-                    className="text-amber-500"
-                  />
-
+                  <AlertTriangle size={18} color="#ffd166" aria-hidden="true" />
                 </div>
 
-
-                {/* Display the saved severity level. */}
-                <p className="mt-3 text-sm">
-                  <strong>Severity:</strong>{" "}
+                {/* Saved severity level as a colored badge. */}
+                <span className={`sb-inventory-status ${getSeverityClass(item.severity)}`}>
                   {item.severity}
-                </p>
+                </span>
 
-
-                {/* Display additional notes only when notes exist. */}
+                {/* Additional notes, only when notes exist. */}
                 {item.notes && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    <strong>Notes:</strong> {item.notes}
-                  </p>
+                  <p className="sb-diet-notes">{item.notes}</p>
                 )}
 
-
-                {/* =================================================
-                    REMOVE RESTRICTION BUTTON
-
-                    Deletes the selected restriction from the
-                    user's Firestore dietaryRestrictions collection.
-                ================================================= */}
-
+                {/* Deletes this restriction from the user's
+                    Firestore dietaryRestrictions collection. */}
                 <button
                   type="button"
-
-                  // Call handleDelete with this restriction's ID.
-                  onClick={() => handleDelete(item.id)}
-
-                  // Disable the button while this restriction
-                  // is being deleted.
+                  onClick={() => setPendingDelete(item)}
                   disabled={deletingId === item.id}
-
-                  className="mt-4 flex items-center gap-2 text-sm font-medium text-red-600 disabled:opacity-50"
+                  className="sb-diet-remove sb-button-with-icon"
                 >
-
-                  {/* Show a loading animation during deletion.
-                      Otherwise, display the trash icon. */}
                   {deletingId === item.id ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   )}
-
-                  {/* Change the button text while deleting. */}
                   {deletingId === item.id ? "Removing..." : "Remove"}
-
                 </button>
 
               </article>
@@ -873,6 +739,61 @@ export default function DietaryRestrictions({ user }) {
         )}
 
       </section>
+
+
+      {/* =====================================================
+          REMOVE CONFIRMATION DIALOG
+
+          Shown after a Remove button is clicked.
+          Clicking the dimmed background or pressing
+          Escape cancels without removing anything.
+      ===================================================== */}
+
+      {pendingDelete && (
+        <div
+          className="sb-modal-backdrop"
+          onClick={() => setPendingDelete(null)}
+        >
+          <div
+            className="sb-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="remove-restriction-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="sb-modal-icon" aria-hidden="true">
+              <Trash2 size={22} />
+            </span>
+
+            <h2 id="remove-restriction-title">Remove restriction?</h2>
+
+            <p>
+              <strong>{pendingDelete.name || "This restriction"}</strong> will
+              be permanently removed from your dietary restrictions.
+              This can't be undone.
+            </p>
+
+            <div className="sb-modal-actions">
+              <button
+                type="button"
+                className="sb-inventory-refresh"
+                onClick={() => setPendingDelete(null)}
+                autoFocus
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="sb-modal-danger"
+                onClick={() => handleDelete(pendingDelete.id)}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

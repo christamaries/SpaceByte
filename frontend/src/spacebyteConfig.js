@@ -32,10 +32,10 @@ export const CREW = {
   // Crew member information used for visual identification.
   // Initials and colors can be displayed in crew avatars.
   members: [
-    { initials: "CR", color: "#6c63ff" },
-    { initials: "AK", color: "#ee5fa7" },
-    { initials: "JL", color: "#5ad1b0" },
-    { initials: "MO", color: "#f9d56e" },
+    { initials: "CS", color: "#6c63ff" },
+    { initials: "EH", color: "#ee5fa7" },
+    { initials: "AB", color: "#5ad1b0" },
+    { initials: "JC", color: "#f9d56e" },
   ],
 };
 

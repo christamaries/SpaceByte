@@ -458,6 +458,31 @@ async function addFoodItem(food) {
 
 
 // ==========================================
+//            DELETE A FOOD ITEM
+// ==========================================
+
+// Permanently remove one inventory item.
+//
+// Parameter:
+// foodId - The Firestore document ID of the item.
+//
+// Returns:
+// true if the item was deleted, false if it did not exist.
+async function deleteFoodItem(foodId) {
+
+  const docRef = db.collection("inventory").doc(foodId);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    return false;
+  }
+
+  await docRef.delete();
+  return true;
+}
+
+
+// ==========================================
 //              EXPORT FUNCTIONS
 // ==========================================
 
@@ -478,10 +503,14 @@ async function addFoodItem(food) {
 //
 // addFoodItem:
 // Saves a new food item in Firestore.
+//
+// deleteFoodItem:
+// Removes a food item from Firestore.
 module.exports = {
   getInventory,
   getFoodById,
   getFoodStatus,
   getExpiringFood,
   addFoodItem,
+  deleteFoodItem,
 };

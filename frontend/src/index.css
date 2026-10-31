@@ -19,7 +19,11 @@
 
 /* Import Tailwind CSS so its utility classes are available
    throughout the frontend application. */
-@import "tailwindcss";
+/*import "tailwindcss";*/
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 
 /* ---------------------------------------------------------
    GLOBAL BOX SIZING

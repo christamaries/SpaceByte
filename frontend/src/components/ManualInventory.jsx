@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { PackagePlus, Package, Trash2 } from "lucide-react";
+import { PackagePlus, Package, Scale, AlertTriangle, Trash2 } from "lucide-react";
+
+// Shared dashboard styles (all classes prefixed sb-).
+import "../spacebyte-ui.css";
 
 const initialForm = {
   name: "",
@@ -12,10 +15,16 @@ const initialForm = {
   type: "",
 };
 
-const inputStyle =
-  "w-full rounded-lg border border-slate-700 bg-slate-900 " +
-  "px-4 py-3 text-white placeholder:text-slate-500 " +
-  "focus:border-blue-500 focus:outline-none";
+const ITEM_TYPES = [
+  "Perishable",
+  "Non-Perishable",
+  "Freeze-Dried",
+  "Dry Goods",
+  "Dehydrated",
+  "Thermostabilized",
+  "Other",
+];
+
 // Calculate how many days remain before an item expires.
 function getExpirationStatus(expirationDate) {
   const today = new Date();
@@ -28,26 +37,14 @@ function getExpirationStatus(expirationDate) {
   );
 
   if (daysRemaining < 0) {
-    return {
-      label: "Expired",
-      color: "text-red-400",
-      background: "bg-red-500/10",
-    };
+    return { label: "Expired", className: "sb-status-expired" };
   }
 
   if (daysRemaining <= 30) {
-    return {
-      label: "Expiring Soon",
-      color: "text-yellow-400",
-      background: "bg-yellow-500/10",
-    };
+    return { label: "Expiring Soon", className: "sb-status-low" };
   }
 
-  return {
-    label: "Fresh",
-    color: "text-green-400",
-    background: "bg-green-500/10",
-  };
+  return { label: "Fresh", className: "sb-status-ok" };
 }
 export default function ManualInventory() {
   const [form, setForm] = useState(initialForm);
@@ -161,375 +158,312 @@ const expiringSoonCount = items.filter(
   }
 
   return (
-    <main className="min-h-screen bg-[#070b1c] px-5 py-12 text-white">
-      <div className="mx-auto max-w-6xl">
-  {import.meta.env.DEV && (
-  <a
-    href="/"
-    className="mb-8 inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm text-cyan-400 transition-colors hover:bg-slate-800"
-  >
-    ← Back to SpaceByte Home
-  </a>
-)}
-        {/* PAGE HEADER */}
-        <div className="mb-10">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.25em] text-cyan-400">
-            SpaceByte • Mission Supplies
-          </p>
+    <div className="sb-stage">
+      <div className="sb-window">
+        <main className="sb-content">
+          <div className="sb-inventory-page">
+            {import.meta.env.DEV && (
+              <a href="/" className="sb-inventory-refresh sb-inventory-back">
+                ← Back to SpaceByte Home
+              </a>
+            )}
 
-          <h1 className="text-4xl font-bold">
-            Manual Inventory Entry
-          </h1>
+            {/* PAGE HEADER */}
+            <header className="sb-inventory-header">
+              <div>
+                <p className="sb-inventory-eyebrow">
+                  SPACEBYTE • MISSION SUPPLIES
+                </p>
+                <h1>Manual Inventory Entry</h1>
+                <p className="sb-inventory-subtitle">
+                  Register food and supplies for your mission.
+                  Keep track of quantities, storage types, and expiration dates.
+                </p>
+              </div>
 
-          <p className="mt-3 text-slate-400">
-            Register food and supplies for your mission.
-            Keep track of quantities, storage types, and expiration dates.
-          </p>
-        </div>
+              <div className="sb-inventory-count">
+                <span>Items</span>
+                <strong>{items.length}</strong>
+              </div>
+            </header>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* INVENTORY OVERVIEW */}
+            <div className="sb-stats sb-stats-three">
+              <div className="sb-stat">
+                <span className="sb-stat-icon mint" aria-hidden="true">
+                  <Package />
+                </span>
+                <div>
+                  <small>TOTAL PACKAGES</small>
+                  <strong>{totalPackages}</strong>
+                </div>
+              </div>
 
-          {/* LEFT SIDE: FORM */}
-          <section className="rounded-2xl border border-slate-700 bg-[#0b1424] p-6 shadow-xl">
+              <div className="sb-stat">
+                <span className="sb-stat-icon blue" aria-hidden="true">
+                  <Scale />
+                </span>
+                <div>
+                  <small>TOTAL WEIGHT</small>
+                  <strong>
+                    {totalWeightKg.toFixed(2)} <em>kg</em>
+                  </strong>
+                </div>
+              </div>
 
-            <div className="mb-6 flex items-center gap-3">
-              <PackagePlus className="text-cyan-400" size={28} />
-
-              <h2 className="text-2xl font-semibold">
-                Add New Item
-              </h2>
+              <div className="sb-stat">
+                <span className="sb-stat-icon yellow" aria-hidden="true">
+                  <AlertTriangle />
+                </span>
+                <div>
+                  <small>EXPIRING SOON</small>
+                  <strong>
+                    {expiringSoonCount} <em>within 30 days</em>
+                  </strong>
+                </div>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-
-              {/* ITEM NAME */}
-              <div>
-                <label htmlFor="item-name" className="mb-2 block text-sm">
-                  Item Name
-                </label>
-
-                <input
-                  id="item-name"
-                  name="name"
-                  type="text"
-                  required
-                  maxLength={100}
-                  placeholder="e.g. Freeze-Dried Strawberries"
-                  value={form.name}
-                  onChange={handleChange}
-                  className={inputStyle}
-                />
-              </div>
-
-              {/* QUANTITY */}
-              <div>
-                <label htmlFor="quantity" className="mb-2 block text-sm">
-                  Quantity
-                </label>
-
-                <input
-                  id="quantity"
-                  name="quantity"
-                  type="number"
-                  min="1"
-                  step="1"
-                  required
-                  placeholder="Number of packages"
-                  value={form.quantity}
-                  onChange={handleChange}
-                  className={inputStyle}
-                />
-              </div>
-
-              {/* WEIGHT */}
-              <div>
-                <label htmlFor="weight" className="mb-2 block text-sm">
-                  Weight per Item
-                </label>
-
-                <div className="grid grid-cols-[1fr_110px] gap-3">
-                  <input
-                    id="weight"
-                    name="weight"
-                    type="number"
-                    min="0.01"
-                    step="any"
-                    required
-                    placeholder="250"
-                    value={form.weight}
-                    onChange={handleChange}
-                    className={inputStyle}
-                  />
-
-                  <select
-                    name="weightUnit"
-                    aria-label="Weight unit"
-                    value={form.weightUnit}
-                    onChange={handleChange}
-                    className={inputStyle}
-                  >
-                    <option value="g">Grams</option>
-                    <option value="kg">Kilograms</option>
-                  </select>
+            {/* ADD ITEM FORM */}
+            <section className="sb-inventory-card">
+              <div className="sb-inventory-section-heading">
+                <div>
+                  <h2>Add New Item</h2>
+                  <p>Every field is required.</p>
                 </div>
-              </div>
-
-              {/* SHELF LIFE */}
-              <div>
-                <label htmlFor="shelf-life" className="mb-2 block text-sm">
-                  Shelf Life
-                </label>
-
-                <div className="grid grid-cols-[1fr_130px] gap-3">
-                  <input
-                    id="shelf-life"
-                    name="shelfLife"
-                    type="number"
-                    min="1"
-                    step="1"
-                    required
-                    placeholder="18"
-                    value={form.shelfLife}
-                    onChange={handleChange}
-                    className={inputStyle}
-                  />
-
-                  <select
-                    name="shelfLifeUnit"
-                    aria-label="Shelf life unit"
-                    value={form.shelfLifeUnit}
-                    onChange={handleChange}
-                    className={inputStyle}
-                  >
-                    <option value="days">Days</option>
-                    <option value="months">Months</option>
-                    <option value="years">Years</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* EXPIRATION DATE */}
-              <div>
-                <label htmlFor="expiration-date" className="mb-2 block text-sm">
-                  Expiration Date
-                </label>
-
-                <input
-                  id="expiration-date"
-                  name="expirationDate"
-                  type="date"
-                  required
-                  value={form.expirationDate}
-                  onChange={handleChange}
-                  className={`${inputStyle} scheme-dark`}
-                />
-              </div>
-
-              {/* ITEM TYPE */}
-              <div>
-                <label htmlFor="item-type" className="mb-2 block text-sm">
-                  Item Type
-                </label>
-
-                <select
-                  id="item-type"
-                  name="type"
-                  required
-                  value={form.type}
-                  onChange={handleChange}
-                  className={inputStyle}
-                >
-                  <option value="">Select item type</option>
-                  <option value="Perishable">Perishable</option>
-                  <option value="Non-Perishable">Non-Perishable</option>
-                  <option value="Freeze-Dried">Freeze-Dried</option>
-                  <option value="Dry Goods">Dry Goods</option>
-                  <option value="Dehydrated">Dehydrated</option>
-                  <option value="Thermostabilized">Thermostabilized</option>
-                  <option value="Other">Other</option>
-                </select>
+                <PackagePlus color="#b7a0ff" size={24} aria-hidden="true" />
               </div>
 
               {error && (
-                <p role="alert" className="text-sm text-red-400">
+                <p role="alert" className="sb-inventory-message sb-inventory-error">
                   {error}
                 </p>
               )}
 
-              {/* SUBMIT BUTTON */}
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-              >
-                <PackagePlus size={20} />
-                Add to Inventory
-              </button>
+              <form onSubmit={handleSubmit} className="sb-inventory-form">
+                <label className="sb-inventory-field">
+                  <span>Item Name</span>
+                  <input
+                    name="name"
+                    type="text"
+                    required
+                    maxLength={100}
+                    placeholder="e.g. Freeze-Dried Strawberries"
+                    value={form.name}
+                    onChange={handleChange}
+                  />
+                </label>
 
-            </form>
-          </section>
+                <label className="sb-inventory-field">
+                  <span>Quantity</span>
+                  <input
+                    name="quantity"
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    placeholder="Number of packages"
+                    value={form.quantity}
+                    onChange={handleChange}
+                  />
+                </label>
 
-          {/* RIGHT SIDE: INVENTORY OVERVIEW */}
-          <section className="rounded-2xl border border-slate-700 bg-[#0b1424] p-6 shadow-xl">
-
-            <div className="mb-6 flex items-center gap-3">
-              <Package className="text-cyan-400" size={28} />
-
-              <h2 className="text-2xl font-semibold">
-                Inventory Overview
-              </h2>
-            </div>
-
-            <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-
-  {/* TOTAL PACKAGES */}
-  <div className="rounded-xl bg-slate-900 p-4">
-    <p className="text-xs text-slate-400">
-      📦 Total Packages
-    </p>
-
-    <p className="mt-2 text-2xl font-bold text-cyan-400">
-      {totalPackages}
-    </p>
-  </div>
-
-  {/* TOTAL WEIGHT */}
-  <div className="rounded-xl bg-slate-900 p-4">
-    <p className="text-xs text-slate-400">
-      ⚖️ Total Weight
-    </p>
-
-    <p className="mt-2 text-2xl font-bold text-cyan-400">
-      {totalWeightKg.toFixed(2)} kg
-    </p>
-  </div>
-
-  {/* EXPIRING SOON */}
-  <div className="rounded-xl bg-slate-900 p-4">
-    <p className="text-xs text-slate-400">
-      ⚠️ Expiring Soon
-    </p>
-
-    <p className="mt-2 text-2xl font-bold text-yellow-400">
-      {expiringSoonCount}
-    </p>
-  </div>
-
-</div>
-
-{/* SEARCH AND FILTER CONTROLS */}
-<div className="mb-6 space-y-3">
-
-  <input
-    type="text"
-    placeholder="🔍 Search inventory..."
-    value={searchTerm}
-    onChange={(event) => setSearchTerm(event.target.value)}
-    className={inputStyle}
-  />
-
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-
-    <select
-      value={filterType}
-      onChange={(event) => setFilterType(event.target.value)}
-      className={inputStyle}
-      aria-label="Filter inventory by type"
-    >
-      <option value="All">All Types</option>
-      <option value="Perishable">Perishable</option>
-      <option value="Non-Perishable">Non-Perishable</option>
-      <option value="Freeze-Dried">Freeze-Dried</option>
-      <option value="Dry Goods">Dry Goods</option>
-      <option value="Dehydrated">Dehydrated</option>
-      <option value="Thermostabilized">Thermostabilized</option>
-      <option value="Other">Other</option>
-    </select>
-
-    <select
-      value={sortOrder}
-      onChange={(event) => setSortOrder(event.target.value)}
-      className={inputStyle}
-      aria-label="Sort inventory"
-    >
-      <option value="soonest">Expiration: Soonest First</option>
-      <option value="latest">Expiration: Latest First</option>
-      <option value="name">Name: A–Z</option>
-    </select>
-
-  </div>
-</div>
-
-
-
-            {filteredItems.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-700 p-10 text-center">
-                <Package
-                  size={42}
-                  className="mx-auto mb-4 text-slate-500"
-                />
-
-              <p className="text-slate-300">
-  {items.length === 0
-    ? "No inventory items added yet."
-    : "No items match your search or filters."}
-</p>
-
-                <p className="mt-2 text-sm text-slate-500">
-                  Add your first item using the form.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-xl border border-slate-700 bg-slate-900 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold text-white">
-                          {item.name}
-                        </h3>
-
-                        <p className="mt-1 text-sm text-cyan-400">
-                          {item.type}
-                        </p>
-                      <span
-  className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-    getExpirationStatus(item.expirationDate).color
-  } ${getExpirationStatus(item.expirationDate).background}`}
->
-  {getExpirationStatus(item.expirationDate).label}
-</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.id)}
-                        aria-label={`Remove ${item.name}`}
-                        className="text-slate-400 hover:text-red-400"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-300">
-                      <p>Quantity: {item.quantity}</p>
-                      <p>Weight: {item.weight} {item.weightUnit}</p>
-                      <p>
-                        Shelf Life: {item.shelfLife} {item.shelfLifeUnit}
-                      </p>
-                      <p>Expires: {item.expirationDate}</p>
-                    </div>
+                <div className="sb-inventory-field">
+                  <span>Weight per Item</span>
+                  <div className="sb-inventory-pair">
+                    <input
+                      name="weight"
+                      type="number"
+                      min="0.01"
+                      step="any"
+                      required
+                      placeholder="250"
+                      aria-label="Weight per item"
+                      value={form.weight}
+                      onChange={handleChange}
+                    />
+                    <select
+                      name="weightUnit"
+                      aria-label="Weight unit"
+                      value={form.weightUnit}
+                      onChange={handleChange}
+                    >
+                      <option value="g">Grams</option>
+                      <option value="kg">Kilograms</option>
+                    </select>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
 
-          </section>
-        </div>
+                <div className="sb-inventory-field">
+                  <span>Shelf Life</span>
+                  <div className="sb-inventory-pair">
+                    <input
+                      name="shelfLife"
+                      type="number"
+                      min="1"
+                      step="1"
+                      required
+                      placeholder="18"
+                      aria-label="Shelf life"
+                      value={form.shelfLife}
+                      onChange={handleChange}
+                    />
+                    <select
+                      name="shelfLifeUnit"
+                      aria-label="Shelf life unit"
+                      value={form.shelfLifeUnit}
+                      onChange={handleChange}
+                    >
+                      <option value="days">Days</option>
+                      <option value="months">Months</option>
+                      <option value="years">Years</option>
+                    </select>
+                  </div>
+                </div>
+
+                <label className="sb-inventory-field">
+                  <span>Expiration Date</span>
+                  <input
+                    name="expirationDate"
+                    type="date"
+                    required
+                    value={form.expirationDate}
+                    onChange={handleChange}
+                  />
+                </label>
+
+                <label className="sb-inventory-field">
+                  <span>Item Type</span>
+                  <select
+                    name="type"
+                    required
+                    value={form.type}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select item type</option>
+                    {ITEM_TYPES.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="sb-inventory-form-actions">
+                  <button type="submit" className="sb-inventory-submit">
+                    Add to Inventory
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            {/* SAVED ITEMS */}
+            <section className="sb-inventory-card">
+              <div className="sb-inventory-section-heading">
+                <div>
+                  <h2>Inventory</h2>
+                  <p>Search, filter, and sort the items you have added.</p>
+                </div>
+              </div>
+
+              <div className="sb-inventory-form sb-inventory-filters">
+                <label className="sb-inventory-field">
+                  <span>Search</span>
+                  <input
+                    type="text"
+                    placeholder="Search inventory..."
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                  />
+                </label>
+
+                <label className="sb-inventory-field">
+                  <span>Type</span>
+                  <select
+                    value={filterType}
+                    onChange={(event) => setFilterType(event.target.value)}
+                  >
+                    <option value="All">All Types</option>
+                    {ITEM_TYPES.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="sb-inventory-field">
+                  <span>Sort</span>
+                  <select
+                    value={sortOrder}
+                    onChange={(event) => setSortOrder(event.target.value)}
+                  >
+                    <option value="soonest">Expiration: Soonest First</option>
+                    <option value="latest">Expiration: Latest First</option>
+                    <option value="name">Name: A–Z</option>
+                  </select>
+                </label>
+              </div>
+
+              {filteredItems.length === 0 ? (
+                <div className="sb-inventory-empty">
+                  <span aria-hidden="true">📦</span>
+                  <h3>
+                    {items.length === 0
+                      ? "No inventory items added yet."
+                      : "No items match your search or filters."}
+                  </h3>
+                  <p>Add your first item using the form above.</p>
+                </div>
+              ) : (
+                <div className="sb-inventory-table-wrap">
+                  <table className="sb-inventory-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Weight</th>
+                        <th>Shelf Life</th>
+                        <th>Expires</th>
+                        <th>Status</th>
+                        <th aria-label="Remove" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredItems.map((item) => {
+                        const status = getExpirationStatus(item.expirationDate);
+
+                        return (
+                          <tr key={item.id}>
+                            <td className="sb-inventory-item-name">{item.name}</td>
+                            <td>{item.type}</td>
+                            <td>{item.quantity}</td>
+                            <td>{item.weight} {item.weightUnit}</td>
+                            <td>{item.shelfLife} {item.shelfLifeUnit}</td>
+                            <td>{item.expirationDate}</td>
+                            <td>
+                              <span className={`sb-inventory-status ${status.className}`}>
+                                {status.label}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => removeItem(item.id)}
+                                aria-label={`Remove ${item.name}`}
+                                className="sb-inventory-remove"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          </div>
+        </main>
       </div>
-    </main>
+    </div>
   );
 }
-

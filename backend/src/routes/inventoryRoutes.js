@@ -78,5 +78,16 @@ router.post(
 );
 
 
+// DELETE /inventory/:id
+//
+// Permanently removes one food item.
+// :id is the item's Firestore document ID.
+router.delete(
+  "/:id",
+  verifyToken,
+  inventoryController.deleteFood
+);
+
+
 // Export the router so app.js can register the inventory endpoints.
 module.exports = router;

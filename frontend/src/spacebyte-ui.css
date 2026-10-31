@@ -1731,7 +1731,319 @@ body,
   color: #ffb6c6;
 }
 
+/* Manual inventory page (ManualInventory.jsx). */
+.sb-inventory-back {
+  display: inline-block;
+  margin-bottom: 24px;
+  text-decoration: none;
+}
+
+.sb-stats.sb-stats-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sb-inventory-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 10px;
+}
+
+.sb-inventory-field input[type="date"] {
+  color-scheme: dark;
+}
+
+.sb-inventory-filters {
+  grid-template-columns: 2fr 1fr 1fr;
+  margin-bottom: 20px;
+}
+
+.sb-inventory-remove {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #9fa8c8;
+  cursor: pointer;
+}
+
+.sb-inventory-remove:hover {
+  background: #47232f;
+  color: #ffb6c6;
+}
+
+/* Food inventory page (Inventory.jsx). */
+.sb-stats.sb-stats-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sb-inventory-form-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sb-inventory-form-four,
+.sb-inventory-filters-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sb-inventory-subheading {
+  margin: 0 0 14px;
+  color: #c7b6ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sb-inventory-subtitle-tight {
+  margin: -8px 0 14px;
+}
+
+.sb-inventory-divider {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid #2d2b50;
+}
+
+.sb-inventory-hint {
+  color: #8790b0;
+  font-size: 11px;
+}
+
+.sb-inventory-footer-note {
+  margin: 16px 0 0;
+}
+
+.sb-inventory-search {
+  position: relative;
+}
+
+.sb-inventory-search svg {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  color: #737d9e;
+  transform: translateY(-50%);
+}
+
+.sb-inventory-search input {
+  padding-left: 36px;
+}
+
+.sb-inventory-item-type {
+  display: block;
+  margin-top: 3px;
+  color: #9fa8c8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sb-inventory-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sb-status-none {
+  background: #23264a;
+  color: #aeb5d4;
+}
+
+@media (max-width: 1100px) {
+  .sb-stats.sb-stats-four,
+  .sb-inventory-form-three,
+  .sb-inventory-form-four,
+  .sb-inventory-filters-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Confirmation dialog (used when removing inventory items). */
+.sb-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 7, 20, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.sb-modal {
+  width: min(420px, 100%);
+  padding: 26px;
+  border: 1px solid #3c3268;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at top right, rgba(139, 92, 246, 0.18), transparent 60%),
+    #15152f;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  color: #eef0ff;
+}
+
+.sb-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: #47232f;
+  color: #ffb6c6;
+}
+
+.sb-modal h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.sb-modal p {
+  margin: 0;
+  color: #a8b0ce;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.sb-modal p strong {
+  color: #f5f2ff;
+}
+
+.sb-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.sb-modal-danger {
+  min-height: 40px;
+  padding: 10px 17px;
+  border: 1px solid #82455f;
+  border-radius: 10px;
+  background: #e0577f;
+  color: #1c0a14;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sb-modal-danger:hover {
+  background: #ef6d93;
+}
+
+/* Dietary restrictions page (dietaryRestrictions.jsx). */
+.sb-inventory-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #3a3a62;
+  border-radius: 10px;
+  outline: none;
+  background: #0c1028;
+  color: #f4f2ff;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.sb-inventory-field textarea::placeholder {
+  color: #737d9e;
+}
+
+.sb-inventory-field textarea:focus {
+  border-color: #a88bff;
+  box-shadow: 0 0 0 3px rgba(168, 139, 255, 0.15);
+}
+
+.sb-button-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-centered {
+  display: flex;
+  justify-content: center;
+}
+
+.sb-diet-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sb-diet-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #2d2b50;
+  border-radius: 14px;
+  background: #0c1028;
+}
+
+.sb-diet-item-head {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sb-diet-item h3 {
+  margin: 0;
+  color: #f5f2ff;
+  font-size: 15px;
+}
+
+.sb-diet-item-head p {
+  margin: 4px 0 0;
+  color: #9fa8c8;
+  font-size: 12px;
+}
+
+.sb-diet-notes {
+  margin: 0;
+  color: #c3c8e0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sb-diet-remove {
+  margin-top: 4px;
+  padding: 6px 10px;
+  border: 1px solid #45416e;
+  border-radius: 8px;
+  background: none;
+  color: #c3c8e0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sb-diet-remove:hover {
+  border-color: #82455f;
+  background: #47232f;
+  color: #ffb6c6;
+}
+
+.sb-diet-remove:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 @media (max-width: 700px) {
+  .sb-stats.sb-stats-three,
+  .sb-stats.sb-stats-four,
+  .sb-inventory-filters,
+  .sb-inventory-form-three,
+  .sb-inventory-form-four,
+  .sb-diet-list {
+    grid-template-columns: 1fr;
+  }
+
   .sb-inventory-header {
     align-items: flex-start;
   }
