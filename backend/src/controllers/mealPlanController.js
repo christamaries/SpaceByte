@@ -209,6 +209,8 @@ exports.createMeal = async (req, res) => {
       "lunch",
       "dinner",
       "snack",
+      "morning-snack",
+      "afternoon-snack",
     ];
 
     // Convert the supplied meal type to lowercase.
@@ -536,6 +538,19 @@ exports.markMealEaten = async (req, res) => {
 
 
       // ----------------------------------------
+      // CHECK AVAILABLE QUANTITY
+      // ----------------------------------------
+
+      // Make sure enough of the food is left in inventory
+      // to cover the servings being eaten.
+      const available = Number(food.quantity) || 0;
+
+      if (available < amount) {
+        return { error: "NOT_ENOUGH_STOCK" };
+      }
+
+
+      // ----------------------------------------
       // CREATE THE CONSUMPTION TIMESTAMP
       // ----------------------------------------
 
@@ -583,6 +598,22 @@ exports.markMealEaten = async (req, res) => {
       });
 
 
+      // ----------------------------------------
+      // UPDATE INVENTORY QUANTITY
+      // ----------------------------------------
+
+      // Subtract the servings eaten from the food's
+      // inventory quantity.
+      //
+      // Example:
+      // Previous quantity: 20
+      // Servings eaten: 1
+      // Remaining quantity: 19
+      transaction.update(foodRef, {
+        quantity: available - amount,
+      });
+
+
       // Return information for the HTTP response.
       return {
         alreadyEaten: false,
@@ -625,6 +656,12 @@ exports.markMealEaten = async (req, res) => {
       });
     }
 
+    if (result.error === "NOT_ENOUGH_STOCK") {
+      return res.status(400).json({
+        error: "Not enough of this food left in inventory",
+      });
+    }
+
 
     // ------------------------------------------
     // STEP 5: RETURN THE FINAL RESULT
@@ -664,9 +701,10 @@ exports.markMealEaten = async (req, res) => {
 // Delete a planned meal belonging to the authenticated user.
 //
 // IMPORTANT:
-// This function deletes the meal plan document only.
-// It intentionally does not delete a consumption log,
-// preserving nutrition history for meals already eaten.
+// If the meal was already marked as eaten, deleting it
+// undoes that: its consumption log is removed (so the
+// nutrition totals drop) and the servings are added back
+// to the food's inventory quantity.
 
 exports.deleteMeal = async (req, res) => {
 
@@ -686,29 +724,94 @@ exports.deleteMeal = async (req, res) => {
 
 
     // ------------------------------------------
-    // STEP 2: CHECK WHETHER THE MEAL EXISTS
+    // STEP 2: DELETE THE MEAL TRANSACTIONALLY
     // ------------------------------------------
 
-    // Retrieve the requested meal from Firestore.
-    const mealDoc = await mealRef.get();
+    // A transaction keeps the meal, its consumption log,
+    // and the inventory quantity consistent with each other.
+    const result = await db.runTransaction(async (transaction) => {
+
+      // Retrieve the requested meal from Firestore.
+      const mealDoc = await transaction.get(mealRef);
+
+      // Return an error marker if the meal cannot be found.
+      if (!mealDoc.exists) {
+        return { error: "MEAL_NOT_FOUND" };
+      }
+
+      const meal = mealDoc.data();
+
+
+      // ----------------------------------------
+      // CHECK MEAL OWNERSHIP
+      // ----------------------------------------
+
+      // Prevent users from deleting someone else's meal.
+      //
+      // The saved userId must match the UID from
+      // the authenticated Firebase token.
+      if (meal.userId !== userId) {
+        return { error: "ACCESS_DENIED" };
+      }
+
+
+      // ----------------------------------------
+      // UNDO AN EATEN MEAL
+      // ----------------------------------------
+
+      // If the meal was marked as eaten, remove its
+      // consumption log and return the servings to inventory.
+      if (meal.consumedAt) {
+
+        const amount = Number(meal.servings) || 1;
+
+        const foodRef = db
+          .collection(INVENTORY_COLLECTION)
+          .doc(meal.foodId);
+
+        // All reads must happen before any writes
+        // in a Firestore transaction.
+        const foodDoc = await transaction.get(foodRef);
+
+        // Remove the consumption log so nutrition totals drop.
+        if (meal.consumptionLogId) {
+          transaction.delete(
+            db.collection(CONSUMPTION_COLLECTION).doc(meal.consumptionLogId)
+          );
+        }
+
+        // Add the servings back to inventory if the food still exists.
+        if (foodDoc.exists) {
+          transaction.update(foodRef, {
+            quantity: (Number(foodDoc.data().quantity) || 0) + amount,
+          });
+        }
+      }
+
+
+      // ----------------------------------------
+      // DELETE THE PLANNED MEAL
+      // ----------------------------------------
+
+      transaction.delete(mealRef);
+
+      return { deleted: true };
+    });
+
+
+    // ------------------------------------------
+    // STEP 3: HANDLE TRANSACTION RESULTS
+    // ------------------------------------------
 
     // Return 404 if the requested meal cannot be found.
-    if (!mealDoc.exists) {
+    if (result.error === "MEAL_NOT_FOUND") {
       return res.status(404).json({
         error: "Meal not found",
       });
     }
 
-
-    // ------------------------------------------
-    // STEP 3: CHECK MEAL OWNERSHIP
-    // ------------------------------------------
-
-    // Prevent users from deleting someone else's meal.
-    //
-    // The saved userId must match the UID from
-    // the authenticated Firebase token.
-    if (mealDoc.data().userId !== userId) {
+    // Return 403 if the meal belongs to another user.
+    if (result.error === "ACCESS_DENIED") {
       return res.status(403).json({
         error: "Access denied",
       });
@@ -716,18 +819,7 @@ exports.deleteMeal = async (req, res) => {
 
 
     // ------------------------------------------
-    // STEP 4: DELETE THE PLANNED MEAL
-    // ------------------------------------------
-
-    // Delete only the mealPlans document.
-    //
-    // Any existing consumption log is retained so
-    // nutrition history is not silently removed.
-    await mealRef.delete();
-
-
-    // ------------------------------------------
-    // STEP 5: CONFIRM THE DELETION
+    // STEP 4: CONFIRM THE DELETION
     // ------------------------------------------
 
     // HTTP 200 confirms that the meal was deleted.

@@ -33,18 +33,36 @@ import { apiRequest } from "../api";
 
 // Shared SpaceByte configuration for crew settings,
 // nutrition targets, and food icons.
-import { CREW, TARGETS, foodIcon } from "../spacebyteConfig";
+import { CREW, TARGETS, FoodIcon } from "../spacebyteConfig";
 
 // Meal types displayed in the weekly calendar.
-const MEAL_TYPES = ["breakfast", "lunch", "dinner"];
+// A snack row follows breakfast and another follows lunch.
+const MEAL_TYPES = [
+  "breakfast",
+  "morning-snack",
+  "lunch",
+  "afternoon-snack",
+  "dinner",
+];
+
+// Row labels shown at the start of each calendar row.
+const TYPE_LABELS = {
+  breakfast: "BREAKFAST",
+  "morning-snack": "SNACK",
+  lunch: "LUNCH",
+  "afternoon-snack": "SNACK",
+  dinner: "DINNER",
+};
 
 // Labels displayed above each calendar day.
 const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-// Colors used to visually distinguish breakfast, lunch, and dinner.
+// Colors used to visually distinguish each meal type.
 const TYPE_COLORS = {
   breakfast: "#f9d56e",
+  "morning-snack": "#fa69aa",
   lunch: "#5ad1b0",
+  "afternoon-snack": "#fa69aa",
   dinner: "#6c63ff",
 };
 
@@ -158,8 +176,14 @@ export default function MealPlanner({ user }) {
 
    Both requests use the Firebase ID token to identify
    the authenticated user.
+
+   quiet:
+   When true, the data refreshes in the background without
+   switching to the "Loading meal plan…" screen. Used after
+   adding, removing, eating, or swapping a meal so the page
+   does not flash.
   */
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ quiet = false } = {}) => {
     // Do not request private data if nobody is signed in.
     if (!user) {
       setMeals([]);
@@ -169,7 +193,8 @@ export default function MealPlanner({ user }) {
       return;
     }
 
-    setLoading(true);
+    // Only show the loading screen on the first load.
+    if (!quiet) setLoading(true);
     setError("");
 
     try {
@@ -200,13 +225,6 @@ export default function MealPlanner({ user }) {
       // Save the retrieved data in React state.
       setMeals(planResult);
       setInventory(inventoryResult);
-
-      // Inform the user if no inventory items were returned.
-      if (inventoryResult.length === 0) {
-        setError(
-          "No inventory items were returned. Add food to inventory or check the dashboard API."
-        );
-      }
     } catch (err) {
       // Log the technical error for debugging.
       console.error("Meal planner loading error:", err);
@@ -348,7 +366,7 @@ export default function MealPlanner({ user }) {
       setAdding(null);
 
       // Reload the calendar so the new meal appears.
-      await load();
+      await load({ quiet: true });
     } catch (err) {
       console.error("Unable to save planned meal:", err);
 
@@ -387,7 +405,7 @@ export default function MealPlanner({ user }) {
       );
 
       // Refresh the calendar after deletion.
-      await load();
+      await load({ quiet: true });
     } catch (err) {
       console.error("Unable to delete planned meal:", err);
 
@@ -437,7 +455,7 @@ export default function MealPlanner({ user }) {
       );
 
       // Refresh saved meals and dashboard data.
-      await load();
+      await load({ quiet: true });
     } catch (err) {
       console.error("Unable to record eaten meal:", err);
 
@@ -489,7 +507,7 @@ export default function MealPlanner({ user }) {
 
       // Reload the saved meal so the calendar and nutrition
       // calculations use the updated Firestore record.
-      await load();
+      await load({ quiet: true });
     } catch (err) {
       console.error("Unable to swap planned meal:", err);
 
@@ -895,7 +913,7 @@ export default function MealPlanner({ user }) {
                 className="sb-row-label"
                 style={{ color: TYPE_COLORS[type] }}
               >
-                {type.toUpperCase()}
+                {TYPE_LABELS[type]}
               </div>
 
               {/* Generate the seven calendar cells for this meal type */}
@@ -1014,7 +1032,7 @@ export default function MealPlanner({ user }) {
                           style={{ color: TYPE_COLORS[type] }}
                           aria-hidden="true"
                         >
-                          {foodIcon(first.foodName || "")}
+                          <FoodIcon name={first.foodName || ""} size={20} />
                         </span>
 
                         {/* Display the planned food name */}
@@ -1077,7 +1095,7 @@ export default function MealPlanner({ user }) {
                             // Prevent the calendar cell click handler from running.
                             event.stopPropagation();
 
-                            // Delete the selected planned meal.
+                            // Delete the first displayed planned meal.
                             deleteMeal(first.id);
                           }}
                         >
