@@ -82,6 +82,7 @@ const ITEM_TYPES = [
   "Dry Goods",
   "Dehydrated",
   "Thermostabilized",
+  "Beverage",
   "Frozen",
   "Other",
 ];
@@ -304,7 +305,10 @@ export default function Inventory({ user }) {
   //
   // useCallback prevents this function from being
   // recreated unnecessarily during component renders.
-  const loadInventory = useCallback(async () => {
+  //
+  // quiet: when true, refresh in the background without replacing
+  // the table with the loading message (used after adding or removing).
+  const loadInventory = useCallback(async ({ quiet = false } = {}) => {
 
     // Do not request inventory if nobody is signed in.
     if (!user) {
@@ -314,8 +318,8 @@ export default function Inventory({ user }) {
       return;
     }
 
-    // Show the loading state and clear previous errors.
-    setLoading(true);
+    // Show the loading state (unless refreshing quietly) and clear previous errors.
+    if (!quiet) setLoading(true);
     setError("");
 
     try {
@@ -564,7 +568,7 @@ export default function Inventory({ user }) {
 
       // Reload inventory so the newly saved item
       // appears in the inventory list and summary cards.
-      await loadInventory();
+      await loadInventory({ quiet: true });
     } catch (err) {
       // Log the technical error for debugging.
       console.error("Inventory save error:", err);
@@ -603,7 +607,7 @@ export default function Inventory({ user }) {
       setNotice(`${itemName} was removed from inventory.`);
 
       // Reload so the list and summary cards update.
-      await loadInventory();
+      await loadInventory({ quiet: true });
     } catch (err) {
       console.error("Inventory remove error:", err);
       setError(err.message || "Unable to remove this inventory item.");
@@ -776,7 +780,7 @@ export default function Inventory({ user }) {
         {/* Reloads inventory from the backend. */}
         <button
           type="button"
-          onClick={loadInventory}
+          onClick={() => loadInventory()}
           disabled={loading}
           className="sb-nutrition-refresh"
         >

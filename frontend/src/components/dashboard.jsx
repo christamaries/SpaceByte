@@ -38,7 +38,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api";
 
 // Import shared crew information, nutrition targets, and food icons.
-import { CREW, TARGETS, foodIcon } from "../spacebyteConfig";
+import { CREW, TARGETS, foodIcon, FoodIcon } from "../spacebyteConfig";
 
 
 // ===========================================================
@@ -419,9 +419,9 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
     // If the search field is empty, display the complete inventory.
     if (!query) return inventory;
 
-    // Search by food name, category, or inventory status.
+    // Search by food name, food type, or inventory status.
     return inventory.filter((item) =>
-      [item.name, item.category, item.status]
+      [item.name, item.type, item.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query))
     );
@@ -913,7 +913,7 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
               <thead>
                 <tr>
                   <th>Item</th>
-                  <th>Category</th>
+                  <th>Type</th>
                   <th className="sb-align-right">Qty</th>
                   <th>Status</th>
                 </tr>
@@ -933,16 +933,23 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
                         <span className="sb-food-name">
 
                           {/* Display the icon associated with the food name. */}
-                          <span className="sb-food-icon">
-                            {foodIcon(item.name)}
+                          {/* The tile is tinted with the icon's own color. */}
+                          <span
+                            className="sb-food-icon"
+                            style={{
+                              color: foodIcon(item.name).color,
+                              background: `${foodIcon(item.name).color}26`,
+                            }}
+                          >
+                            <FoodIcon name={item.name} size={17} />
                           </span>
 
                           {item.name}
                         </span>
                       </td>
 
-                      {/* Display the food category. */}
-                      <td>{item.category || "Uncategorized"}</td>
+                      {/* Display the food type (Perishable, Dry Goods, etc.). */}
+                      <td>{item.type || "Other"}</td>
 
                       {/* Display the available quantity. */}
                       <td className="sb-align-right">
