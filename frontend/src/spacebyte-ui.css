@@ -129,7 +129,7 @@
 .sb-cell.today { border-color: #5ad1b0; background: #232850; }
 .sb-cell.empty { cursor: pointer; opacity: .7; }
 .sb-cell.empty:hover { opacity: 1; }
-.sb-cell-icon { font-size: 22px; }
+.sb-cell-icon { font-size: 22px; display: inline-flex; }
 .sb-plus { font-size: 22px; color: #8b91bd; }
 .sb-more { color: #8b91bd; }
 .sb-cell select { width: 100%; font-size: 12px; background: #0f1230; color: #fff; border: 1px solid #2a2f55; border-radius: 6px; }
@@ -655,7 +655,11 @@ body,
 
 .sb-food-icon {
   flex-shrink: 0;
-  font-size: 18px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
 }
 
 .sb-align-right {

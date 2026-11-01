@@ -16,6 +16,17 @@
 ===========================================================
 */
 
+// createElement renders the food icons without JSX,
+// since this is a plain .js file.
+import { createElement } from "react";
+
+// Food icons from lucide-react.
+import {
+  Apple, Banana, Bean, Beef, Carrot, Cherry, Coffee, Cookie,
+  Croissant, CupSoda, Droplet, Drumstick, EggFried, Fish, Milk,
+  Nut, Pizza, Salad, Sandwich, Shrimp, Soup, UtensilsCrossed, Wheat,
+} from "lucide-react";
+
 
 // ---------------------------------------------------------
 // CREW CONFIGURATION
@@ -73,72 +84,86 @@ export const TARGETS = {
 // FOOD ICON LOOKUP
 // ---------------------------------------------------------
 
-// Associates food-related keywords with emojis.
+// Associates food-related keywords with lucide-react icons
+// and a tint color.
 //
 // The application searches a food's name for one of these
-// keywords and displays the matching emoji.
+// keywords and displays the matching icon.
 //
 // Example:
-// "Shrimp Cocktail" matches "shrimp" and displays 🍤.
+// "Shrimp Cocktail" matches "shrimp" and displays the Shrimp icon.
 //
 // The order matters: the first matching keyword is used.
+//
+// Tint colors follow the app's palette:
+// mint #20d0a7, blue #83cfff, yellow #ffd166, pink #fa69aa.
 const ICONS = [
-  ["tortilla", "🌮"],
-  ["taco", "🌮"],
-  ["wrap", "🌯"],
+  ["tortilla", Sandwich, "#ffd166"],
+  ["taco", Sandwich, "#ffd166"],
+  ["wrap", Sandwich, "#ffd166"],
 
-  ["shrimp", "🍤"],
-  ["seafood", "🦐"],
-  ["fish", "🐟"],
+  ["shrimp", Shrimp, "#fa69aa"],
+  ["seafood", Shrimp, "#fa69aa"],
+  ["fish", Fish, "#83cfff"],
 
-  ["coffee", "☕"],
-  ["tea", "🍵"],
+  ["coffee", Coffee, "#ffd166"],
+  ["tea", Coffee, "#20d0a7"],
 
-  ["mac", "🧀"],
-  ["cheese", "🧀"],
-  ["pizza", "🍕"],
+  ["mac", Pizza, "#ffd166"],
+  ["cheese", Pizza, "#ffd166"],
+  ["pizza", Pizza, "#ffd166"],
 
-  ["egg", "🍳"],
-  ["omelet", "🍳"],
+  ["egg", EggFried, "#ffd166"],
+  ["omelet", EggFried, "#ffd166"],
 
-  ["granola", "🥣"],
-  ["oatmeal", "🥣"],
-  ["cereal", "🥣"],
+  ["granola", Wheat, "#ffd166"],
+  ["oatmeal", Wheat, "#ffd166"],
+  ["cereal", Wheat, "#ffd166"],
+  ["wheat", Wheat, "#ffd166"],
+  ["cracker", Cookie, "#ffd166"],
 
-  ["fruit", "🍎"],
-  ["apple", "🍎"],
-  ["berr", "🍓"],
+  ["banana", Banana, "#ffd166"],
+  ["fruit", Apple, "#fa69aa"],
+  ["apple", Apple, "#fa69aa"],
+  ["berr", Cherry, "#fa69aa"],
 
-  ["toast", "🍞"],
-  ["bread", "🍞"],
-  ["sandwich", "🥪"],
+  ["toast", Croissant, "#ffd166"],
+  ["bread", Croissant, "#ffd166"],
+  ["sandwich", Sandwich, "#ffd166"],
 
-  ["noodle", "🍜"],
-  ["soup", "🥣"],
-  ["rice", "🍚"],
+  ["noodle", Soup, "#83cfff"],
+  ["soup", Soup, "#83cfff"],
+  ["rice", Bean, "#20d0a7"],
 
-  ["chicken", "🍗"],
-  ["teriyaki", "🍗"],
-  ["beef", "🥩"],
+  ["chicken", Drumstick, "#fa69aa"],
+  ["teriyaki", Drumstick, "#fa69aa"],
+  ["beef", Beef, "#fa69aa"],
 
-  ["stew", "🍲"],
-  ["curry", "🍛"],
-  ["veg", "🥦"],
+  ["stew", Soup, "#83cfff"],
+  ["curry", Soup, "#ffd166"],
+  ["veg", Carrot, "#20d0a7"],
+  ["salad", Salad, "#20d0a7"],
 
-  ["water", "💧"],
-  ["bar", "🍫"],
-  ["nut", "🥜"],
+  ["water", Droplet, "#83cfff"],
+  ["milk", Milk, "#83cfff"],
+  ["juice", CupSoda, "#83cfff"],
+  ["bar", Cookie, "#ffd166"],
+  ["nut", Nut, "#ffd166"],
 ];
+
+// Icon and color used when no keyword matches.
+const DEFAULT_ICON = [null, UtensilsCrossed, "#8b91bd"];
 
 
 // ---------------------------------------------------------
 // FOOD ICON FUNCTION
 // ---------------------------------------------------------
 
-// Finds an emoji that matches a food's name.
+// Finds the icon entry that matches a food's name.
 //
 // @param {string} name - Name of the food.
-// @returns {string} Matching emoji or a default food emoji.
+// @returns {{Icon: Function, color: string}} Matching icon
+//          component and tint color, or the default.
 export function foodIcon(name = "") {
 
   // Convert the food name to lowercase so the search
@@ -146,9 +171,27 @@ export function foodIcon(name = "") {
   const n = name.toLowerCase();
 
   // Find the first keyword contained in the food name.
-  const hit = ICONS.find(([key]) => n.includes(key));
+  // If no keyword matches, use the default utensils icon.
+  const [, Icon, color] =
+    ICONS.find(([key]) => n.includes(key)) || DEFAULT_ICON;
 
-  // Return the matching emoji.
-  // If no keyword matches, display the default plate emoji.
-  return hit ? hit[1] : "🍽️";
+  return { Icon, color };
+}
+
+
+// Renders the icon for a food's name.
+//
+// Usage: <FoodIcon name={item.name} size={18} />
+//
+// The icon inherits the surrounding text color unless
+// tinted is true, in which case it uses its own color.
+export function FoodIcon({ name = "", size = 18, tinted = false }) {
+  const { Icon, color } = foodIcon(name);
+
+  return createElement(Icon, {
+    size,
+    strokeWidth: 2,
+    color: tinted ? color : "currentColor",
+    "aria-hidden": true,
+  });
 }
