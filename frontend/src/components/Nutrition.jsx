@@ -39,6 +39,9 @@ import { useCallback, useEffect, useState } from "react";
 // the authenticated SpaceByte backend.
 import { apiRequest } from "../api";
 
+// Reloads nutrition when the user returns to the tab.
+import { useRefreshOnReturn } from "../useRefreshOnReturn";
+
 // Import the existing SpaceByte stylesheet.
 // This file contains the CSS classes used by this page.
 import "../spacebyte-ui.css";
@@ -261,6 +264,10 @@ export default function Nutrition({ user }) {
     loadNutrition();
   }, [loadNutrition]);
 
+  // Quietly reload when the user comes back to this tab,
+  // so meals marked eaten elsewhere appear automatically.
+  useRefreshOnReturn(() => loadNutrition(true));
+
   /*
   =========================================================
    CALCULATE CALORIE PROGRESS
@@ -302,10 +309,6 @@ export default function Nutrition({ user }) {
         {/* Page heading displayed during loading */}
         <div className="sb-nutrition-header">
           <div>
-            <p className="sb-nutrition-eyebrow">
-              CREW WELLNESS
-            </p>
-
             <h1>Nutrition</h1>
 
             <p>Loading your nutrition summary...</p>
@@ -336,10 +339,6 @@ export default function Nutrition({ user }) {
           ================================================ */}
       <header className="sb-nutrition-header">
         <div>
-          <p className="sb-nutrition-eyebrow">
-            CREW WELLNESS
-          </p>
-
           <h1>Nutrition</h1>
 
           <p>
@@ -348,18 +347,6 @@ export default function Nutrition({ user }) {
           </p>
         </div>
 
-        {/* Refresh button retrieves the latest nutrition data */}
-        <button
-          type="button"
-          className="sb-nutrition-refresh"
-          onClick={() => loadNutrition(true)}
-          disabled={refreshing}
-        >
-          <span aria-hidden="true">↻</span>
-
-          {/* Change the button label while refreshing */}
-          {refreshing ? "Refreshing..." : "Refresh"}
-        </button>
       </header>
 
       {/* ================================================

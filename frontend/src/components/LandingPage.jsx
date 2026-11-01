@@ -43,6 +43,9 @@ import {
   CalendarDays,
   HeartPulse,
   Bell,
+  Mail,
+  Send,
+  UserRound,
 } from "lucide-react";
 
 // ==========================================
@@ -83,26 +86,26 @@ const NAV = [
 const FEATURES = [
   {
     tone: "green",
-    title: "Galley inventory",
-    text: "Every pouch, tin and tortilla counted, with days of food on board always in view.",
+    title: "Galley Inventory",
+    text: "Every pouch, tin and package on board is accounted for, and categorized by type and shelf life.",
     icon: Package,
   },
   {
     tone: "purple",
     title: "Nutrition Engine",
-    text: "Drag meals across breakfast, lunch and dinner, then watch the ration check update live.",
+    text: "See live updates of nutritional targets based on meals planned for the day, from breakfast to dinner with snacks in between.",
     icon: CalendarDays,
   },
   {
     tone: "yellow",
-    title: "Crew nutrition",
-    text: "Calories, protein, vitamin D and water per crew member, measured against mission targets.",
+    title: "Crew Health",
+    text: "Track crew's sleep, hydration and exercise alongside their nutrition, and track crew members who may be falling behind.",
     icon: HeartPulse,
   },
   {
     tone: "pink",
-    title: "Expiry alerts",
-    text: "Flags anything expiring within seven days and suggests swaps before food goes to waste.",
+    title: "Expiry Alerts",
+    text: "Flags expiring items within seven days and suggests swaps before food goes to waste.",
     icon: Bell,
   },
 ];
@@ -122,7 +125,7 @@ const MISSIONS = [
   {
     name: "Earth",
     img: earth,
-    text: "Analog missions, training habitats and ground crews preparing for flight.",
+    text: "Analog missions, training habitats and ground crews preparing for spaceflight.",
   },
   {
     name: "ISS",
@@ -133,56 +136,6 @@ const MISSIONS = [
     name: "Moon",
     img: moon,
     text: "Surface missions where every ration is planned before launch.",
-  },
-];
-
-// ==========================================
-//                FUTURE PLANS
-// ==========================================
-
-// One card is displayed for each entry.
-// Edit the titles and text, or add/remove entries.
-const FUTURE_PLANS = [
-  {
-    title: "Crew health tracking",
-    text: "Placeholder: describe this planned feature.",
-  },
-  {
-    title: "Mission planning",
-    text: "Placeholder: describe this planned feature.",
-  },
-  {
-    title: "Smarter recommendations",
-    text: "Placeholder: describe this planned feature.",
-  },
-];
-
-// ==========================================
-//          THE TEAM BEHIND SPACEBYTE
-// ==========================================
-
-// One card is displayed for each team member.
-// Replace the placeholder names, roles, and contact details.
-const TEAM = [
-  {
-    name: "Team member",
-    role: "Role",
-    contact: "email@example.com",
-  },
-  {
-    name: "Team member",
-    role: "Role",
-    contact: "email@example.com",
-  },
-  {
-    name: "Team member",
-    role: "Role",
-    contact: "email@example.com",
-  },
-  {
-    name: "Team member",
-    role: "Role",
-    contact: "email@example.com",
   },
 ];
 
@@ -198,20 +151,107 @@ const TEAM = [
 const STEPS = [
   {
     tone: "green",
-    title: "Log your stores",
-    text: "Scan or enter what's packed for the mission. SpaceByte tracks quantities and expiry dates.",
+    title: "Capture what food exists",
+    text: "Select your desired environment and monitor what food is available through AI-based recognition and inventory tracking.",
   },
   {
     tone: "yellow",
-    title: "Set crew targets",
-    text: "Add each crew member and their daily calorie, protein and vitamin goals.",
+    title: "Understand the user's constraints",
+    text: "Set crew members' allergies, dietary restrictions and preference to build their profile alongside their recommended nutritional intake. ",
   },
   {
     tone: "pink",
-    title: "Follow the plan",
-    text: "Get a balanced weekly menu and alerts the moment anything drifts off target.",
+    title: "Tell the user what to eat",
+    text: "Receive meal recommendations based on crew profiles and inventory availability and alerts the moment anything drifts off target.",
   },
 ];
+
+// ==========================================
+//                FUTURE PLANS
+// ==========================================
+
+// One card is displayed for each entry.
+// Edit the titles and text, or add/remove entries.
+const FUTURE_PLANS = [
+  {
+    title: "GrowSpace Program",
+    text: "A gamified citizen-science project where players care for virtual plants based on real crops grown in space. Players monitor conditions affecting plant growth and their observations can be collected and analyzed to help researchers better understand plants in space."
+  },
+  {
+    title: "Eating With Astronauts",
+    text: " Ordinary users (excluded intentionally from intended audience) can upload their meals and compare it to what the astronauts are eating to see how diets can change when in space."
+  },
+  {
+    title: "Space to Table Initiative",
+    text: "Monitor health of crops grown aboard the ISS; track growing inventory and estimated availability. Incorporate newly grown foods into meal plan recommendations."
+  },
+];
+
+// ==========================================
+//          THE TEAM BEHIND SPACEBYTE
+// ==========================================
+
+// One card is displayed for each team member.
+// Replace the placeholder names, roles, and contact details.
+const TEAM = [
+  {
+    name: "Eboni Huggins",
+    role: "Role",
+    contact: "eboni.huggins@spartans.ut.edu",
+    github: "https://github.com/ebo86",
+    linkedin: "https://www.linkedin.com/in/eboni-huggins-9a594396/",
+  },
+  {
+    name: "Christa-Marie Seerattan",
+    role: "Role",
+    contact: "c.seerattan@spartans.ut.edu",
+    github: "https://github.com/christamaries",
+    linkedin: "https://www.linkedin.com/in/christa-marieseerattan",
+  },
+  {
+    name: "Amanda Balta",
+    role: "Role",
+    contact: "amanda.balta@spartans.ut.edu",
+    github: "https://github.com/Amanda-B626",
+    linkedin: "",
+  },
+  {
+    name: "Jaidan Chiaradio",
+    role: "Role",
+    contact: "jaidan.chiaradio@spartans.ut.edu",
+    github: "https://github.com/jaidanchiaradio",
+    linkedin: "https://www.linkedin.com/in/jaidan-chiaradio-a920b3250/",
+  },
+];
+
+// Opens one email addressed to the whole team.
+const TEAM_MAILTO = `mailto:${TEAM.map((member) => member.contact).join(",")}`;
+
+
+// lucide-react no longer ships brand icons, so the GitHub
+// and LinkedIn icons are drawn here in the same line style.
+function GithubIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </svg>
+  );
+}
+
+function LinkedinIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect width="4" height="12" x="2" y="9" />
+      <circle cx="4" cy="4" r="2" />
+    </svg>
+  );
+}
+
+
 
 // ==========================================
 //            MEAL PLANNER PREVIEW
@@ -428,11 +468,11 @@ export default function LandingPage({
                 the problems the application is designed
                 to address. */}
             <p className="lp-lede">
-              SpaceByte helps people who live or train in space-like
+              SpaceByte helps professionals who live or train in space-like
               environments manage what they eat. It combines real-time
               food inventory tracking, nutrition monitoring, dietary
               preferences, and an environment toggle to recommend meals
-              from the food a user actually has on hand. The goals are
+              based on the food available to the user. Our goals are
               to avoid menu fatigue, reduce food waste, and make eating
               in space enjoyable as well as nutritious.
             </p>
@@ -543,11 +583,11 @@ export default function LandingPage({
           <p className="lp-eyebrow green" data-reveal>Features</p>
 
           <h2 data-reveal style={{ "--d": "0.1s" }}>
-            Everything the galley needs, nothing it doesn't.
+            Galley at a glance
           </h2>
 
           <p className="lp-sub" data-reveal style={{ "--d": "0.2s" }}>
-            One mission control for food stores, meal plans and crew nutrition.
+            One dashboard control for all your space food management needs.
           </p>
 
           {/* Four-column feature card layout. */}
@@ -595,18 +635,18 @@ export default function LandingPage({
           <div data-reveal="left">
             <p className="lp-eyebrow green">Meal planner</p>
 
-            <h2>Plan the week in one glance.</h2>
+            <h2>Save time and plan your meals ahead</h2>
 
             <p className="lp-sub">
-              Build a crew's meal plans around what's actually on board.
-              SpaceByte balances every day against your crew's calorie target.
+              Build your crew's meal plans around what's actually on board.
+              SpaceByte balances daily meals according to your crew's recommended dietary intake.
             </p>
 
             {/* Lists the meal planner's advertised capabilities. */}
             <ul className="lp-checks">
-              <li>Week, month and full-mission views</li>
+              <li>Weekly, monthly and full-mission views</li>
               <li>
-                Live ration check for calories, protein, vitamin D and water
+                Live ration check for each crew member's nutritional targets.
               </li>
               <li>Smart swaps when stock runs low</li>
             </ul>
@@ -742,7 +782,7 @@ export default function LandingPage({
         <section className="lp-section" id="how-it-works">
           <p className="lp-eyebrow blue" data-reveal>How it works</p>
 
-          <h2 data-reveal style={{ "--d": "0.1s" }}>Three steps to liftoff.</h2>
+          <h2 data-reveal style={{ "--d": "0.1s" }}>CUT down on your preparation time</h2>
 
           {/* Ordered list displays the three workflow steps. */}
           <ol className="lp-steps">
@@ -771,10 +811,10 @@ export default function LandingPage({
         <section className="lp-section" id="future-plans">
           <p className="lp-eyebrow pink" data-reveal>Future plans</p>
 
-          <h2 data-reveal style={{ "--d": "0.1s" }}>What's next for SpaceByte.</h2>
+          <h2 data-reveal style={{ "--d": "0.1s" }}>What's next for SpaceByte?</h2>
 
           <p className="lp-sub" data-reveal style={{ "--d": "0.2s" }}>
-            Coming soon.
+            Connecting the journey of space-grown food, from cultivation and crew consumption to public engagement on Earth.
           </p>
 
           {/* One card for each entry in the FUTURE_PLANS array. */}
@@ -798,31 +838,63 @@ export default function LandingPage({
         <section className="lp-section" id="contact">
           <p className="lp-eyebrow green" data-reveal>Contact us</p>
 
-          <h2 data-reveal style={{ "--d": "0.1s" }}>The team behind SpaceByte.</h2>
+          <h2 data-reveal style={{ "--d": "0.1s" }}>Meet Mission Control.</h2>
 
           <p className="lp-sub" data-reveal style={{ "--d": "0.2s" }}>
-            We are team <span className="lp-team-name">"JACE"</span>. SpaceByte
-            brings together software development, nutrition tracking, and
-            mission planning to explore better food management for space
-            environments.
+            We are Team <span className="lp-team-name">"JACE"</span>, a group of
+            student developers bringing together our shared passions in computer 
+            science and space exploration.  Together, we are building SpaceByte 
+            to reimagine how food is managed in resource-constrained environments, 
+            one byte at a time.
           </p>
 
-          {/* One card for each entry in the TEAM array.
-              The index is part of the key because the
-              placeholder names are all the same. */}
+          {/* One card for each entry in the TEAM array. */}
           <div className="lp-grid four">
             {TEAM.map((member, index) => (
               <article
-                className="lp-card"
-                key={`${member.name}-${index}`}
+                className="lp-card lp-member"
+                key={member.name}
                 data-reveal
                 style={{ "--d": `${index * 0.15}s` }}
               >
-                <h3>{member.name}</h3>
-                <p>{member.role}</p>
-                <p>{member.contact}</p>
+                {/* Avatar beside the name and role. */}
+                <div className="lp-member-head">
+                  <span className="lp-member-avatar">
+                    <UserRound size={22} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h3>{member.name}</h3>
+                    <p className="lp-member-role">{member.role}</p>
+                  </div>
+                </div>
+
+                {/* Contact links. */}
+                <div className="lp-member-foot">
+                  <div className="lp-member-links">
+                    <a href={member.github || undefined} target="_blank" rel="noreferrer"
+                      aria-label={`${member.name} on GitHub`} data-tip="GitHub">
+                      <GithubIcon />
+                    </a>
+                    <a href={member.linkedin || undefined} target="_blank" rel="noreferrer"
+                      aria-label={`${member.name} on LinkedIn`} data-tip="LinkedIn">
+                      <LinkedinIcon />
+                    </a>
+                    <a href={`mailto:${member.contact}`}
+                      aria-label={`Email ${member.name}`} data-tip="Email">
+                      <Mail size={17} aria-hidden="true" />
+                    </a>
+                  </div>
+                </div>
               </article>
             ))}
+          </div>
+
+          {/* Email the whole team. */}
+          <div className="lp-contact-cta" data-reveal>
+            <a className="lp-btn primary" href={TEAM_MAILTO}>
+              <Send size={15} aria-hidden="true" />
+              Contact the team
+            </a>
           </div>
         </section>
       </main>

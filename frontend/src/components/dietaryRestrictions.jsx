@@ -507,8 +507,6 @@ export default function DietaryRestrictions({ user }) {
 
       <header className="sb-inventory-header">
         <div>
-          <p className="sb-inventory-eyebrow">CREW SAFETY</p>
-
           <h1>Dietary Restrictions</h1>
 
           <p className="sb-inventory-subtitle">

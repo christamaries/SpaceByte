@@ -89,5 +89,16 @@ router.delete(
 );
 
 
+
+// PATCH /inventory/:id
+//
+// Changes the quantity of one existing food item.
+// Request body: { "quantity": 12 }
+router.patch(
+  "/:id",
+  verifyToken,
+  inventoryController.updateFood
+);
+
 // Export the router so app.js can register the inventory endpoints.
 module.exports = router;

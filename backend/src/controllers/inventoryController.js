@@ -47,7 +47,8 @@ const {
   getFoodStatus,
   getExpiringFood,
   addFoodItem,
-  deleteFoodItem
+  deleteFoodItem,
+  updateFoodQuantity
 } = require("../services/inventoryService");
 
 
@@ -483,6 +484,59 @@ exports.deleteFood = async (req, res) => {
 
     return res.status(500).json({
       error: "Unable to remove food item"
+    });
+
+  }
+
+};
+
+
+// ==========================================
+//          UPDATE A FOOD ITEM'S QUANTITY
+// ==========================================
+
+// HTTP endpoint: PATCH /inventory/:id
+//
+// Request body example:
+// { "quantity": 12 }
+//
+// Lets the user adjust an item's quantity without
+// re-entering it as a new item.
+exports.updateFood = async (req, res) => {
+
+  try {
+
+    const quantity = Number(req.body?.quantity);
+
+    // The quantity must be a whole number of zero or more.
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      return res.status(400).json({
+        error: "Quantity must be a whole number of zero or more"
+      });
+    }
+
+    const updated = await updateFoodQuantity(req.params.id, quantity);
+
+    if (!updated) {
+      return res.status(404).json({
+        error: "Food item not found"
+      });
+    }
+
+    return res.json({
+      message: "Quantity updated",
+      item: {
+        ...updated,
+        status: getFoodStatus(updated)
+      }
+    });
+
+  } catch (error) {
+
+    console.error("Error updating food quantity:", error);
+
+    return res.status(500).json({
+      error: "Unable to update quantity"
     });
 
   }

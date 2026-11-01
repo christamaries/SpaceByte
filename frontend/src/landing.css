@@ -1269,3 +1269,118 @@
 .lp section#contact {
   min-height: calc(100vh - 90px);
 }
+
+/* =====================================================
+   TEAM CARDS (CONTACT US)
+===================================================== */
+
+/* Stacks the card content so the link row sits at the bottom. */
+.lp-member {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.lp-member:hover {
+  border-color: #5ad1b0;
+}
+
+/* Avatar on the left, name and role on the right. */
+.lp-member-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lp-member-avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #1b3d45;
+  color: #5ad1b0;
+}
+
+.lp-member h3 {
+  margin: 0 0 4px;
+}
+
+.lp-card p.lp-member-role {
+  color: #5ad1b0;
+  font-weight: 600;
+}
+
+/* Divider line, then the contact icons. */
+.lp-member-foot {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #1b2a4a;
+}
+
+.lp-member-links {
+  display: flex;
+  gap: 12px;
+}
+
+.lp-member-links a {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #aab8d6;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.lp-member-links a:hover,
+.lp-member-links a:focus-visible {
+  color: #5ad1b0;
+  transform: translateY(-2px);
+}
+
+/* Small label above each icon on hover. */
+.lp-member-links a::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  padding: 3px 8px;
+  border: 1px solid #1b2a4a;
+  border-radius: 4px;
+  background: #050b17;
+  color: #e7ecf7;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.15s ease;
+}
+
+.lp-member-links a:hover::after,
+.lp-member-links a:focus-visible::after {
+  opacity: 1;
+}
+
+/* Icons without a link yet stay visible but are not clickable. */
+.lp-member-links a:not([href]) {
+  cursor: default;
+}
+
+/* Contact the team button. */
+.lp-contact-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 36px;
+}
+
+.lp-contact-cta .lp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}

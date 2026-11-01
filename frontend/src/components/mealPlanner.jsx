@@ -31,6 +31,9 @@ import { useCallback, useEffect, useState } from "react";
 // Shared API helper used to communicate with the backend.
 import { apiRequest } from "../api";
 
+// Reloads the planner when the user returns to the tab.
+import { useRefreshOnReturn } from "../useRefreshOnReturn";
+
 // Shared SpaceByte configuration for crew settings,
 // nutrition targets, and food icons.
 import { CREW, TARGETS, FoodIcon } from "../spacebyteConfig";
@@ -245,6 +248,9 @@ export default function MealPlanner({ user }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Quietly reload when the user comes back to this tab.
+  useRefreshOnReturn(() => load({ quiet: true }));
 
   /*
   =========================================================

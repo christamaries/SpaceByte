@@ -1388,8 +1388,9 @@ body,
   transition: width 0.25s ease;
 }
 
-/* Keep all four cards usable on tablets. */
-@media (max-width: 1250px) {
+/* Switch to two cards per row before the four-across
+   layout gets too narrow for the card text. */
+@media (max-width: 1400px) {
   .sb-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2532,4 +2533,208 @@ body,
 .sb-swap .sb-swap-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+
+/* =========================================================
+   OVERVIEW ALIGNMENT
+========================================================= */
+
+/* Top-align every stat card so the icons, labels and
+   numbers sit at the same height across all four cards,
+   whether or not a card has a progress bar or link. */
+.sb-stats .sb-stat {
+  align-items: flex-start;
+}
+
+/* Keep the label and number in line with the top of the icon. */
+.sb-stats .sb-stat small {
+  margin-top: 0;
+}
+
+/* Match the bottom row's column widths to the row above,
+   so the panel edges line up. */
+.sb-lower-panels {
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+}
+
+@media (max-width: 760px) {
+  .sb-lower-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* "View inventory alerts" link in the Expiring card:
+   left-aligned with the label and number, and allowed to
+   wrap so it never spills outside a narrow card. */
+.sb-stats .sb-stat .sb-link {
+  display: block;
+  max-width: 100%;
+  margin-top: 6px;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+}
+
+/* Inventory table: − [qty] + control for adjusting quantity. */
+.sb-qty-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #2a3360;
+  border-radius: 9px;
+  background: #141a3d;
+  overflow: hidden;
+}
+
+.sb-qty-control button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #9fa8c8;
+  cursor: pointer;
+}
+
+.sb-qty-control button:hover:not(:disabled) {
+  background: #232c5c;
+  color: #f4f6ff;
+}
+
+.sb-qty-control button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sb-qty-control input {
+  width: 42px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid #2a3360;
+  border-right: 1px solid #2a3360;
+  background: none;
+  color: #f4f6ff;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.sb-qty-control input::-webkit-outer-spin-button,
+.sb-qty-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sb-qty-control input:focus {
+  outline: none;
+  background: #1d2550;
+}
+
+/* =========================================================
+   INVENTORY TABLE ALIGNMENT
+========================================================= */
+
+/* Tighter cells so the whole table fits inside the card. */
+.sb-inventory-table th,
+.sb-inventory-table td {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.sb-inventory-item-name {
+  min-width: 120px;
+}
+
+/* Keep "P 0g · C 0g · F 0g" on one line. */
+.sb-inventory-table td .sb-inventory-item-type {
+  white-space: nowrap;
+}
+
+/* Stack the stock and expiration badges, left-aligned. */
+.sb-inventory-table .sb-inventory-badges {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.sb-inventory-table .sb-inventory-status {
+  white-space: nowrap;
+}
+
+/* Remove column: icon-only trash button, right-aligned. */
+.sb-inventory-actions {
+  width: 1%;
+  text-align: right;
+}
+
+.sb-inventory-trash {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #45416e;
+  border-radius: 8px;
+  background: none;
+  color: #c3c8e0;
+  cursor: pointer;
+}
+
+.sb-inventory-trash:hover {
+  border-color: #82455f;
+  background: #47232f;
+  color: #ffb6c6;
+}
+
+.sb-inventory-trash:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+/* Dark scrollbar, only shown if the screen is too narrow. */
+.sb-inventory-table-wrap {
+  scrollbar-color: #3a4170 transparent;
+  scrollbar-width: thin;
+}
+
+.sb-inventory-table-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sb-inventory-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sb-inventory-table-wrap::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: #3a4170;
+}
+
+/* Narrower screens (or zoomed-in browsers): tighten the
+   inventory table further so the trash button stays visible. */
+@media (max-width: 1250px) {
+  .sb-inventory-table th,
+  .sb-inventory-table td {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+  .sb-inventory-item-name {
+    min-width: 95px;
+  }
+
+  .sb-qty-control button {
+    width: 24px;
+  }
+
+  .sb-qty-control input {
+    width: 34px;
+  }
 }

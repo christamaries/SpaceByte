@@ -40,6 +40,9 @@ import { apiRequest } from "../api";
 // Import shared crew information, nutrition targets, and food icons.
 import { CREW, TARGETS, foodIcon, FoodIcon } from "../spacebyteConfig";
 
+// Reloads the dashboard when the user returns to the tab.
+import { useRefreshOnReturn } from "../useRefreshOnReturn";
+
 
 // ===========================================================
 // GREETING FUNCTION
@@ -215,7 +218,10 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
   //
   // useCallback prevents unnecessary recreation of this function
   // unless the authenticated user changes.
-  const load = useCallback(async () => {
+  //
+  // quiet: when true, refresh in the background without
+  // switching on the loading state.
+  const load = useCallback(async ({ quiet = false } = {}) => {
 
     // Do not request dashboard data if nobody is signed in.
     if (!user) {
@@ -226,7 +232,7 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
 
     try {
       // Display the loading state while the request is running.
-      setLoading(true);
+      if (!quiet) setLoading(true);
 
       // Get the Firebase authentication token for the current user.
       const token = await user.getIdToken();
@@ -273,6 +279,10 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Quietly reload when the user comes back to this tab,
+  // so changes made elsewhere appear automatically.
+  useRefreshOnReturn(() => load({ quiet: true }));
 
 
   // =========================================================
@@ -567,8 +577,6 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
 
       <header className="sb-header">
         <div>
-          <p className="sb-eyebrow">MISSION CONTROL</p>
-
           {/* Personalized greeting using the user's first name. */}
           <h1>{greeting()}, {firstName}</h1>
 
@@ -1149,16 +1157,11 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
       {/* =====================================================
           DASHBOARD FOOTER
 
-          Displays the application name and refresh button.
+          Displays the application name.
       ===================================================== */}
 
       <div className="sb-dashboard-footer">
         <span>SpaceByte · Crew Galley</span>
-
-        {/* Reload dashboard information from the backend. */}
-        <button type="button" className="sb-link" onClick={load}>
-          ↻ Refresh dashboard
-        </button>
       </div>
     </div>
   );

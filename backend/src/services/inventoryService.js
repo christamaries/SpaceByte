@@ -483,6 +483,37 @@ async function deleteFoodItem(foodId) {
 
 
 // ==========================================
+//          UPDATE A FOOD ITEM'S QUANTITY
+// ==========================================
+
+// Set the quantity of one existing inventory item.
+//
+// Parameters:
+// foodId   - The Firestore document ID of the item.
+// quantity - The new quantity (a whole number, zero or more).
+//
+// Returns:
+// The updated item, or null if it did not exist.
+async function updateFoodQuantity(foodId, quantity) {
+
+  const docRef = db.collection("inventory").doc(foodId);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    return null;
+  }
+
+  await docRef.update({ quantity });
+
+  return {
+    id: doc.id,
+    ...doc.data(),
+    quantity,
+  };
+}
+
+
+// ==========================================
 //              EXPORT FUNCTIONS
 // ==========================================
 
@@ -506,6 +537,9 @@ async function deleteFoodItem(foodId) {
 //
 // deleteFoodItem:
 // Removes a food item from Firestore.
+//
+// updateFoodQuantity:
+// Changes an existing item's quantity.
 module.exports = {
   getInventory,
   getFoodById,
@@ -513,4 +547,5 @@ module.exports = {
   getExpiringFood,
   addFoodItem,
   deleteFoodItem,
+  updateFoodQuantity,
 };

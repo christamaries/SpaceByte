@@ -35,11 +35,16 @@ import {
   Scale,
   CalendarDays,
   Trash2,
+  Minus,
+  Plus,
 } from "lucide-react";
 
 // Import the existing API helper used to communicate
 // with the SpaceByte backend.
 import { apiRequest } from "../api";
+
+// Reloads inventory when the user returns to the tab.
+import { useRefreshOnReturn } from "../useRefreshOnReturn";
 
 // Import the shared SpaceByte interface styles.
 import "../spacebyte-ui.css";
@@ -76,14 +81,13 @@ const EMPTY_FORM = {
 // Available categories for inventory items.
 // These values populate the item-type dropdown.
 const ITEM_TYPES = [
-  "Perishable",
-  "Non-Perishable",
-  "Freeze-Dried",
-  "Dry Goods",
-  "Dehydrated",
-  "Thermostabilized",
+  "Natural Form",
   "Beverage",
-  "Frozen",
+  "Thermostabilized",
+  "Rehydratable",
+  "Irradiated",
+  "Intermediate Moisture",
+  "Fresh Food",
   "Other",
 ];
 
@@ -256,6 +260,75 @@ function getStockStatus(item) {
 // The user prop provides the currently authenticated
 // Firebase user. Its ID token is used to authorize
 // requests to the backend.
+// ==========================================
+//          QUANTITY CONTROL
+// ==========================================
+
+// Lets the user change an item's quantity in place:
+// − and + adjust it by one, or a number can be typed
+// and saved with Enter or by clicking away.
+//
+// onChange is called with the new quantity.
+function QuantityControl({ item, disabled, onChange }) {
+  const quantity = Number(item.quantity) || 0;
+
+  // The text currently typed in the box.
+  // null means the box is showing the saved quantity.
+  const [draft, setDraft] = useState(null);
+
+  // Save the typed value if it is a valid, different number.
+  function commit() {
+    if (draft === null) return;
+
+    const next = Number(draft);
+    setDraft(null);
+
+    if (Number.isInteger(next) && next >= 0 && next !== quantity) {
+      onChange(next);
+    }
+  }
+
+  return (
+    <div className="sb-qty-control">
+      <button
+        type="button"
+        aria-label={`Decrease ${item.name || "item"} quantity`}
+        disabled={disabled || quantity <= 0}
+        onClick={() => onChange(quantity - 1)}
+      >
+        <Minus size={13} />
+      </button>
+
+      <input
+        type="number"
+        min="0"
+        step="1"
+        aria-label={`${item.name || "Item"} quantity`}
+        disabled={disabled}
+        value={draft ?? quantity}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+          if (event.key === "Escape") {
+            setDraft(null);
+            event.currentTarget.blur();
+          }
+        }}
+      />
+
+      <button
+        type="button"
+        aria-label={`Increase ${item.name || "item"} quantity`}
+        disabled={disabled}
+        onClick={() => onChange(quantity + 1)}
+      >
+        <Plus size={13} />
+      </button>
+    </div>
+  );
+}
+
 export default function Inventory({ user }) {
 
   // Stores inventory records retrieved from the backend.
@@ -360,6 +433,10 @@ export default function Inventory({ user }) {
   useEffect(() => {
     loadInventory();
   }, [loadInventory]);
+
+  // Quietly reload when the user comes back to this tab,
+  // so changes made by teammates appear automatically.
+  useRefreshOnReturn(() => loadInventory({ quiet: true }));
 
   // ==========================================
   //              UPDATE FORM
@@ -617,6 +694,50 @@ export default function Inventory({ user }) {
   }
 
   // ==========================================
+  //          ADJUST AN ITEM'S QUANTITY
+  // ==========================================
+
+  // Save a new quantity for an existing item.
+  //
+  // The table updates immediately; if the save fails,
+  // the previous quantity is restored.
+  async function handleQuantityChange(item, quantity) {
+    const previous = item.quantity;
+
+    setError("");
+    setNotice("");
+
+    // Show the new quantity right away.
+    setItems((current) =>
+      current.map((entry) =>
+        entry.id === item.id ? { ...entry, quantity } : entry
+      )
+    );
+
+    try {
+      const token = await user.getIdToken();
+
+      await apiRequest(`/inventory/${item.id}`, token, {
+        method: "PATCH",
+        body: JSON.stringify({ quantity }),
+      });
+
+      // Refresh quietly so stock statuses and totals update.
+      await loadInventory({ quiet: true });
+    } catch (err) {
+      console.error("Inventory quantity error:", err);
+      setError(err.message || "Unable to update the quantity.");
+
+      // Put the old quantity back.
+      setItems((current) =>
+        current.map((entry) =>
+          entry.id === item.id ? { ...entry, quantity: previous } : entry
+        )
+      );
+    }
+  }
+
+  // ==========================================
   //          SEARCH, FILTER, AND SORT
   // ==========================================
 
@@ -767,8 +888,6 @@ export default function Inventory({ user }) {
       {/* Displays the page title and refresh button. */}
       <header className="sb-nutrition-header">
         <div>
-          <p className="sb-nutrition-eyebrow">CREW GALLEY</p>
-
           <h1>Food Inventory</h1>
 
           <p>
@@ -777,16 +896,6 @@ export default function Inventory({ user }) {
           </p>
         </div>
 
-        {/* Reloads inventory from the backend. */}
-        <button
-          type="button"
-          onClick={() => loadInventory()}
-          disabled={loading}
-          className="sb-nutrition-refresh"
-        >
-          <RefreshCw size={16} aria-hidden="true" />
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
       </header>
 
       {/* ERROR AND SUCCESS MESSAGES */}
@@ -1207,7 +1316,16 @@ export default function Inventory({ user }) {
                         </small>
                       </td>
 
-                      <td>{item.quantity ?? "—"}</td>
+                      {/* Adjustable quantity. */}
+                      <td>
+                        <QuantityControl
+                          item={item}
+                          disabled={removingId === item.id}
+                          onChange={(quantity) =>
+                            handleQuantityChange(item, quantity)
+                          }
+                        />
+                      </td>
 
                       <td>{item.weight || "—"}</td>
 
@@ -1242,16 +1360,20 @@ export default function Inventory({ user }) {
                       </td>
 
                       {/* Permanently remove this item. */}
-                      <td>
+                      <td className="sb-inventory-actions">
                         <button
                           type="button"
                           onClick={() => setPendingRemove(item)}
                           disabled={removingId === item.id}
                           aria-label={`Remove ${item.name || "item"}`}
-                          className="sb-diet-remove sb-button-with-icon"
+                          title="Remove from inventory"
+                          className="sb-inventory-trash"
                         >
-                          <Trash2 size={14} />
-                          {removingId === item.id ? "Removing…" : "Remove"}
+                          {removingId === item.id ? (
+                            <RefreshCw size={15} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={15} />
+                          )}
                         </button>
                       </td>
 

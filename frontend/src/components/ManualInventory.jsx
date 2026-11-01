@@ -171,9 +171,6 @@ const expiringSoonCount = items.filter(
             {/* PAGE HEADER */}
             <header className="sb-inventory-header">
               <div>
-                <p className="sb-inventory-eyebrow">
-                  SPACEBYTE • MISSION SUPPLIES
-                </p>
                 <h1>Manual Inventory Entry</h1>
                 <p className="sb-inventory-subtitle">
                   Register food and supplies for your mission.
