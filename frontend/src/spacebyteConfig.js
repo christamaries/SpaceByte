@@ -81,6 +81,24 @@ export const TARGETS = {
 
 
 // ---------------------------------------------------------
+// INVENTORY ITEM TYPES
+// ---------------------------------------------------------
+
+// Food categories used by every inventory dropdown, so the
+// Inventory and Manual Inventory pages save the same types.
+export const ITEM_TYPES = [
+  "Natural Form",
+  "Beverage",
+  "Thermostabilized",
+  "Rehydratable",
+  "Irradiated",
+  "Intermediate Moisture",
+  "Fresh Food",
+  "Other",
+];
+
+
+// ---------------------------------------------------------
 // FOOD ICON LOOKUP
 // ---------------------------------------------------------
 

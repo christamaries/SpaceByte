@@ -43,6 +43,7 @@ import {
   CalendarDays,
   HeartPulse,
   Bell,
+  Flame,
   Mail,
   Send,
   UserRound,
@@ -273,7 +274,7 @@ const PLAN = {
 };
 
 // Hero headline, written out letter by letter by the spaceship's exhaust.
-const TITLE = "Fuel your mission.";
+const TITLE = "Fuel your mission";
 
 // Spaceship timing in seconds. These must match the lp-ship-fly
 // animation in landing.css: 0.3s delay, 2.6s long, with the first
@@ -514,7 +515,10 @@ export default function LandingPage({
                 These are static demonstration values,
                 not live nutrition data from the backend. */}
             <div className="lp-float kcal">
-              <span className="chip blue" />
+              {/* Flame icon inside a colored calories chip. */}
+              <span className="chip blue lp-alert-icon lp-kcal-icon" aria-hidden="true">
+                <Flame size={20} strokeWidth={2} />
+              </span>
 
               <div>
                 <small>KCAL TODAY</small>
