@@ -46,6 +46,9 @@ import { apiRequest } from "../api";
 // Reloads inventory when the user returns to the tab.
 import { useRefreshOnReturn } from "../useRefreshOnReturn";
 
+// Shared list of inventory item types.
+import { ITEM_TYPES } from "../spacebyteConfig";
+
 // Import the shared SpaceByte interface styles.
 import "../spacebyte-ui.css";
 
@@ -65,7 +68,10 @@ const EMPTY_FORM = {
   weightUnit: "g",
   shelfLife: "",
   expirationDate: "",
-  type: "Perishable",
+
+  // Must match one of ITEM_TYPES so the dropdown
+  // shows the value that will actually be saved.
+  type: "Natural Form",
 
   // Nutrition information is entered per serving.
   calories: "",
@@ -77,19 +83,6 @@ const EMPTY_FORM = {
   // reaches or falls below this threshold.
   lowStockThreshold: "10",
 };
-
-// Available categories for inventory items.
-// These values populate the item-type dropdown.
-const ITEM_TYPES = [
-  "Natural Form",
-  "Beverage",
-  "Thermostabilized",
-  "Rehydratable",
-  "Irradiated",
-  "Intermediate Moisture",
-  "Fresh Food",
-  "Other",
-];
 
 // Defines the nutrition fields displayed in the form.
 // The name connects each field to the corresponding

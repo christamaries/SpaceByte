@@ -3,6 +3,7 @@ import { PackagePlus, Package, Scale, AlertTriangle, Trash2 } from "lucide-react
 
 // Shared dashboard styles (all classes prefixed sb-).
 import "../spacebyte-ui.css";
+import { ITEM_TYPES } from "../spacebyteConfig";
 
 const initialForm = {
   name: "",
@@ -14,16 +15,6 @@ const initialForm = {
   expirationDate: "",
   type: "",
 };
-
-const ITEM_TYPES = [
-  "Perishable",
-  "Non-Perishable",
-  "Freeze-Dried",
-  "Dry Goods",
-  "Dehydrated",
-  "Thermostabilized",
-  "Other",
-];
 
 // Calculate how many days remain before an item expires.
 function getExpirationStatus(expirationDate) {

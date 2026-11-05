@@ -956,7 +956,7 @@ export default function Dashboard({ user, activeScreen = "overview", onNavigate 
                         </span>
                       </td>
 
-                      {/* Display the food type (Perishable, Dry Goods, etc.). */}
+                      {/* Display the food type (Natural Form, Beverage, etc.). */}
                       <td>{item.type || "Other"}</td>
 
                       {/* Display the available quantity. */}

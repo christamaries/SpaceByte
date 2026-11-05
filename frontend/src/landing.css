@@ -262,7 +262,8 @@
 .lp-hero h1 {
   margin: 0 0 28px;
   font-size: clamp(44px, 7vw, 80px);
-  line-height: 1;
+  /* Slightly above 1 so the "y" in "your" clears the "i" in "mission". */
+  line-height: 1.1;
   letter-spacing: -0.03em;
 }
 
@@ -488,6 +489,11 @@
 }
 
 /* Keeps the SVG bell centered and prevents it from shrinking. */
+/* Dark flame contrasts with the blue calories chip. */
+.lp-kcal-icon {
+  color: #102033;
+}
+
 .lp-alert-icon svg {
   display: block;
   flex-shrink: 0;
