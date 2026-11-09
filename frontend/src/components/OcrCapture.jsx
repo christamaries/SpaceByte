@@ -1156,25 +1156,6 @@ function clearImage() {
       <div className="sb-card">
         <h2>How SpaceByte scanning works</h2>
 
-        <ul>
-          <li>
-            Nutrition labels are read using Tesseract.js.
-          </li>
-
-          <li>
-            Food photographs are analyzed using CLIP image classification.
-          </li>
-
-          <li>
-            Detected information can be edited before saving.
-          </li>
-
-          <li>
-            Selected foods are sent to the existing
-            SpaceByte inventory endpoint.
-          </li>
-        </ul>
-
         <p>
           Scanning results are suggestions. Always verify
           food names and nutrition values before saving.
