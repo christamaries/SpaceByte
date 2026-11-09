@@ -37,6 +37,7 @@ backend/
 │   │   └── userRoutes.js
 │   └── services/
 │       ├── dashboardService.js
+│       ├── foodDetectionService.js
 │       ├── inventoryService.js
 │       ├── nutritionService.js
 │       ├── recommendationService.js
@@ -53,6 +54,7 @@ backend/
 SpaceByte/
 │
 frontend/
+├── dist/
 ├── node_modules/
 ├── public/
 ├── src/
@@ -60,7 +62,13 @@ frontend/
 │   ├── components/
 │   │   ├── appShell.jsx
 │   │   ├── dashboard.jsx
-│   │   └── mealPlanner.jsx
+│   │   ├── dietaryRestriction.jsx
+│   │   ├── Inventory.jsx
+│   │   ├── LandingPage.jsx
+│   │   ├── ManualInventory.jsx
+│   │   ├── mealPlanner.jsx
+│   │   ├── Nutrition.jsx
+│   │   └── OcrCapture.jsx
 │   ├── api.js
 │   ├── App.jsx
 │   ├── auth.css
@@ -68,7 +76,8 @@ frontend/
 │   ├── index.css
 │   ├── main.jsx
 │   ├── spacebyte-ui.css
-│   └── spacebyteConfig.js
+│   ├── spacebyteConfig.js
+│   └── useRefreshOnReturn.js
 ├── .env
 ├── .gitignore
 ├── .oxlintrc.json
