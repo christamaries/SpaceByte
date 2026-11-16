@@ -52,44 +52,146 @@ import "../spacebyte-ui.css";
 //
 // OWL-ViT compares the photograph against these descriptions.
 // It does not know every food automatically.
+// =========================================================
+//             EXPANDED FOOD RECOGNITION
+// =========================================================
+
 const FOOD_CATEGORIES = [
+  // Fruits
+  "avocado",
   "apple",
   "banana",
   "orange",
-  "strawberry",
+  "lemon",
+  "lime",
   "grapes",
+  "strawberry",
+  "blueberry",
+  "raspberry",
+  "blackberry",
   "watermelon",
+  "cantaloupe",
+  "honeydew",
+  "pineapple",
+  "mango",
+  "papaya",
+  "peach",
+  "pear",
+  "plum",
+  "kiwi",
+  "cherries",
+  "coconut",
+  "pomegranate",
+
+  // Vegetables
   "broccoli",
-  "carrot",
+  "cauliflower",
   "lettuce",
+  "spinach",
+  "kale",
+  "cabbage",
+  "green beans",
+  "peas",
+  "asparagus",
+  "celery",
+  "cucumber",
+  "zucchini",
+  "eggplant",
+  "bell pepper",
+  "jalapeno pepper",
   "tomato",
+  "carrot",
   "potato",
+  "sweet potato",
+  "onion",
+  "garlic",
+  "mushroom",
   "corn",
-  "rice",
+  "beet",
+  "radish",
+  "pumpkin",
+  "butternut squash",
+  "brussels sprouts",
+
+  // Beans and legumes
+  "black beans",
+  "kidney beans",
+  "pinto beans",
+  "chickpeas",
+  "lentils",
+  "edamame",
+  "soybeans",
+
+  // Grains and carbohydrates
+  "white rice",
+  "brown rice",
+  "quinoa",
+  "oatmeal",
   "pasta",
-  "macaroni and cheese",
+  "spaghetti",
+  "macaroni",
   "bread",
-  "sandwich",
+  "bagel",
+  "tortilla",
+  "cereal",
+  "crackers",
+
+  // Meat and poultry
+  "chicken breast",
+  "chicken thighs",
+  "fried chicken",
+  "turkey",
+  "ground beef",
+  "steak",
+  "pork chop",
+  "bacon",
+  "ham",
+  "sausage",
+
+  // Seafood
+  "salmon",
+  "tuna",
+  "shrimp",
+  "crab",
+  "lobster",
+  "tilapia",
+  "cod",
+  "fish fillet",
+
+  // Dairy and eggs
+  "whole eggs",
+  "boiled eggs",
+  "cheese",
+  "milk",
+  "yogurt",
+  "butter",
+  "cottage cheese",
+
+  // Prepared foods
   "pizza",
   "hamburger",
-  "chicken",
-  "fried chicken",
-  "fish",
-  "shrimp",
-  "shrimp cocktail",
-  "beef",
-  "eggs",
-  "cheese",
-  "yogurt",
-  "milk",
-  "cereal",
+  "sandwich",
+  "salad",
   "soup",
-  "beans",
-  "nuts",
-  "canned food",
+  "french fries",
+  "mashed potatoes",
+  "rice and beans",
+
+  // Nuts and seeds
+  "almonds",
+  "peanuts",
+  "walnuts",
+  "cashews",
+  "chia seeds",
+  "sunflower seeds",
+
+  // Other
+  "food in a can",
+  "frozen food",
   "food package",
   "bottle of water",
   "juice",
+  "unknown or unidentifiable object"
 ];
 
 // These are the same general food-storage categories
@@ -471,8 +573,8 @@ function handlePhoto(event) {
       return detectorRef.current;
     }
 
-    setProgress("Downloading/loading the CLIP food-recognition model...");
-
+    setProgress("Loading food recognition model...")
+    
     // Load CLIP using the supported image-classification task.
     const classifier = await pipeline(
       "zero-shot-image-classification",
@@ -491,103 +593,114 @@ function handlePhoto(event) {
   // -------------------------------------------------------
 
   async function identifyFoods() {
+  setError("");
+  setStatus("");
+  setResults([]);
 
-    setError("");
-    setStatus("");
-    setResults([]);
+  if (!selectedFile || !photoUrl) {
+    setError("Please upload a food photograph first.");
+    return;
+  }
 
-    // Make sure the user selected an image.
-    if (!selectedFile || !photoUrl) {
-      setError("Please upload a food photograph first.");
+  setBusy(true);
+
+  try {
+    const classifier = await getFoodDetector();
+
+    setProgress("Analyzing your food photograph...");
+
+    const predictions = await classifier(
+      photoUrl,
+      FOOD_CATEGORIES
+    );
+
+    if (!predictions || predictions.length === 0) {
+      setStatus(
+        "Unable to identify this food. Try another photograph."
+      );
       return;
     }
 
-    setBusy(true);
+    // Sort from highest to lowest model score.
+    const rankedPredictions = [...predictions].sort(
+      (a, b) => b.score - a.score
+    );
 
-    try {
+    const bestPrediction = rankedPredictions[0];
 
-      // Load or reuse the CLIP image-classification model.
-      const classifier = await getFoodDetector();
+    // Do not accept an unknown object as food.
+    const bestLabel = String(
+      bestPrediction.label || ""
+    ).toLowerCase();
 
-      setProgress("Analyzing the photograph for possible foods...");
-
-      // Compare the photograph against the available
-      // food categories.
-      //
-      // CLIP returns predictions ranked by similarity.
-      const predictions = await classifier(
-        photoUrl,
-        FOOD_CATEGORIES
+    if (
+      bestLabel.includes("unknown") ||
+      bestLabel.includes("unidentifiable") ||
+      bestPrediction.score < 0.10
+    ) {
+      setStatus(
+        "SpaceByte could not confidently identify this food. Please try a clearer photograph."
       );
-
-      // Keep the six highest-ranked suggestions.
-      // These are suggestions, not confirmed food identifications.
-      const topPredictions = (predictions || []).slice(0, 6);
-
-      // Convert the model predictions into the same
-      // editable result format used by the inventory page.
-      const uniqueFoods = [];
-
-      for (const prediction of topPredictions) {
-
-        const foodName = prediction.label;
-
-        // Skip predictions without a valid label.
-        if (!foodName || typeof foodName !== "string") {
-          continue;
-        }
-
-        // Prevent duplicate food suggestions.
-        const alreadyAdded = uniqueFoods.some(
-          (item) =>
-            item.name.toLowerCase() === foodName.toLowerCase()
-        );
-
-        if (!alreadyAdded) {
-
-          uniqueFoods.push(
-            createFoodResult(foodName, {
-              confidence: prediction.score,
-            })
-          );
-        }
-      }
-
-      // Display the possible food matches.
-      setResults(uniqueFoods);
-
-      if (uniqueFoods.length === 0) {
-
-        setStatus(
-          "No food suggestions were returned. Try another photograph."
-        );
-
-      } else {
-
-        setStatus(
-          "Possible foods identified. Review and correct the suggestions before saving."
-        );
-      }
-
-      setProgress("");
-
-    } catch (err) {
-
-      console.error("CLIP food identification error:", err);
-
-      setError(
-        err.message ||
-        "Unable to identify foods in this photograph. Please try another image."
-      );
-
-      setProgress("");
-
-    } finally {
-
-      setBusy(false);
+      return;
     }
-  }
 
+    // Keep only a small number of reasonably strong matches.
+    // This is a preliminary filtering rule, not a calibrated
+    // probability of the food being correct.
+    const filteredPredictions = rankedPredictions
+      .filter((prediction) => {
+        const label = String(
+          prediction.label || ""
+        ).toLowerCase();
+
+        return (
+          prediction.score >= 0.10 &&
+          !label.includes("unknown") &&
+          !label.includes("unidentifiable")
+        );
+      })
+      .slice(0, 3);
+
+    if (filteredPredictions.length === 0) {
+      setStatus(
+        "No reliable food matches were found. Please try another photograph."
+      );
+      return;
+    }
+
+    const detectedFoods = filteredPredictions.map(
+      (prediction) => {
+        return createFoodResult(
+          prediction.label,
+          {
+            confidence: prediction.score,
+          }
+        );
+      }
+    );
+
+    setResults(detectedFoods);
+
+    setStatus(
+      "Food suggestions generated. Verify the correct food before adding it to inventory."
+    );
+
+  } catch (err) {
+    console.error(
+      "Food recognition error:",
+      err
+    );
+
+    setError(
+      err.message ||
+      "Unable to analyze this photograph."
+    );
+
+  } finally {
+    setProgress("");
+    setBusy(false);
+  }
+}
 
   // -------------------------------------------------------
 //             SAVE SELECTED INVENTORY ITEMS
