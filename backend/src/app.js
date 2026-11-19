@@ -75,6 +75,10 @@ const recommendationRoutes =
 const mealPlanRoutes =
   require("./routes/mealPlanRoutes");
 
+// Import the food lookup routes.
+const foodLookupRoutes =
+  require("./routes/foodLookupRoutes");
+
 
 // ================================================
 //              CREATE EXPRESS APPLICATION
@@ -227,6 +231,15 @@ app.use("/dashboard", dashboardRoutes);
 // These routes allow users to create, retrieve, update,
 // swap, and delete meals in their meal plan.
 app.use("/meal-plan", mealPlanRoutes);
+
+
+// ================================================
+//              FOOD LOOKUP ROUTES
+// ================================================
+
+// Base URL:
+// http://localhost:5001/food-lookup
+app.use("/food-lookup", foodLookupRoutes);
 
 
 // ================================================

@@ -40,6 +40,9 @@ import { pipeline } from "@huggingface/transformers";
 // change this import to "../services/api".
 import { apiRequest } from "../api";
 
+// Nutrition lookup (Open Food Facts, free, no key).
+import { lookupFood } from "../services/foodLookup";
+
 // Use the shared SpaceByte styles.
 import "../spacebyte-ui.css";
 
@@ -678,6 +681,25 @@ function handlePhoto(event) {
         );
       }
     );
+
+    // Look up nutrition for the top match (per 100g).
+    try {
+      const matches = await lookupFood(detectedFoods[0].name, 1);
+
+      if (matches.length > 0) {
+        const n = matches[0].per100g;
+
+        detectedFoods[0] = {
+          ...detectedFoods[0],
+          calories: n.calories ?? "",
+          protein: n.protein ?? "",
+          carbs: n.carbs ?? "",
+          fat: n.fat ?? "",
+        };
+      }
+    } catch (lookupError) {
+      console.warn("Nutrition lookup failed:", lookupError);
+    }
 
     setResults(detectedFoods);
 
