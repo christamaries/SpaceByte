@@ -1,63 +1,54 @@
 
+
 /*
 ===========================================================
  SPACEBYTE - OCR FOOD CAPTURE
  File: frontend/src/components/OcrCapture.jsx
 
  PURPOSE:
- 1. Allow the user to upload or take a food photograph.
+ 1. Upload or take a food photograph.
  2. Read nutrition-label text using Tesseract.js.
- 3. Identify possible foods in a photograph using OWL-ViT.
- 4. Let the user review and edit detected information.
- 5. Save selected foods to the existing SpaceByte inventory.
+ 3. Identify possible foods using CLIP.
+ 4. Search the SpaceByte nutrition lookup service.
+ 5. Display up to three nutrition matches.
+ 6. Let the astronaut select and edit the correct match.
+ 7. Save selected foods to the existing inventory.
 
  IMPORTANT:
  - No paid OCR API or API token is used.
- - OCR reads text; it does not guarantee that the text
-   has been interpreted correctly.
- - Food-photo identification can make mistakes.
- - Review the information before saving it.
+ - Tesseract.js reads label text.
+ - CLIP identifies possible foods from photographs.
+ - Food identification can make mistakes.
+ - Nutrition matches must be reviewed.
+ - Database values are currently displayed per 100 grams.
 ===========================================================
 */
 
-// React hooks manage the component's state and lifecycle.
+// =========================================================
+//                         IMPORTS
+// =========================================================
+
 import { useEffect, useRef, useState } from "react";
 
-// Tesseract.js performs text recognition in the browser.
 import { createWorker } from "tesseract.js";
 
-// Transformers.js runs the food-photo model in the browser.
 import { pipeline } from "@huggingface/transformers";
 
 // Existing SpaceByte API helper.
-//
-// IMPORTANT:
-// Your Inventory.jsx currently imports this helper as:
-// import { apiRequest } from "../api";
-//
-// This version uses the same import path.
-// If your actual helper is in src/services/api.js instead,
-// change this import to "../services/api".
 import { apiRequest } from "../api";
 
-// Nutrition lookup (Open Food Facts, free, no key).
+// SpaceByte nutrition lookup helper.
 import { lookupFood } from "../services/foodLookup";
 
-// Use the shared SpaceByte styles.
+// Shared SpaceByte styles.
 import "../spacebyte-ui.css";
 
 // =========================================================
-//                  FOOD CATEGORIES
+//                    FOOD CATEGORIES
 // =========================================================
 
-// These are the possible food labels the image model
-// will look for in the uploaded photograph.
-//
-// OWL-ViT compares the photograph against these descriptions.
-// It does not know every food automatically.
-// =========================================================
-//             EXPANDED FOOD RECOGNITION
-// =========================================================
+// CLIP compares the uploaded photograph against these
+// possible food descriptions.
 
 const FOOD_CATEGORIES = [
   // Fruits
@@ -130,6 +121,8 @@ const FOOD_CATEGORIES = [
   "brown rice",
   "quinoa",
   "oatmeal",
+  "grits",
+  "cream of wheat",
   "pasta",
   "spaghetti",
   "macaroni",
@@ -164,6 +157,7 @@ const FOOD_CATEGORIES = [
   // Dairy and eggs
   "whole eggs",
   "boiled eggs",
+  "egg whites",
   "cheese",
   "milk",
   "yogurt",
@@ -188,17 +182,21 @@ const FOOD_CATEGORIES = [
   "chia seeds",
   "sunflower seeds",
 
-  // Other
+  // Other foods and beverages
   "food in a can",
   "frozen food",
   "food package",
   "bottle of water",
   "juice",
-  "unknown or unidentifiable object"
+  "unknown or unidentifiable object",
 ];
 
-// These are the same general food-storage categories
-// used by your Inventory.jsx component.
+// =========================================================
+//                    INVENTORY TYPES
+// =========================================================
+
+// These categories match the existing Inventory.jsx form.
+
 const ITEM_TYPES = [
   "Natural Form",
   "Beverage",
@@ -211,13 +209,11 @@ const ITEM_TYPES = [
 ];
 
 // =========================================================
-//                  HELPER FUNCTIONS
+//                    HELPER FUNCTIONS
 // =========================================================
 
 // Convert a value into a safe nonnegative number.
-//
-// If OCR returns something that is not a valid number,
-// use zero instead of allowing invalid data into inventory.
+
 function safeNumber(value) {
   const number = Number(value);
 
@@ -228,39 +224,43 @@ function safeNumber(value) {
   return number;
 }
 
-// Create an inventory item in the format expected
-// by your existing POST /inventory endpoint.
+// Create an item in the format expected by SpaceByte.
+
 function createFoodResult(name, values = {}) {
   return {
-    // Food name displayed in the results.
     name: name || "Unknown food",
 
-    // Default quantity is one package or item.
     quantity: "1",
 
-    // Weight can be entered or corrected by the user.
     weight: "",
 
-    // Shelf life is optional.
     shelfLife: "",
 
-    // Expiration date is optional.
     expirationDate: "",
 
-    // Use a category supported by Inventory.jsx.
     type: "Other",
 
-    // Nutrition values can be filled from OCR.
+    // Nutrition information.
     calories: values.calories ?? "",
     protein: values.protein ?? "",
     carbs: values.carbs ?? "",
     fat: values.fat ?? "",
 
-    // New results are selected by default.
+    // Select the item by default.
     checked: true,
 
-    // Store the model confidence when available.
+    // CLIP confidence score.
     confidence: values.confidence ?? null,
+
+    // Nutrition database alternatives.
+    nutritionMatches: values.nutritionMatches ?? [],
+
+    // -1 means no database match has been selected.
+    selectedNutritionIndex: -1,
+
+    // Photo-identified foods require confirmation.
+    requiresNutritionConfirmation:
+      values.requiresNutritionConfirmation ?? false,
   };
 }
 
@@ -268,40 +268,32 @@ function createFoodResult(name, values = {}) {
 //              PARSE NUTRITION LABEL TEXT
 // =========================================================
 
-// Tesseract returns text from the photograph.
-// This function attempts to find common nutrition values.
+// Extract common nutrition values from OCR text.
 //
-// NOTE:
-// Food labels have different layouts.
-// Always check the values before saving them.
+// These values come from the photographed label.
+// They are suggestions and should be reviewed.
+
 function parseNutritionText(text) {
   const normalizedText = String(text || "")
     .replace(/,/g, "")
     .replace(/\r/g, "\n");
 
-  // Find calories.
-  // Example: Calories 250
   const caloriesMatch = normalizedText.match(
     /calories\s*[:\-]?\s*(\d+(?:\.\d+)?)/i
   );
 
-  // Find protein.
-  // Example: Protein 10g
   const proteinMatch = normalizedText.match(
     /protein\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g?/i
   );
 
-  // Find total carbohydrates.
   const carbsMatch = normalizedText.match(
     /(?:total\s+)?carbohydrates?\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g?/i
   );
 
-  // Find total fat.
   const fatMatch = normalizedText.match(
     /(?:total\s+)?fat\s*[:\-]?\s*(\d+(?:\.\d+)?)\s*g?/i
   );
 
-  // Return the extracted values.
   return {
     calories: caloriesMatch ? caloriesMatch[1] : "",
     protein: proteinMatch ? proteinMatch[1] : "",
@@ -310,16 +302,16 @@ function parseNutritionText(text) {
   };
 }
 
-// Try to find a possible food name from the label.
-//
-// This is only a suggestion. The user can edit it.
+// =========================================================
+//                 FIND FOOD NAME FROM LABEL
+// =========================================================
+
 function findPossibleFoodName(text) {
   const lines = String(text || "")
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
 
-  // Skip common nutrition-label headings and numbers.
   const ignoredWords =
     /nutrition facts|serving size|calories|protein|total fat|total carbohydrate|ingredients|amount per serving|% daily value/i;
 
@@ -336,120 +328,113 @@ function findPossibleFoodName(text) {
 }
 
 // =========================================================
-//                  MAIN COMPONENT
+//                   MAIN COMPONENT
 // =========================================================
 
-// The parent component must pass the authenticated
-// Firebase user into this component.
-//
-// Example:
-// <OcrCapture user={user} />
 export default function OcrCapture({ user }) {
 
-  // -------------------------------------------------------
+  // =======================================================
   //                         STATE
-  // -------------------------------------------------------
+  // =======================================================
 
-  // Stores the uploaded photograph.
+  // Uploaded photograph.
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // Stores the temporary image URL used for the preview.
+  // Temporary photograph preview URL.
   const [photoUrl, setPhotoUrl] = useState("");
 
-  // Determines which scanning method the user selected.
+  // Scanning mode: label or photo.
   const [mode, setMode] = useState("label");
 
-  // Stores the food items found by OCR or the image model.
+  // Detected food results.
   const [results, setResults] = useState([]);
 
-  // Stores all text extracted from a nutrition label.
+  // Text extracted from nutrition labels.
   const [rawText, setRawText] = useState("");
 
-  // Tracks loading and saving operations.
+  // Loading and saving states.
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Displays progress information.
+  // Progress and messages.
   const [progress, setProgress] = useState("");
-
-  // Displays error and success messages.
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
 
-  // These refs keep the models available between scans.
-// The models are loaded only when the user needs them.
+  // =======================================================
+  //                          REFS
+  // =======================================================
 
-// Stores the Tesseract OCR worker.
-const workerRef = useRef(null);
+  // Reuse the OCR worker between scans.
+  const workerRef = useRef(null);
 
-// Stores the CLIP image-classification model.
-const detectorRef = useRef(null);
+  // Reuse the CLIP model between scans.
+  const detectorRef = useRef(null);
 
-// -------------------------------------------------------
-//              CLEAN UP IMAGE URL
-// -------------------------------------------------------
+  // =======================================================
+  //                   CLEAN UP IMAGE URL
+  // =======================================================
 
-// Release the previous image URL when a new image is
-// selected or when this component is removed.
-useEffect(() => {
-  return () => {
-    if (photoUrl) {
-      URL.revokeObjectURL(photoUrl);
+  useEffect(() => {
+    return () => {
+      if (photoUrl) {
+        URL.revokeObjectURL(photoUrl);
+      }
+    };
+  }, [photoUrl]);
+
+  // =======================================================
+  //                  CLEAN UP OCR WORKER
+  // =======================================================
+
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, []);
+
+  // =======================================================
+  //                     SELECT IMAGE
+  // =======================================================
+
+  function handlePhoto(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    // Verify that the selected file is an image.
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file.");
+      event.target.value = "";
+      return;
     }
-  };
-}, [photoUrl]);
 
-// Terminate the OCR worker only when the component
-// is actually unmounted, not whenever the photo changes.
-useEffect(() => {
-  return () => {
-    if (workerRef.current) {
-      workerRef.current.terminate();
-      workerRef.current = null;
-    }
-  };
-}, []);
+    // Create a temporary preview URL.
+    const newPhotoUrl = URL.createObjectURL(file);
 
-// -------------------------------------------------------
-//                 SELECT AN IMAGE
-// -------------------------------------------------------
+    setSelectedFile(file);
+    setPhotoUrl(newPhotoUrl);
 
-function handlePhoto(event) {
-  const file = event.target.files?.[0];
+    // Clear previous scan information.
+    setResults([]);
+    setRawText("");
+    setError("");
+    setStatus("");
+    setProgress("");
 
-  if (!file) return;
-
-  // Only accept image files.
-  if (!file.type.startsWith("image/")) {
-    setError("Please select a valid image file.");
+    // Allow the same photograph to be selected again.
     event.target.value = "";
-    return;
   }
 
-  // Create a temporary preview URL.
-  // The cleanup effect above will release the old URL.
-  const newPhotoUrl = URL.createObjectURL(file);
+  // =======================================================
+  //                  UPDATE DETECTED FOOD
+  // =======================================================
 
-  setSelectedFile(file);
-  setPhotoUrl(newPhotoUrl);
+  // Update one food result without replacing other results.
 
-  // Reset information from the previous scan.
-  setResults([]);
-  setRawText("");
-  setError("");
-  setStatus("");
-  setProgress("");
-
-  // Reset the file input so the same image can be selected again.
-  event.target.value = "";
-}
-
-  // -------------------------------------------------------
-  //                UPDATE A DETECTED ITEM
-  // -------------------------------------------------------
-
-  // This function lets the user correct information
-  // before saving it to the inventory.
   function updateResult(index, changes) {
     setResults((currentResults) =>
       currentResults.map((item, currentIndex) =>
@@ -460,14 +445,10 @@ function handlePhoto(event) {
     );
   }
 
-  // -------------------------------------------------------
-  //                GET THE OCR WORKER
-  // -------------------------------------------------------
+  // =======================================================
+  //                    GET OCR WORKER
+  // =======================================================
 
-  // Create the Tesseract worker only once.
-  //
-  // Reusing the worker prevents unnecessary downloads
-  // every time the user scans a new nutrition label.
   async function getOcrWorker() {
     if (workerRef.current) {
       return workerRef.current;
@@ -492,9 +473,9 @@ function handlePhoto(event) {
     return worker;
   }
 
-  // -------------------------------------------------------
-  //              SCAN A NUTRITION LABEL
-  // -------------------------------------------------------
+  // =======================================================
+  //                SCAN NUTRITION LABEL
+  // =======================================================
 
   async function scanNutritionLabel() {
     setError("");
@@ -502,35 +483,39 @@ function handlePhoto(event) {
     setResults([]);
     setRawText("");
 
-    // The user must select an image first.
     if (!selectedFile) {
-      setError("Please upload a food-label photograph first.");
+      setError(
+        "Please upload a food-label photograph first."
+      );
       return;
     }
 
     setBusy(true);
 
     try {
-      // Get the OCR worker.
+      // Load or reuse Tesseract.
       const worker = await getOcrWorker();
 
       setProgress("Reading the nutrition label...");
 
-      // Recognize text in the selected image.
+      // Recognize the text in the photograph.
       const recognition = await worker.recognize(selectedFile);
 
-      // Save the complete extracted text.
       const extractedText = recognition.data.text || "";
+
       setRawText(extractedText);
 
-      // Convert the extracted text into nutrition values.
+      // Extract nutrition values.
       const nutrition = parseNutritionText(extractedText);
 
-      // Attempt to identify the product name.
+      // Suggest a food name.
       const foodName = findPossibleFoodName(extractedText);
 
-      // Create one editable result.
-      const foodItem = createFoodResult(foodName, nutrition);
+      // Create an editable food result.
+      const foodItem = createFoodResult(
+        foodName,
+        nutrition
+      );
 
       setResults([foodItem]);
 
@@ -538,7 +523,6 @@ function handlePhoto(event) {
         "Label scanned. Please review the food name and nutrition values."
       );
 
-      setProgress("");
     } catch (err) {
       console.error("OCR scanning error:", err);
 
@@ -547,272 +531,275 @@ function handlePhoto(event) {
         "Unable to read this label. Try a clearer photograph."
       );
 
-      setProgress("");
     } finally {
+      setProgress("");
       setBusy(false);
     }
   }
 
-  
-  // -------------------------------------------------------
-  //             LOAD THE FOOD PHOTO MODEL
-  // -------------------------------------------------------
+  // =======================================================
+  //                 LOAD FOOD PHOTO MODEL
+  // =======================================================
 
-  // CLIP is a zero-shot image-classification model.
-  //
-  // It compares the uploaded photograph with the food
-  // descriptions in FOOD_CATEGORIES.
-  //
-  // Unlike OWL-ViT, CLIP ranks possible food categories
-  // instead of locating individual objects with boxes.
-  //
-  // The model downloads when first needed and is reused
-  // for subsequent photographs.
+  // CLIP performs zero-shot image classification.
+  // It compares the photograph with FOOD_CATEGORIES.
 
   async function getFoodDetector() {
-
-    // Reuse the model if it has already been loaded.
     if (detectorRef.current) {
       return detectorRef.current;
     }
 
-    setProgress("Loading food recognition model...")
-    
-    // Load CLIP using the supported image-classification task.
+    setProgress("Loading food recognition model...");
+
     const classifier = await pipeline(
       "zero-shot-image-classification",
       "Xenova/clip-vit-base-patch32"
     );
 
-    // Save the model so it does not need to load again.
     detectorRef.current = classifier;
 
     return classifier;
   }
 
-  
-  // -------------------------------------------------------
-  //              IDENTIFY FOOD IN A PHOTO
-  // -------------------------------------------------------
+  // =======================================================
+  //                 IDENTIFY FOOD IN PHOTO
+  // =======================================================
 
   async function identifyFoods() {
-  setError("");
-  setStatus("");
-  setResults([]);
+    setError("");
+    setStatus("");
+    setResults([]);
 
-  if (!selectedFile || !photoUrl) {
-    setError("Please upload a food photograph first.");
-    return;
-  }
-
-  setBusy(true);
-
-  try {
-    const classifier = await getFoodDetector();
-
-    setProgress("Analyzing your food photograph...");
-
-    const predictions = await classifier(
-      photoUrl,
-      FOOD_CATEGORIES
-    );
-
-    if (!predictions || predictions.length === 0) {
-      setStatus(
-        "Unable to identify this food. Try another photograph."
+    if (!selectedFile || !photoUrl) {
+      setError(
+        "Please upload a food photograph first."
       );
       return;
     }
 
-    // Sort from highest to lowest model score.
-    const rankedPredictions = [...predictions].sort(
-      (a, b) => b.score - a.score
-    );
-
-    const bestPrediction = rankedPredictions[0];
-
-    // Do not accept an unknown object as food.
-    const bestLabel = String(
-      bestPrediction.label || ""
-    ).toLowerCase();
-
-    if (
-      bestLabel.includes("unknown") ||
-      bestLabel.includes("unidentifiable") ||
-      bestPrediction.score < 0.10
-    ) {
-      setStatus(
-        "SpaceByte could not confidently identify this food. Please try a clearer photograph."
-      );
-      return;
-    }
-
-    // Keep only a small number of reasonably strong matches.
-    // This is a preliminary filtering rule, not a calibrated
-    // probability of the food being correct.
-    const filteredPredictions = rankedPredictions
-      .filter((prediction) => {
-        const label = String(
-          prediction.label || ""
-        ).toLowerCase();
-
-        return (
-          prediction.score >= 0.10 &&
-          !label.includes("unknown") &&
-          !label.includes("unidentifiable")
-        );
-      })
-      .slice(0, 3);
-
-    if (filteredPredictions.length === 0) {
-      setStatus(
-        "No reliable food matches were found. Please try another photograph."
-      );
-      return;
-    }
-
-    const detectedFoods = filteredPredictions.map(
-      (prediction) => {
-        return createFoodResult(
-          prediction.label,
-          {
-            confidence: prediction.score,
-          }
-        );
-      }
-    );
-
-    // Look up nutrition for the top match (per 100g).
-    try {
-      const matches = await lookupFood(detectedFoods[0].name, 1);
-
-      if (matches.length > 0) {
-        const n = matches[0].per100g;
-
-        detectedFoods[0] = {
-          ...detectedFoods[0],
-          calories: n.calories ?? "",
-          protein: n.protein ?? "",
-          carbs: n.carbs ?? "",
-          fat: n.fat ?? "",
-        };
-      }
-    } catch (lookupError) {
-      console.warn("Nutrition lookup failed:", lookupError);
-    }
-
-    setResults(detectedFoods);
-
-    setStatus(
-      "Food suggestions generated. Verify the correct food before adding it to inventory."
-    );
-
-  } catch (err) {
-    console.error(
-      "Food recognition error:",
-      err
-    );
-
-    setError(
-      err.message ||
-      "Unable to analyze this photograph."
-    );
-
-  } finally {
-    setProgress("");
-    setBusy(false);
-  }
-}
-
-  // -------------------------------------------------------
-//             SAVE SELECTED INVENTORY ITEMS
-// -------------------------------------------------------
-
-async function addSelectedToInventory() {
-  setError("");
-  setStatus("");
-
-  // Require a signed-in Firebase user.
-  if (!user) {
-    setError("Please sign in before adding inventory.");
-    return;
-  }
-
-  // Make sure every selected item has a food name.
-  const hasInvalidName = results.some(
-    (item) =>
-      item.checked &&
-      (!item.name || !item.name.trim())
-  );
-
-  // Stop saving if a selected food has no name.
-  if (hasInvalidName) {
-    setError("Every selected food must have a name.");
-    return;
-  }
-
-  // Only save results that the user selected.
-  const selectedItems = results.filter(
-    (item) => item.checked
-  );
-
-  // Make sure at least one food is selected.
-  if (selectedItems.length === 0) {
-    setError("Please select at least one food item.");
-    return;
-  }
-
-  setSaving(true);
-
-  let savedCount = 0;
+    setBusy(true);
 
     try {
-      // Retrieve the Firebase ID token.
-      // The backend uses this token to authenticate the request.
+      // Load or reuse CLIP.
+      const classifier = await getFoodDetector();
+
+      setProgress("Analyzing your food photograph...");
+
+      // Compare the photograph against the food categories.
+      const predictions = await classifier(
+        photoUrl,
+        FOOD_CATEGORIES
+      );
+
+      if (!predictions || predictions.length === 0) {
+        setStatus(
+          "Unable to identify this food. Try another photograph."
+        );
+        return;
+      }
+
+      // Sort predictions from highest to lowest score.
+      const rankedPredictions = [...predictions].sort(
+        (a, b) => b.score - a.score
+      );
+
+      // Select the strongest prediction.
+      const bestPrediction = rankedPredictions[0];
+
+      const bestLabel = String(
+        bestPrediction.label || ""
+      ).toLowerCase();
+
+      // Reject unknown and low-confidence predictions.
+      if (
+        bestLabel.includes("unknown") ||
+        bestLabel.includes("unidentifiable") ||
+        bestPrediction.score < 0.10
+      ) {
+        setStatus(
+          "SpaceByte could not confidently identify this food. Please try a clearer photograph."
+        );
+        return;
+      }
+
+      // ---------------------------------------------------
+      //             LOOK UP NUTRITION MATCHES
+      // ---------------------------------------------------
+
+      setProgress(
+        `Finding nutrition information for ${bestPrediction.label}...`
+      );
+
+      let nutritionMatches = [];
+
+      try {
+        // Request the top three nutrition matches.
+        nutritionMatches = await lookupFood(
+          bestPrediction.label,
+          3
+        );
+
+      } catch (lookupError) {
+        console.warn(
+          "Nutrition lookup failed:",
+          lookupError
+        );
+
+        setError(
+          "The food was identified, but nutrition information could not be retrieved. You can enter nutrition manually."
+        );
+      }
+
+      // ---------------------------------------------------
+      //              CREATE FOOD RESULT
+      // ---------------------------------------------------
+
+      // Do not automatically select a nutrition match.
+      // The astronaut must confirm the correct product.
+
+      const foodItem = createFoodResult(
+        bestPrediction.label,
+        {
+          confidence: bestPrediction.score,
+          nutritionMatches,
+          requiresNutritionConfirmation: true,
+        }
+      );
+
+      setResults([foodItem]);
+
+      if (nutritionMatches.length > 0) {
+        setStatus(
+          `SpaceByte identified ${bestPrediction.label}. Review the three nutrition matches and select the correct one.`
+        );
+      } else {
+        setStatus(
+          `SpaceByte identified ${bestPrediction.label}, but no nutrition matches were found. You can enter nutrition manually.`
+        );
+      }
+
+    } catch (err) {
+      console.error(
+        "Food recognition error:",
+        err
+      );
+
+      setError(
+        err.message ||
+        "Unable to analyze this photograph."
+      );
+
+    } finally {
+      setProgress("");
+      setBusy(false);
+    }
+  }
+
+  // =======================================================
+  //              SAVE SELECTED INVENTORY ITEMS
+  // =======================================================
+
+  async function addSelectedToInventory() {
+    setError("");
+    setStatus("");
+
+    // Require a signed-in Firebase user.
+    if (!user) {
+      setError(
+        "Please sign in before adding inventory."
+      );
+      return;
+    }
+
+    // Verify that selected items have names.
+    const hasInvalidName = results.some(
+      (item) =>
+        item.checked &&
+        (!item.name || !item.name.trim())
+    );
+
+    if (hasInvalidName) {
+      setError(
+        "Every selected food must have a name."
+      );
+      return;
+    }
+
+    // Only save checked items.
+    const selectedItems = results.filter(
+      (item) => item.checked
+    );
+
+    if (selectedItems.length === 0) {
+      setError(
+        "Please select at least one food item."
+      );
+      return;
+    }
+
+    // -----------------------------------------------------
+    //           REQUIRE NUTRITION CONFIRMATION
+    // -----------------------------------------------------
+
+    // If nutrition matches exist, the astronaut must
+    // select one before the food can be saved.
+
+    const unconfirmedFood = selectedItems.find(
+      (item) =>
+        item.requiresNutritionConfirmation &&
+        item.nutritionMatches?.length > 0 &&
+        item.selectedNutritionIndex === -1
+    );
+
+    if (unconfirmedFood) {
+      setError(
+        `Please select a nutrition match for ${unconfirmedFood.name} before saving.`
+      );
+      return;
+    }
+
+    // If no database matches exist, manual entry is allowed.
+    setSaving(true);
+
+    let savedCount = 0;
+
+    try {
+      // Retrieve the authenticated Firebase ID token.
       const token = await user.getIdToken();
 
-      // Save each selected food item.
-      //
-      // A separate POST request is sent for each item.
+      // Save each selected item.
       for (const item of selectedItems) {
 
-        // Create the payload using the same field names
-        // expected by your existing Inventory.jsx form.
+        // Create the payload expected by POST /inventory.
         const payload = {
           name: item.name.trim(),
 
           quantity: safeNumber(item.quantity) || 1,
 
-          // Inventory.jsx stores weight as text,
-          // for example "250 g" or "2 kg".
           weight: item.weight || "",
 
-          // Shelf life is optional.
           shelfLife:
             item.shelfLife === "" ||
             item.shelfLife === null
               ? null
               : safeNumber(item.shelfLife),
 
-          // Expiration date is optional.
           expirationDate: item.expirationDate || null,
 
-          // Use the selected inventory category.
           type: ITEM_TYPES.includes(item.type)
             ? item.type
             : "Other",
 
-          // Nutrition values are sent as numbers.
+          // Send nutrition values as numbers.
           calories: safeNumber(item.calories),
           protein: safeNumber(item.protein),
           carbs: safeNumber(item.carbs),
           fat: safeNumber(item.fat),
 
-          // Use the same default threshold as Inventory.jsx.
           lowStockThreshold: 10,
         };
 
-        // Send the authenticated POST request.
+        // Send the authenticated inventory request.
         const response = await apiRequest(
           "/inventory",
           token,
@@ -822,7 +809,7 @@ async function addSelectedToInventory() {
           }
         );
 
-        // Confirm that the backend returned the saved item.
+        // Verify that the backend confirmed the save.
         if (!response || !response.item) {
           throw new Error(
             `The server did not confirm saving ${item.name}.`
@@ -832,17 +819,21 @@ async function addSelectedToInventory() {
         savedCount += 1;
       }
 
-      // Display the successful save count.
+      // Report successful saves.
       setStatus(
         `${savedCount} food item(s) added to your inventory.`
       );
 
-      // Remove saved results from the OCR screen.
+      // Remove successfully saved checked results.
       setResults((currentResults) =>
         currentResults.filter((item) => !item.checked)
       );
+
     } catch (err) {
-      console.error("OCR inventory save error:", err);
+      console.error(
+        "OCR inventory save error:",
+        err
+      );
 
       setError(
         err.message ||
@@ -854,35 +845,39 @@ async function addSelectedToInventory() {
           `${savedCount} item(s) were saved before the error occurred.`
         );
       }
+
     } finally {
       setSaving(false);
     }
   }
 
-// -------------------------------------------------------
-//                    CLEAR THE IMAGE
-// -------------------------------------------------------
+  // =======================================================
+  //                    CLEAR THE IMAGE
+  // =======================================================
 
-function clearImage() {
-  // The photoUrl cleanup effect releases the old URL.
-  setSelectedFile(null);
-  setPhotoUrl("");
+  function clearImage() {
+    setSelectedFile(null);
+    setPhotoUrl("");
 
-  setResults([]);
-  setRawText("");
-  setError("");
-  setStatus("");
-  setProgress("");
-}
+    setResults([]);
+    setRawText("");
 
-  // =========================================================
-  //                       PAGE UI
-  // =========================================================
+    setError("");
+    setStatus("");
+    setProgress("");
+  }
+
+  // =======================================================
+  //                         PAGE UI
+  // =======================================================
 
   return (
     <section className="sb-nutrition-page">
 
-      {/* PAGE HEADER */}
+      {/* ================================================
+          PAGE HEADER
+      ================================================ */}
+
       <header className="sb-nutrition-header">
         <div>
           <h1>OCR Food Capture</h1>
@@ -894,11 +889,15 @@ function clearImage() {
         </div>
       </header>
 
-      {/* SCANNING MODE SELECTOR */}
+      {/* ================================================
+          SCANNING MODE SELECTOR
+      ================================================ */}
+
       <div className="sb-card">
         <h2>Choose a scanning method</h2>
 
         <div className="sb-ocr-mode-buttons">
+
           <button
             type="button"
             onClick={() => {
@@ -907,7 +906,7 @@ function clearImage() {
               setError("");
               setStatus("");
             }}
-            disabled={busy}
+            disabled={busy || saving}
             aria-pressed={mode === "label"}
           >
             Scan Nutrition Label
@@ -921,11 +920,12 @@ function clearImage() {
               setError("");
               setStatus("");
             }}
-            disabled={busy}
+            disabled={busy || saving}
             aria-pressed={mode === "photo"}
           >
             Identify Food Photograph
           </button>
+
         </div>
 
         {mode === "label" ? (
@@ -941,7 +941,10 @@ function clearImage() {
         )}
       </div>
 
-      {/* IMAGE UPLOAD */}
+      {/* ================================================
+          IMAGE UPLOAD
+      ================================================ */}
+
       <div className="sb-card">
         <h2>Upload a photograph</h2>
 
@@ -959,8 +962,10 @@ function clearImage() {
         />
 
         {/* IMAGE PREVIEW */}
+
         {photoUrl && (
           <div className="sb-ocr-preview">
+
             <img
               src={photoUrl}
               alt="Selected food or nutrition label"
@@ -980,10 +985,12 @@ function clearImage() {
             >
               Remove Photograph
             </button>
+
           </div>
         )}
 
         {/* RUN THE SELECTED SCAN */}
+
         <button
           type="button"
           onClick={
@@ -1001,6 +1008,7 @@ function clearImage() {
         </button>
 
         {/* PROGRESS MESSAGE */}
+
         {progress && (
           <p role="status">
             {progress}
@@ -1008,7 +1016,10 @@ function clearImage() {
         )}
       </div>
 
-      {/* ERROR MESSAGE */}
+      {/* ================================================
+          ERROR MESSAGE
+      ================================================ */}
+
       {error && (
         <p
           role="alert"
@@ -1018,7 +1029,10 @@ function clearImage() {
         </p>
       )}
 
-      {/* SUCCESS OR INFORMATION MESSAGE */}
+      {/* ================================================
+          SUCCESS OR INFORMATION MESSAGE
+      ================================================ */}
+
       {status && (
         <p
           role="status"
@@ -1028,9 +1042,13 @@ function clearImage() {
         </p>
       )}
 
-      {/* DETECTED FOOD RESULTS */}
+      {/* ================================================
+          DETECTED FOOD RESULTS
+      ================================================ */}
+
       {results.length > 0 && (
         <div className="sb-card">
+
           <h2>Review detected foods</h2>
 
           <p>
@@ -1039,6 +1057,7 @@ function clearImage() {
           </p>
 
           {results.map((item, index) => (
+
             <div
               key={`${item.name}-${index}`}
               className="sb-ocr-result"
@@ -1049,7 +1068,11 @@ function clearImage() {
                 marginBottom: "16px",
               }}
             >
-              {/* SELECT OR DESELECT THIS FOOD */}
+
+              {/* ========================================
+                  SELECT OR DESELECT FOOD
+              ======================================== */}
+
               <label>
                 <input
                   type="checkbox"
@@ -1064,7 +1087,10 @@ function clearImage() {
                 Add this food to inventory
               </label>
 
-              {/* FOOD NAME */}
+              {/* ========================================
+                  FOOD NAME
+              ======================================== */}
+
               <div>
                 <label>
                   Food name
@@ -1081,7 +1107,10 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* QUANTITY */}
+              {/* ========================================
+                  QUANTITY
+              ======================================== */}
+
               <div>
                 <label>
                   Quantity
@@ -1100,7 +1129,10 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* WEIGHT */}
+              {/* ========================================
+                  WEIGHT
+              ======================================== */}
+
               <div>
                 <label>
                   Weight (example: 250 g)
@@ -1118,7 +1150,10 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* SHELF LIFE */}
+              {/* ========================================
+                  SHELF LIFE
+              ======================================== */}
+
               <div>
                 <label>
                   Shelf life (days)
@@ -1136,7 +1171,10 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* EXPIRATION DATE */}
+              {/* ========================================
+                  EXPIRATION DATE
+              ======================================== */}
+
               <div>
                 <label>
                   Expiration date
@@ -1153,7 +1191,10 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* FOOD CATEGORY */}
+              {/* ========================================
+                  FOOD CATEGORY
+              ======================================== */}
+
               <div>
                 <label>
                   Food category
@@ -1175,8 +1216,150 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* NUTRITION INFORMATION */}
+              {/* ========================================
+                  NUTRITION DATABASE MATCHES
+              ======================================== */}
+
+              {item.nutritionMatches?.length > 0 && (
+
+                <div className="sb-nutrition-matches">
+
+                  <h3>
+                    Choose the correct nutrition match
+                  </h3>
+
+                  <p>
+                    Select the food that most closely matches
+                    the photographed item. Nutrition values
+                    will be filled in automatically.
+                  </p>
+
+                  {/* Display up to three matches. */}
+
+                  {item.nutritionMatches
+                    .slice(0, 3)
+                    .map((match, matchIndex) => (
+
+                      <label
+                        key={`${match.name}-${matchIndex}`}
+                        style={{
+                          display: "block",
+                          border: "1px solid #ccc",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          marginBottom: "10px",
+                          cursor: "pointer",
+                        }}
+                      >
+
+                        {/* Select this nutrition match. */}
+
+                        <input
+                          type="radio"
+                          name={`nutrition-match-${index}`}
+                          checked={
+                            item.selectedNutritionIndex === matchIndex
+                          }
+                          onChange={() => {
+
+                            // Current backend results use per100g.
+                            const nutrition = match.per100g || {};
+
+                            // Fill in the editable nutrition fields.
+                            updateResult(index, {
+                              name: match.name || item.name,
+
+                              calories:
+                                nutrition.calories ?? "",
+
+                              protein:
+                                nutrition.protein ?? "",
+
+                              carbs:
+                                nutrition.carbs ?? "",
+
+                              fat:
+                                nutrition.fat ?? "",
+
+                              selectedNutritionIndex: matchIndex,
+                            });
+                          }}
+                        />
+
+                        {/* Food name and brand. */}
+
+                        <strong>
+                          {match.name}
+                        </strong>
+
+                        {match.brand && (
+                          <span>
+                            {" "}— {match.brand}
+                          </span>
+                        )}
+
+                        {/* Nutrition values per 100 grams. */}
+
+                        <div style={{ marginTop: "8px" }}>
+
+                          <strong>
+                            Nutrition per 100 g
+                          </strong>
+
+                          <p>
+                            Calories:{" "}
+                            {match.per100g?.calories ?? "N/A"} kcal
+                          </p>
+
+                          <p>
+                            Protein:{" "}
+                            {match.per100g?.protein ?? "N/A"} g
+                          </p>
+
+                          <p>
+                            Carbohydrates:{" "}
+                            {match.per100g?.carbs ?? "N/A"} g
+                          </p>
+
+                          <p>
+                            Fat:{" "}
+                            {match.per100g?.fat ?? "N/A"} g
+                          </p>
+
+                        </div>
+
+                      </label>
+                    ))}
+
+                </div>
+              )}
+
+              {/* ========================================
+                  NUTRITION CONFIRMATION WARNING
+              ======================================== */}
+
+              {item.requiresNutritionConfirmation &&
+                item.nutritionMatches?.length > 0 &&
+                item.selectedNutritionIndex === -1 && (
+
+                  <p role="alert">
+                    Please select the correct nutrition match
+                    before saving this food.
+                  </p>
+                )}
+
+              {/* ========================================
+                  MANUAL NUTRITION INFORMATION
+              ======================================== */}
+
               <h3>Nutrition information</h3>
+
+              <p>
+                Values below are editable. Database matches
+                currently provide nutrition per 100 grams.
+              </p>
+
+              {/* CALORIES */}
 
               <div>
                 <label>
@@ -1195,6 +1378,8 @@ function clearImage() {
                 </label>
               </div>
 
+              {/* PROTEIN */}
+
               <div>
                 <label>
                   Protein (g)
@@ -1211,6 +1396,8 @@ function clearImage() {
                   />
                 </label>
               </div>
+
+              {/* CARBOHYDRATES */}
 
               <div>
                 <label>
@@ -1229,6 +1416,8 @@ function clearImage() {
                 </label>
               </div>
 
+              {/* FAT */}
+
               <div>
                 <label>
                   Fat (g)
@@ -1246,17 +1435,24 @@ function clearImage() {
                 </label>
               </div>
 
-              {/* SHOW MODEL CONFIDENCE WHEN AVAILABLE */}
+              {/* ========================================
+                  MODEL CONFIDENCE
+              ======================================== */}
+
               {item.confidence !== null && (
                 <p>
                   Model confidence:{" "}
                   {Math.round(item.confidence * 100)}%
                 </p>
               )}
+
             </div>
           ))}
 
-          {/* SAVE SELECTED FOODS */}
+          {/* ============================================
+              SAVE SELECTED FOODS
+          ============================================ */}
+
           <button
             type="button"
             onClick={addSelectedToInventory}
@@ -1266,12 +1462,17 @@ function clearImage() {
               ? "Adding to Inventory..."
               : "Add Selected Foods to Inventory"}
           </button>
+
         </div>
       )}
 
-      {/* SHOW THE ORIGINAL OCR TEXT */}
+      {/* ================================================
+          ORIGINAL OCR TEXT
+      ================================================ */}
+
       {rawText && (
         <details className="sb-card">
+
           <summary>
             View extracted label text
           </summary>
@@ -1284,18 +1485,25 @@ function clearImage() {
           >
             {rawText}
           </pre>
+
         </details>
       )}
 
-      {/* EXPLANATION */}
+      {/* ================================================
+          EXPLANATION
+      ================================================ */}
+
       <div className="sb-card">
+
         <h2>How SpaceByte scanning works</h2>
 
         <p>
           Scanning results are suggestions. Always verify
           food names and nutrition values before saving.
         </p>
+
       </div>
+
     </section>
   );
 }

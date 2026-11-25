@@ -1,77 +1,82 @@
-// foodLookupService.js
+
+// ===========================================================
+// SPACEBYTE - FOOD LOOKUP SERVICE
+// File: frontend/src/services/foodLookup.js
 //
-// Looks up nutrition facts for a food name using USDA FoodData Central.
-// Needs USDA_API_KEY in backend/.env.
-// All numbers are per 100 grams.
+// PURPOSE:
+// 1. Request food information from the SpaceByte backend.
+// 2. Retrieve results from USDA and FatSecret.
+// 3. Return standardized nutrition information.
+// 4. Preserve provider information and serving sizes.
+// 5. Report provider-specific errors when available.
+//
+// IMPORTANT:
+// API credentials stay in backend/.env.
+// The frontend never communicates directly with USDA
+// or FatSecret.
+// ===========================================================
 
-// Load backend/.env so USDA_API_KEY is available.
-require("dotenv").config();
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-const SEARCH_URL = "https://api.nal.usda.gov/fdc/v1/foods/search";
+// -----------------------------------------------------------
+// SEARCH FOR FOOD
+// -----------------------------------------------------------
 
-function toNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number)
-    ? Math.round(number * 10) / 10
-    : null;
-}
+export async function lookupFood(name, limit = 5) {
 
-// Find one nutrient by its USDA name and unit.
-function findNutrient(food, nutrientName, unit) {
-  const nutrient = (food.foodNutrients || []).find(
-    (item) =>
-      item.nutrientName === nutrientName &&
-      item.unitName === unit
-  );
-
-  return nutrient ? toNumber(nutrient.value) : null;
-}
-
-async function lookupFood(name, limit = 5) {
+  // Validate the food name.
   if (!name || !String(name).trim()) {
     return [];
   }
 
-  const apiKey = process.env.USDA_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("USDA_API_KEY is missing from backend/.env");
-  }
-
+  // Prepare the search parameters.
   const params = new URLSearchParams({
-    api_key: apiKey,
-    query: String(name).trim(),
-    pageSize: "10",
-    // Only plain, generic foods (not branded products).
-    dataType: "Foundation,SR Legacy",
+    name: String(name).trim(),
+    limit: String(limit),
   });
 
-  const response = await fetch(`${SEARCH_URL}?${params}`);
+  // Send the request to the SpaceByte backend.
+  const response = await fetch(
+    `${API_BASE_URL}/food-lookup?${params}`
+  );
 
+  // Handle HTTP errors.
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+
     throw new Error(
-      `USDA returned status ${response.status}`
+      errorData.error ||
+      `Food lookup failed with status ${response.status}`
     );
   }
 
+  // Read the backend response.
   const data = await response.json();
 
-  return (data.foods || []).map((food) => ({
-    name: food.description,
-    brand: food.brandOwner || "",
-    per100g: {
-      calories: findNutrient(food, "Energy", "KCAL"),
-      protein: findNutrient(food, "Protein", "G"),
-      carbs: findNutrient(food, "Carbohydrate, by difference", "G"),
-      fat: findNutrient(food, "Total lipid (fat)", "G"),
-    },
-  }))
-    // Shortest names first, so "Bananas, raw" beats
-    // "Bananas, dehydrated, or banana powder".
-    .sort((a, b) => a.name.length - b.name.length)
-    .slice(0, limit);
-}
+  // The backend returns:
+  // {
+  //   results: [],
+  //   providerErrors: {}
+  // }
 
-module.exports = {
-  lookupFood
-};
+  // Make sure results are always an array.
+  if (!Array.isArray(data.results)) {
+    console.error("Unexpected food lookup response:", data);
+    return [];
+  }
+
+  // Report individual provider failures without discarding
+  // results returned successfully by the other provider.
+  if (
+    data.providerErrors &&
+    Object.keys(data.providerErrors).length > 0
+  ) {
+    console.warn(
+      "Some nutrition providers failed:",
+      data.providerErrors
+    );
+  }
+
+  return data.results;
+}
