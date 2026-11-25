@@ -1,22 +1,32 @@
+
 const express = require("express");
 const { lookupFood } = require("../services/foodLookupService");
 
 const router = express.Router();
 
 // GET /food-lookup?name=banana&limit=5
+
 router.get("/", async (req, res) => {
   try {
     const name = req.query.name;
     const limit = Number(req.query.limit) || 5;
 
-    const results = await lookupFood(name, limit);
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({
+        error: "Please provide a food name."
+      });
+    }
 
-    res.status(200).json({ results });
+    const data = await lookupFood(name, limit);
+
+    res.status(200).json(data);
+
   } catch (error) {
     console.error("Food lookup error:", error);
 
     res.status(500).json({
-      error: "Unable to look up food"
+      error: "Unable to look up food.",
+      details: error.message
     });
   }
 });

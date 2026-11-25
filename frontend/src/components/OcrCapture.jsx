@@ -1,5 +1,3 @@
-
-
 /*
 ===========================================================
  SPACEBYTE - OCR FOOD CAPTURE
@@ -121,8 +119,6 @@ const FOOD_CATEGORIES = [
   "brown rice",
   "quinoa",
   "oatmeal",
-  "grits",
-  "cream of wheat",
   "pasta",
   "spaghetti",
   "macaroni",
@@ -157,7 +153,6 @@ const FOOD_CATEGORIES = [
   // Dairy and eggs
   "whole eggs",
   "boiled eggs",
-  "egg whites",
   "cheese",
   "milk",
   "yogurt",
