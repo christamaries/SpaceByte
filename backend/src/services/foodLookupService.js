@@ -14,10 +14,7 @@
 // API credentials stay in backend/.env.
 // The frontend never communicates directly with USDA
 // or FatSecret.
-// ===========================================================
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5001";
+// =======================================================  import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 // -----------------------------------------------------------
 // SEARCH FOR FOOD
